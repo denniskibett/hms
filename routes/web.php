@@ -18,10 +18,13 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/index', function () {
         return view('index');
-    })->name('404');
+    })->name('index');    
+    Route::get('/invoice', function () {
+        return view('invoice');
+    })->name('invoice');
     Route::get('/profile', function () {
         return view('profile');
-    })->name('404');
+    })->name('profile');
     Route::get('/404', function () {
         return view('404');
     })->name('404');
