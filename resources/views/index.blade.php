@@ -9,11 +9,11 @@
                 @include('partials.chart.chart-01')
             </div>
 
+
             <!-- Right Side -->
             <div class="col-span-12 xl:col-span-5">
                 @include('partials.chart.chart-02')
             </div>
-
             <div class="col-span-12">
                 @include('partials.chart.chart-03')
             </div>
@@ -24,6 +24,19 @@
 
             <div class="col-span-12 xl:col-span-7">
                 @include('partials.table.table-01')
+            </div>
+
+            <div class="col-span-12">
+                @include('partials.media-card')
+            </div>
+            <div class="col-span-12">
+                @include('partials.top-card-group')
+            </div>
+            <div class="col-span-12">
+                @include('partials.watchlist')
+            </div>
+            <div class="col-span-12">
+                @include('partials.upcoming-schedule')
             </div>
         </div>
     </div>
