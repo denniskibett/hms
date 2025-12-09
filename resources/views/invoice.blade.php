@@ -1,319 +1,335 @@
 @extends('layouts.app')
 
-@section('content')<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice - TailAdmin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#4f46e5',
-                        'primary-dark': '#4338ca',
-                        secondary: '#64748b',
-                        success: '#10b981',
-                        warning: '#f59e0b',
-                        danger: '#ef4444',
-                        dark: {
-                            50: '#f9fafb',
-                            100: '#f3f4f6',
-                            200: '#e5e7eb',
-                            300: '#d1d5db',
-                            400: '#9ca3af',
-                            500: '#6b7280',
-                            600: '#4b5563',
-                            700: '#374151',
-                            800: '#1f2937',
-                            900: '#111827',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f9fafb;
-            color: #1f2937;
-        }
-        
-        .dark body {
-            background-color: #111827;
-            color: #f3f4f6;
-        }
-        
-        .invoice-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .invoice-header {
-            background: linear-gradient(90deg, #4f46e5, #818cf8);
-        }
-        
-        .invoice-table th {
-            background-color: #f3f4f6;
-        }
-        
-        .dark .invoice-table th {
-            background-color: #1f2937;
-        }
-        
-        .invoice-table tr:nth-child(even) {
-            background-color: #f9fafb;
-        }
-        
-        .dark .invoice-table tr:nth-child(even) {
-            background-color: #111827;
-        }
-        
-        .total-section {
-            background-color: #f9fafb;
-        }
-        
-        .dark .total-section {
-            background-color: #1f2937;
-        }
-        
-        .btn-primary {
-            background-color: #4f46e5;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary:hover {
-            background-color: #4338ca;
-        }
-        
-        .print-only {
-            display: none;
-        }
-        
-        @media print {
-            .print-only {
-                display: block;
-            }
-            .no-print {
-                display: none;
-            }
-        }
-    </style>
-</head>
-<body class="dark:bg-gray-900">
-    <div class="min-h-screen">
-        <!-- Breadcrumb -->
-        <div class="mx-auto max-w-screen-2xl px-4 py-4 md:px-6 md:py-6">
-            <nav class="flex" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li class="inline-flex items-center">
-                        <a href="#" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-400 dark:hover:text-white">
-                            <i class="fas fa-home mr-2"></i>
-                            Home
-                        </a>
-                    </li>
-                    <li aria-current="page">
-                        <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                            <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">Invoice</span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
+@section('content')
+<div class="flex h-full flex-col gap-6 sm:gap-5 xl:flex-row">
+    <!-- Invoice Sidebar Start -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] xl:w-1/5">
+        <div class="relative mb-5 w-full">
+            <form>
+                <div class="relative">
+                    <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
+                        <svg class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.04199 9.37381C3.04199 5.87712 5.87735 3.04218 9.37533 3.04218C12.8733 3.04218 15.7087 5.87712 15.7087 9.37381C15.7087 12.8705 12.8733 15.7055 9.37533 15.7055C5.87735 15.7055 3.04199 12.8705 3.04199 9.37381ZM9.37533 1.54218C5.04926 1.54218 1.54199 5.04835 1.54199 9.37381C1.54199 13.6993 5.04926 17.2055 9.37533 17.2055C11.2676 17.2055 13.0032 16.5346 14.3572 15.4178L17.1773 18.2381C17.4702 18.531 17.945 18.5311 18.2379 18.2382C18.5308 17.9453 18.5309 17.4704 18.238 17.1775L15.4182 14.3575C16.5367 13.0035 17.2087 11.2671 17.2087 9.37381C17.2087 5.04835 13.7014 1.54218 9.37533 1.54218Z" fill=""/>
+                        </svg>
+                    </span>
+                    <input type="text" placeholder="Search Invoice..." class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-3 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800">
+                </div>
+            </form>
         </div>
 
-        <!-- Main Content -->
-        <main>
-            <div class="invoice-container rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-gray-800 xl:px-10 xl:py-12">
-                <!-- Invoice Header -->
-                <div class="invoice-header flex flex-col justify-between rounded-lg p-6 text-white md:flex-row">
-                    <div class="mb-6 md:mb-0">
-                        <div class="mb-2 flex items-center">
-                            <div class="mr-3 h-10 w-10 rounded-lg bg-white p-2">
-                                <div class="h-6 w-6 rounded bg-primary"></div>
-                            </div>
-                            <h1 class="text-xl font-bold">TailAdmin</h1>
-                        </div>
-                        <p class="text-white/80">Office: 149, 450 South Brand Brooklyn</p>
-                        <p class="text-white/80">New York, United States of America</p>
-                    </div>
-                    
-                    <div class="text-right">
-                        <h2 class="mb-2 text-2xl font-bold">INVOICE</h2>
-                        <p class="mb-1 text-white/80">#INV-0032</p>
-                        <p class="text-white/80">Date: Jan 27, 2025</p>
-                    </div>
+        <div class="space-y-1">
+            <div class="flex cursor-pointer items-center gap-3 rounded-lg bg-gray-100 p-2 hover:bg-gray-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.03]">
+                <div class="h-12 w-12 overflow-hidden rounded-full">
+                    <img src="{{ asset('src/images/user/user-19.jpg') }}" alt="user">
                 </div>
-                
-                <!-- Bill To / Ship To -->
-                <div class="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
-                    <div>
-                        <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-white">Bill To:</h3>
-                        <p class="font-medium">David Peterson</p>
-                        <p class="text-gray-600 dark:text-gray-300">299, The Mountain</p>
-                        <p class="text-gray-600 dark:text-gray-300">Los Angeles, CA, 94111</p>
-                        <p class="mt-2 text-gray-600 dark:text-gray-300">Email: david@company.com</p>
-                        <p class="text-gray-600 dark:text-gray-300">Phone: +1 (123) 456 789</p>
-                    </div>
-                    
-                    <div>
-                        <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-white">Ship To:</h3>
-                        <p class="font-medium">David Peterson</p>
-                        <p class="text-gray-600 dark:text-gray-300">365, The Mountain</p>
-                        <p class="text-gray-600 dark:text-gray-300">Los Angeles, CA, 94111</p>
-                        <p class="mt-2 text-gray-600 dark:text-gray-300">Email: david@company.com</p>
-                        <p class="text-gray-600 dark:text-gray-300">Phone: +1 (123) 456 789</p>
-                    </div>
-                </div>
-                
-                <!-- Invoice Table -->
-                <div class="mt-8 overflow-x-auto">
-                    <table class="invoice-table w-full border-collapse">
-                        <thead>
-                            <tr>
-                                <th class="border-b px-4 py-3 text-left font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-300">Item</th>
-                                <th class="border-b px-4 py-3 text-right font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-300">Price</th>
-                                <th class="border-b px-4 py-3 text-right font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-300">Qty</th>
-                                <th class="border-b px-4 py-3 text-right font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-300">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="border-b px-4 py-3 dark:border-gray-700">
-                                    <p class="font-medium">Premium Support</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">24/7 technical support</p>
-                                </td>
-                                <td class="border-b px-4 py-3 text-right dark:border-gray-700">$9.00</td>
-                                <td class="border-b px-4 py-3 text-right dark:border-gray-700">2</td>
-                                <td class="border-b px-4 py-3 text-right font-medium dark:border-gray-700">$18.00</td>
-                            </tr>
-                            <tr>
-                                <td class="border-b px-4 py-3 dark:border-gray-700">
-                                    <p class="font-medium">Design Customization</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">UI/UX design services</p>
-                                </td>
-                                <td class="border-b px-4 py-3 text-right dark:border-gray-700">$150.00</td>
-                                <td class="border-b px-4 py-3 text-right dark:border-gray-700">1</td>
-                                <td class="border-b px-4 py-3 text-right font-medium dark:border-gray-700">$150.00</td>
-                            </tr>
-                            <tr>
-                                <td class="border-b px-4 py-3 dark:border-gray-700">
-                                    <p class="font-medium">Web Development</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Custom web application</p>
-                                </td>
-                                <td class="border-b px-4 py-3 text-right dark:border-gray-700">$500.00</td>
-                                <td class="border-b px-4 py-3 text-right dark:border-gray-700">1</td>
-                                <td class="border-b px-4 py-3 text-right font-medium dark:border-gray-700">$500.00</td>
-                            </tr>
-                            <tr>
-                                <td class="border-b px-4 py-3 dark:border-gray-700">
-                                    <p class="font-medium">SEO Optimization</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Search engine optimization</p>
-                                </td>
-                                <td class="border-b px-4 py-3 text-right dark:border-gray-700">$200.00</td>
-                                <td class="border-b px-4 py-3 text-right dark:border-gray-700">1</td>
-                                <td class="border-b px-4 py-3 text-right font-medium dark:border-gray-700">$200.00</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Notes and Total -->
-                <div class="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
-                    <div>
-                        <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-white">Notes:</h3>
-                        <p class="text-gray-600 dark:text-gray-300">Thank you for your business. Please make sure to check our updates and new features.</p>
-                        
-                        <div class="mt-6">
-                            <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-white">Payment Terms:</h3>
-                            <p class="text-gray-600 dark:text-gray-300">Please pay within 15 days. Thank you!</p>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="total-section rounded-lg border border-gray-200 p-6 dark:border-gray-700">
-                            <div class="flex justify-between py-2">
-                                <span class="text-gray-600 dark:text-gray-300">Subtotal:</span>
-                                <span class="font-medium">$868.00</span>
-                            </div>
-                            <div class="flex justify-between py-2">
-                                <span class="text-gray-600 dark:text-gray-300">Discount (10%):</span>
-                                <span class="font-medium">-$86.80</span>
-                            </div>
-                            <div class="flex justify-between py-2">
-                                <span class="text-gray-600 dark:text-gray-300">Tax (8%):</span>
-                                <span class="font-medium">$62.50</span>
-                            </div>
-                            <div class="mt-3 flex justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
-                                <span class="text-lg font-semibold">Total:</span>
-                                <span class="text-lg font-semibold text-primary">$843.70</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Payment Info -->
-                <div class="mt-8 rounded-lg border border-gray-200 p-6 dark:border-gray-700">
-                    <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Payment Information:</h3>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div>
-                            <p class="text-gray-600 dark:text-gray-300">Account No:</p>
-                            <p class="font-medium">1234567890</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-600 dark:text-gray-300">Account Name:</p>
-                            <p class="font-medium">TailAdmin LLC</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-600 dark:text-gray-300">Bank Name:</p>
-                            <p class="font-medium">Bank of America</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-600 dark:text-gray-300">SWIFT Code:</p>
-                            <p class="font-medium">BOFAUS3N</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Footer -->
-                <div class="mt-10 flex flex-col justify-between border-t border-gray-200 pt-6 dark:border-gray-700 sm:flex-row">
-                    <div class="mb-4 sm:mb-0">
-                        <h4 class="font-semibold text-gray-800 dark:text-white">Terms & Conditions</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Payment is due within 15 days</p>
-                    </div>
-                    <div class="flex space-x-4">
-                        <button class="btn-primary flex items-center rounded-lg px-4 py-2.5 font-medium text-white no-print">
-                            <i class="fas fa-print mr-2"></i> Print Invoice
-                        </button>
-                        <button class="flex items-center rounded-lg border border-gray-300 px-4 py-2.5 font-medium text-gray-700 dark:border-gray-600 dark:text-gray-300 no-print">
-                            <i class="fas fa-download mr-2"></i> Download
-                        </button>
-                    </div>
+
+                <div>
+                    <span class="mb-0.5 block text-sm font-medium text-gray-800 dark:text-white/90">
+                        Zain Geidt
+                    </span>
+                    <span class="block text-theme-xs text-gray-500 dark:text-gray-400">
+                        ID: #348
+                    </span>
                 </div>
             </div>
-        </main>
-    </div>
-    
-    <!-- Print Message (Only visible when printing) -->
-    <div class="print-only fixed inset-0 flex items-center justify-center bg-white p-10 text-center">
-        <div>
-            <div class="mb-4 flex justify-center">
-                <div class="flex items-center">
-                    <div class="mr-3 h-10 w-10 rounded-lg bg-primary p-2">
-                        <div class="h-6 w-6 rounded bg-white"></div>
-                    </div>
-                    <h1 class="text-xl font-bold text-gray-900">TailAdmin</h1>
+
+            <div class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-white/[0.03]">
+                <div class="h-12 w-12 overflow-hidden rounded-full">
+                    <img src="{{ asset('src/images/user/user-17.jpg') }}" alt="user">
+                </div>
+
+                <div>
+                    <span class="mb-0.5 block text-sm font-medium text-gray-800 dark:text-white/90">
+                        Carla George
+                    </span>
+                    <span class="block text-theme-xs text-gray-500 dark:text-gray-400">
+                        ID: #982
+                    </span>
                 </div>
             </div>
-            <h1 class="text-3xl font-bold text-gray-900">Thank You For Your Business!</h1>
-            <p class="mt-4 text-lg text-gray-700">Invoice #INV-0032 has been processed successfully.</p>
-            <p class="mt-2 text-gray-700">Amount Paid: <span class="font-semibold">$843.70</span></p>
+
+            <div class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-white/[0.03]">
+                <div class="h-12 w-12 overflow-hidden rounded-full">
+                    <img src="{{ asset('src/images/user/user-20.jpg') }}" alt="user">
+                </div>
+
+                <div>
+                    <span class="mb-0.5 block text-sm font-medium text-gray-800 dark:text-white/90">
+                        Abram Schleifer
+                    </span>
+                    <span class="block text-theme-xs text-gray-500 dark:text-gray-400">
+                        ID: #289
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-white/[0.03]">
+                <div class="h-12 w-12 overflow-hidden rounded-full">
+                    <img src="{{ asset('src/images/user/user-34.jpg') }}" alt="user">
+                </div>
+
+                <div>
+                    <span class="mb-0.5 block text-sm font-medium text-gray-800 dark:text-white/90">
+                        Lincoln Donin
+                    </span>
+                    <span class="block text-theme-xs text-gray-500 dark:text-gray-400">
+                        ID: #522
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
+    <!-- Invoice Sidebar End -->
+
+    <!-- Invoice Mainbox Start -->
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] xl:w-4/5">
+        <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+            <h3 class="text-theme-xl font-medium text-gray-800 dark:text-white/90">
+                Invoice
+            </h3>
+
+            <h4 class="text-base font-medium text-gray-700 dark:text-gray-400">
+                ID : #348
+            </h4>
+        </div>
+
+        <div class="p-5 xl:p-8">
+            <div class="mb-9 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <span class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        From
+                    </span>
+
+                    <h5 class="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">
+                        Zain Geidt
+                    </h5>
+
+                    <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                        1280, Clair Street, <br />
+                        Massachusetts, New York - 02543
+                    </p>
+
+                    <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Issued On:
+                    </span>
+
+                    <span class="block text-sm text-gray-500 dark:text-gray-400">
+                        11 March, 2027
+                    </span>
+                </div>
+
+                <div class="h-px w-full bg-gray-200 dark:bg-gray-800 sm:h-[158px] sm:w-px"></div>
+
+                <div class="sm:text-right">
+                    <span class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        To
+                    </span>
+
+                    <h5 class="mb-2 text-base font-semibold text-gray-800 dark:text-white/90">
+                        Albert Ward
+                    </h5>
+
+                    <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                        355, Shobe Lane <br />
+                        Colorado, Fort Collins - 80543
+                    </p>
+
+                    <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Due On:
+                    </span>
+
+                    <span class="block text-sm text-gray-500 dark:text-gray-400">
+                        16 March, 2027
+                    </span>
+                </div>
+            </div>
+
+            <!-- Invoice Table Start -->
+            <div class="mb-6 overflow-hidden rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+                <div class="max-w-full overflow-x-auto">
+                    <div class="min-w-[1026px]">
+                        <!-- table header start -->
+                        <div class="grid grid-cols-11 px-5 py-3">
+                            <div class="col-span-2 flex items-center">
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-400">#</p>
+                            </div>
+                            <div class="col-span-3 flex items-center">
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-400">
+                                    Product
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-400">
+                                    Quantity
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-400">
+                                    Unit Cost
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center">
+                                <p class="w-full text-right text-sm font-medium text-gray-700 dark:text-gray-400">
+                                    Total
+                                </p>
+                            </div>
+                        </div>
+                        <!-- table header end -->
+
+                        <!-- table body start -->
+                        <!-- table item -->
+                        <div class="grid grid-cols-11 border-t border-gray-100 px-5 py-3.5 dark:border-gray-800">
+                            <div class="col-span-2 flex items-center">
+                                <p class="text-theme-sm text-gray-500 dark:text-gray-400">1</p>
+                            </div>
+                            <div class="col-span-3 flex items-center">
+                                <p class="text-theme-sm text-gray-500 dark:text-gray-400">
+                                    TailGrids
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-center text-theme-sm text-gray-500 dark:text-gray-400">
+                                    1
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-center text-theme-sm text-gray-500 dark:text-gray-400">
+                                    $48
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-end">
+                                <p class="text-right text-theme-sm text-gray-500 dark:text-gray-400">
+                                    $48
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- table item -->
+                        <div class="grid grid-cols-11 border-t border-gray-100 px-5 py-3.5 dark:border-gray-800">
+                            <div class="col-span-2 flex items-center">
+                                <p class="text-theme-sm text-gray-500 dark:text-gray-400">2</p>
+                            </div>
+                            <div class="col-span-3 flex items-center">
+                                <p class="text-theme-sm text-gray-500 dark:text-gray-400">
+                                    GrayGrids
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-center text-theme-sm text-gray-500 dark:text-gray-400">
+                                    4
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-center text-theme-sm text-gray-500 dark:text-gray-400">
+                                    $300
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-end">
+                                <p class="text-right text-theme-sm text-gray-500 dark:text-gray-400">
+                                    $1200
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- table item -->
+                        <div class="grid grid-cols-11 border-t border-gray-100 px-5 py-3.5 dark:border-gray-800">
+                            <div class="col-span-2 flex items-center">
+                                <p class="text-theme-sm text-gray-500 dark:text-gray-400">3</p>
+                            </div>
+                            <div class="col-span-3 flex items-center">
+                                <p class="text-theme-sm text-gray-500 dark:text-gray-400">Uideck</p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-center text-theme-sm text-gray-500 dark:text-gray-400">
+                                    2
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-center text-theme-sm text-gray-500 dark:text-gray-400">
+                                    $800
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-end">
+                                <p class="text-right text-theme-sm text-gray-500 dark:text-gray-400">
+                                    $1600
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- table item -->
+                        <div class="grid grid-cols-11 border-t border-gray-100 px-5 py-3.5 dark:border-gray-800">
+                            <div class="col-span-2 flex items-center">
+                                <p class="text-theme-sm text-gray-500 dark:text-gray-400">4</p>
+                            </div>
+                            <div class="col-span-3 flex items-center">
+                                <p class="text-theme-sm text-gray-500 dark:text-gray-400">FormBold</p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-center text-theme-sm text-gray-500 dark:text-gray-400">
+                                    2
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-center">
+                                <p class="text-center text-theme-sm text-gray-500 dark:text-gray-400">
+                                    $125
+                                </p>
+                            </div>
+                            <div class="col-span-2 flex items-center justify-end">
+                                <p class="text-right text-theme-sm text-gray-500 dark:text-gray-400">
+                                    $250
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- table body end -->
+                    </div>
+                </div>
+            </div>
+            <!-- Invoice Table End -->
+
+            <div class="my-6 border-b border-gray-100 pb-6 dark:border-gray-800">
+                <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                    Sub Total amount: $3,098
+                </p>
+                <p class="mb-3 text-sm text-gray-500 dark:text-gray-400">
+                    Vat (10%): $312
+                </p>
+
+                <p class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                    Total : $3,410
+                </p>
+            </div>
+
+            <div class="flex items-center justify-end gap-3">
+                <button
+                    class="flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
+                >
+                    Proceed to payment
+                </button>
+
+                <button
+                    class="flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600"
+                >
+                    <svg
+                        class="fill-current"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M6.99578 4.08398C6.58156 4.08398 6.24578 4.41977 6.24578 4.83398V6.36733H13.7542V5.62451C13.7542 5.42154 13.672 5.22724 13.5262 5.08598L12.7107 4.29545C12.5707 4.15983 12.3835 4.08398 12.1887 4.08398H6.99578ZM15.2542 6.36902V5.62451C15.2542 5.01561 15.0074 4.43271 14.5702 4.00891L13.7547 3.21839C13.3349 2.81151 12.7733 2.58398 12.1887 2.58398H6.99578C5.75314 2.58398 4.74578 3.59134 4.74578 4.83398V6.36902C3.54391 6.41522 2.58374 7.40415 2.58374 8.61733V11.3827C2.58374 12.5959 3.54382 13.5848 4.74561 13.631V15.1665C4.74561 16.4091 5.75297 17.4165 6.99561 17.4165H13.0041C14.2467 17.4165 15.2541 16.4091 15.2541 15.1665V13.6311C16.456 13.585 17.4163 12.596 17.4163 11.3827V8.61733C17.4163 7.40414 16.4561 6.41521 15.2542 6.36902ZM4.74561 11.6217V12.1276C4.37292 12.084 4.08374 11.7671 4.08374 11.3827V8.61733C4.08374 8.20312 4.41953 7.86733 4.83374 7.86733H15.1663C15.5805 7.86733 15.9163 8.20312 15.9163 8.61733V11.3827C15.9163 11.7673 15.6269 12.0842 15.2541 12.1277V11.6217C15.2541 11.2075 14.9183 10.8717 14.5041 10.8717H5.49561C5.08139 10.8717 4.74561 11.2075 4.74561 11.6217ZM6.24561 12.3717V15.1665C6.24561 15.5807 6.58139 15.9165 6.99561 15.9165H13.0041C13.4183 15.9165 13.7541 15.5807 13.7541 15.1665V12.3717H6.24561Z"
+                            fill=""
+                        />
+                    </svg>
+                    Print
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Invoice Mainbox End -->
+</div>
 @endsection

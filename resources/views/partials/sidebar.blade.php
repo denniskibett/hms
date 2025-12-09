@@ -9,10 +9,10 @@
   >
     <a href="index">
       <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-        <img class="dark:hidden" src="./images/logo/logo.svg" alt="Logo" />
+        <img class="dark:hidden" src="{{ SystemHelper::logoUrl() ?? './images/logo/logo.svg' }}" alt="Logo" />
         <img
           class="hidden dark:block"
-          src="./images/logo/logo-dark.svg"
+          src="{{ SystemHelper::logoUrl(true) ?? './images/logo/logo-dark.svg' }}"
           alt="Logo"
         />
       </span>
@@ -20,8 +20,8 @@
       <img
         class="logo-icon"
         :class="sidebarToggle ? 'lg:block' : 'hidden'"
-        src="./images/logo/logo-icon.svg"
-        alt="Logo"
+        src="{{ SystemHelper::logoUrl(true) ?? './images/logo/logo-icon.svg' }}"
+        alt="{{ SystemHelper::appName(); }} Logo"
       />
     </a>
   </div>
@@ -64,13 +64,13 @@
           <!-- Menu Item Dashboard -->
           <li>
             <a
-              href="#"
-              @click.prevent="selected = (selected === 'Dashboard' ? '':'Dashboard')"
+              href="dashboard"
+              @click="selected = (selected === 'Dashboard' ? '':'Dashboard')"
               class="menu-item group"
-              :class=" (selected === 'Dashboard') || (page === 'ecommerce' || page === 'analytics' || page === 'marketing' || page === 'crm' || page === 'stocks') ? 'menu-item-active' : 'menu-item-inactive'"
+              :class="(selected === 'Dashboard') && (page === 'dashboard') ? 'menu-item-active' : 'menu-item-inactive'"
             >
               <svg
-                :class="(selected === 'Dashboard') || (page === 'ecommerce' || page === 'analytics' || page === 'marketing' || page === 'crm' || page === 'stocks') ? 'menu-item-icon-active'  :'menu-item-icon-inactive'"
+                :class="(selected === 'Dashboard') && (page === 'dashboard') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
                 width="24"
                 height="24"
                 viewBox="0 0 24 24"
@@ -91,49 +91,10 @@
               >
                 Dashboard
               </span>
-
-              <svg
-                class="menu-item-arrow"
-                :class="[(selected === 'Dashboard') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585"
-                  stroke=""
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
             </a>
-
-            <!-- Dropdown Menu Start -->
-            <div
-              class="overflow-hidden transform translate"
-              :class="(selected === 'Dashboard') ? 'block' :'hidden'"
-            >
-              <ul
-                :class="sidebarToggle ? 'lg:hidden' : 'flex'"
-                class="flex flex-col gap-1 mt-2 menu-dropdown pl-9"
-              >
-                <li>
-                  <a
-                    href="index"
-                    class="menu-dropdown-item group"
-                    :class="page === 'ecommerce' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
-                  >
-                    eCommerce
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <!-- Dropdown Menu End -->
           </li>
           <!-- Menu Item Dashboard -->
+
 
           <!-- Menu Item Calendar -->
           <li>
@@ -667,113 +628,10 @@
           </li>
           <!-- Menu Item Ui Elements -->
 
-          <!-- Menu Item Authentication -->
-          <li>
-            <a
-              href="#"
-              @click.prevent="selected = (selected === 'Authentication' ? '':'Authentication')"
-              class="menu-item group"
-              :class="(selected === 'Authentication') || (page === 'basicChart' || page === 'advancedChart') ? 'menu-item-active' : 'menu-item-inactive'"
-            >
-              <svg
-                :class="(selected === 'Authentication') || (page === 'basicChart' || page === 'advancedChart') ? 'menu-item-icon-active'  :'menu-item-icon-inactive'"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M14 2.75C14 2.33579 14.3358 2 14.75 2C15.1642 2 15.5 2.33579 15.5 2.75V5.73291L17.75 5.73291H19C19.4142 5.73291 19.75 6.0687 19.75 6.48291C19.75 6.89712 19.4142 7.23291 19 7.23291H18.5L18.5 12.2329C18.5 15.5691 15.9866 18.3183 12.75 18.6901V21.25C12.75 21.6642 12.4142 22 12 22C11.5858 22 11.25 21.6642 11.25 21.25V18.6901C8.01342 18.3183 5.5 15.5691 5.5 12.2329L5.5 7.23291H5C4.58579 7.23291 4.25 6.89712 4.25 6.48291C4.25 6.0687 4.58579 5.73291 5 5.73291L6.25 5.73291L8.5 5.73291L8.5 2.75C8.5 2.33579 8.83579 2 9.25 2C9.66421 2 10 2.33579 10 2.75L10 5.73291L14 5.73291V2.75ZM7 7.23291L7 12.2329C7 14.9943 9.23858 17.2329 12 17.2329C14.7614 17.2329 17 14.9943 17 12.2329L17 7.23291L7 7.23291Z"
-                  fill=""
-                />
-              </svg>
-
-              <span
-                class="menu-item-text"
-                :class="sidebarToggle ? 'lg:hidden' : ''"
-              >
-                Authentication
-              </span>
-
-              <svg
-                class="menu-item-arrow absolute right-2.5 top-1/2 -translate-y-1/2 stroke-current"
-                :class="[(selected === 'Authentication') ? 'menu-item-arrow-active' : 'menu-item-arrow-inactive', sidebarToggle ? 'lg:hidden' : '' ]"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M4.79175 7.39584L10.0001 12.6042L15.2084 7.39585"
-                  stroke=""
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </a>
-
-            <!-- Dropdown Menu Start -->
-            <div
-              class="overflow-hidden transform translate"
-              :class="(selected === 'Authentication') ? 'block' :'hidden'"
-            >
-              <ul
-                :class="sidebarToggle ? 'lg:hidden' : 'flex'"
-                class="flex flex-col gap-1 mt-2 menu-dropdown pl-9"
-              >
-                <li>
-                  <a
-                    href="signin"
-                    class="menu-dropdown-item group"
-                    :class="page === 'signin' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
-                  >
-                    Sign In
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="signup"
-                    class="menu-dropdown-item group"
-                    :class="page === 'signup' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
-                  >
-                    Sign Up
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <!-- Dropdown Menu End -->
-          </li>
-          <!-- Menu Item Authentication -->
         </ul>
       </div>
     </nav>
     <!-- Sidebar Menu -->
 
-    <!-- Promo Box -->
-    <div
-      :class="sidebarToggle ? 'lg:hidden' : ''"
-      class="mx-auto mb-10 w-full max-w-60 rounded-2xl bg-gray-50 px-4 py-5 text-center dark:bg-white/[0.03]"
-    >
-      <h3 class="mb-2 font-semibold text-gray-900 dark:text-white">
-        #1 Tailwind CSS Dashboard
-      </h3>
-      <p class="mb-4 text-gray-500 text-theme-sm dark:text-gray-400">
-        Leading Tailwind CSS Admin Template with 400+ UI Component and Pages.
-      </p>
-      <a
-        href="https://tailadmin.com/pricing"
-        target="_blank"
-        rel="nofollow"
-        class="flex items-center justify-center p-3 font-medium text-white rounded-lg bg-brand-500 text-theme-sm hover:bg-brand-600"
-      >
-        Purchase Plan
-      </a>
-    </div>
-    <!-- Promo Box -->
   </div>
 </aside>

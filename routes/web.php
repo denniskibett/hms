@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\SystemController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -79,6 +80,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/dash', function () {
         return view('dash');
     })->name('dash');
-});
 
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.delete-avatar');
+    Route::put('/profile/address', [ProfileController::class, 'updateAddress'])->name('profile.address.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/data', [ProfileController::class, 'getUserData'])->name('profile.data');
+
+    // System Settings
+    Route::prefix('system')->name('system.')->group(function () {
+        Route::get('/', [SystemController::class, 'index'])->name('index');
+        Route::put('/update', [SystemController::class, 'update'])->name('update');
+        Route::get('/clear-cache', [SystemController::class, 'clearCache'])->name('clear-cache');
+        Route::get('/backup', [SystemController::class, 'backupDatabase'])->name('backup');
+        Route::post('/toggle-maintenance', [SystemController::class, 'toggleMaintenance'])->name('toggle-maintenance');
+        Route::post('/debug', [SystemController::class, 'debug'])->name('debug');
+    });
+});
 require __DIR__.'/auth.php';

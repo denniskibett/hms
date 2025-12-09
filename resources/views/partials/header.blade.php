@@ -609,10 +609,17 @@
           @click.prevent="dropdownOpen = ! dropdownOpen"
         >
           <span class="mr-3 h-11 w-11 overflow-hidden rounded-full">
-            <img src="./images/user/user-01.jpg" alt="User" />
+            <img 
+              src="{{ auth()->user()?->avatar 
+                  ? asset('storage/' . auth()->user()->avatar) 
+                  : asset('images/default-avatar.png') 
+              }}" 
+              alt="User" 
+            />
+
           </span>
 
-          <span class="mr-1 block text-theme-sm font-medium">
+          <span class="mr-1 block text-theme-sm font-medium"> 
             {{ Auth::user()->name }}
           </span>
 
@@ -658,7 +665,7 @@
           >
             <li>
               <a
-                href="profile.html"
+                href="{{ route('profile.edit') }}"
                 class="group flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
                 <svg
@@ -681,7 +688,7 @@
             </li>
             <li>
               <a
-                href="messages.html"
+                href="{{ route('profile.show') }}"
                 class="group flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
                 <svg
@@ -704,7 +711,7 @@
             </li>
             <li>
               <a
-                href="settings.html"
+                href="{{ route('system.index') }}"
                 class="group flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
                 <svg
