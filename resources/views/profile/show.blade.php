@@ -106,7 +106,7 @@
                 </div>
                 <button @click="openModal('personalInfoModal')"
                         class="mt-4 flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 lg:inline-flex lg:w-auto">
-                    <i class="fas fa-edit"></i> Edit Profile
+                    <i class="fas fa-edit"></i> Edit
                 </button>
             </div>
         </div>

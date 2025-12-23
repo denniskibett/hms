@@ -129,9 +129,21 @@ class SystemHelper
             : asset('images/logo/logo.svg');
     }
 
-    /**
-     * Get favicon URL
-     */
+    public static function authLogoUrl()
+    {
+        $logo = self::get('logo');
+        
+        if ($logo) {
+            try {
+                return asset('storage/' . $logo);
+            } catch (\Exception $e) {
+                // Fallback to default
+            }
+        }
+        
+        return asset('images/logo/auth-logo.svg');
+    }
+
     public static function faviconUrl()
     {
         $favicon = self::get('favicon');
@@ -304,4 +316,18 @@ class SystemHelper
     {
         return self::get('custom_js');
     }
+
+    public static function googleAnalyticsId()
+    {
+        // return your GA ID or leave null
+        return config('services.google.analytics_id');
+    }
+
+    public static function twoFactorAuthEnabled()
+    {
+        $settings = System::settings()->settings ?? [];
+
+        return $settings['security']['two_factor_auth'] ?? false;
+    }
+
 }

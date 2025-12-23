@@ -15,6 +15,7 @@ class SystemController extends Controller
     {
         $appName = SystemHelper::appName();
         $logoUrl = SystemHelper::logoUrl();
+        $authLogoUrl = SystemHelper::authLogoUrl();
         $slogan = SystemHelper::slogan();
         $primaryColor = SystemHelper::primaryColor();
         $system = System::settings();
@@ -27,7 +28,7 @@ class SystemController extends Controller
             'CAD' => 'Canadian Dollar (C$)',
         ];
 
-        return view('admin.system.simple', compact('system', 'timezones', 'currencies', 'appName', 'logoUrl', 'primaryColor'));
+        return view('admin.system.simple', compact('system', 'timezones', 'currencies', 'appName', 'logoUrl', 'authLogoUrl', 'slogan', 'primaryColor'));
     }
 
     public function update(Request $request)

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\SystemController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\GoogleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -98,5 +99,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/toggle-maintenance', [SystemController::class, 'toggleMaintenance'])->name('toggle-maintenance');
         Route::post('/debug', [SystemController::class, 'debug'])->name('debug');
     });
+    
 });
+
+
+Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('login.google');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+
 require __DIR__.'/auth.php';

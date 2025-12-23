@@ -7,7 +7,7 @@
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Sign Up | TailAdmin - Tailwind CSS Admin Dashboard Template</title>
+    <title>Sign Up | {{ SystemHelper::appName() }}</title>
     
     <!-- Vite Assets -->
     @vite([
@@ -43,9 +43,7 @@
       <div
         class="flex flex-1 flex-col rounded-2xl p-6 sm:rounded-none sm:border-0 sm:p-8"
       >
-        <div
-          class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center"
-        >
+        <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
           <div class="mb-5 sm:mb-8">
             <h1
               class="mb-2 text-title-sm font-semibold text-gray-800 dark:text-white/90 sm:text-title-md"
@@ -378,10 +376,10 @@
         <!-- ===== Common Grid Shape End ===== -->
         <div class="flex max-w-xs flex-col items-center">
           <a href="{{ route('dashboard') }}" class="mb-4 block">
-            <img src="{{ asset('images/logo/auth-logo.svg') }}" alt="Logo" />
+            <img src="{{ SystemHelper::authLogoUrl() }}" alt="{{ SystemHelper::appName() }}" />
           </a>
           <p class="text-center text-gray-400 dark:text-white/60">
-            Free and Open-Source Tailwind CSS Admin Dashboard Template
+            {{ SystemHelper::slogan() }}
           </p>
         </div>
       </div>

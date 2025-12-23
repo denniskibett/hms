@@ -6,8 +6,8 @@
       name="viewport"
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Sign In | TailAdmin - Tailwind CSS Admin Dashboard Template</title>
+      <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+      <title>Sign In | {{ SystemHelper::appName() }}</title>
     
     <!-- Vite Assets -->
     @vite([
@@ -322,10 +322,10 @@
         <!-- ===== Common Grid Shape End ===== -->
         <div class="flex max-w-xs flex-col items-center">
           <a href="{{ route('dashboard') }}" class="mb-4 block">
-            <img src="{{ asset('images/logo/auth-logo.svg') }}" alt="Logo" />
+            <img src="{{ SystemHelper::authLogoUrl() ?? asset('images/logo/auth-logo.svg') }}" alt="Logo" />
           </a>
           <p class="text-center text-gray-400 dark:text-white/60">
-            Free and Open-Source Tailwind CSS Admin Dashboard Template
+            {{ SystemHelper::slogan() }}
           </p>
         </div>
       </div>
