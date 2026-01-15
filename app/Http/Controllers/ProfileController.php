@@ -11,9 +11,14 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
+use App\Services\CoreService;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private CoreService $coreService
+    ) {}
+    
     /**
      * Display the user's profile form.
      */
@@ -49,6 +54,15 @@ class ProfileController extends Controller
             'instagram' => $this->extractUsernameFromUrl($social['instagram'] ?? ''),
         ];
         
+        // Load additional data based on user role
+        if ($user->isGuest()) {
+            $user->load(['guestProfile', 'stays' => function ($q) {
+                $q->latest()->limit(5);
+            }]);
+        } elseif ($user->isStaff()) {
+            $user->load(['staffProfile.department']);
+        }
+        
         return view('profile.show', [
             'user' => $user,
             'socialUsernames' => $socialUsernames,
@@ -57,106 +71,66 @@ class ProfileController extends Controller
 
     public function update(ProfileUpdateRequest $request): RedirectResponse|JsonResponse
     {
-        // Check if it's an AJAX request
-        if ($request->expectsJson() || $request->ajax()) {
-            try {
-                $user = $request->user();
-                
-                // Validate the request with ALL fields
-                $validated = $request->validate([
-                    'name' => 'required|string|max:255',
-                    'email' => [
-                        'required',
-                        'string',
-                        'email',
-                        'max:255',
-                        Rule::unique('users')->ignore($user->id),
-                    ],
-                    'phone' => 'nullable|string|max:20',
-                    'bio' => 'nullable|string|max:500',
-                    'country' => 'nullable|string|max:100',
-                    'city' => 'nullable|string|max:100',
-                    'postal_code' => 'nullable|string|max:20',
-                    'tax_id' => 'nullable|string|max:50',
-                    'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-                ]);
-                
-                // Handle avatar upload
-                if ($request->hasFile('avatar')) {
-                    // Delete old avatar if exists
-                    if ($user->avatar) {
-                        Storage::disk('public')->delete($user->avatar);
-                    }
-                    
-                    // Store new avatar
-                    $path = $request->file('avatar')->store('avatars', 'public');
-                    $validated['avatar'] = $path;
+        try {
+            $user = $request->user();
+            
+            // Update user using CoreService
+            $updatedUser = $this->coreService->updateUser($user, $request->validated());
+            
+            // Handle avatar upload
+            if ($request->hasFile('avatar')) {
+                // Delete old avatar if exists
+                if ($user->avatar) {
+                    Storage::disk('public')->delete($user->avatar);
                 }
                 
-                // Handle social links
-                $socialData = [];
-                $socialPlatforms = ['facebook', 'twitter', 'linkedin', 'instagram'];
-                
-                foreach ($socialPlatforms as $platform) {
-                    $value = $request->input("social.{$platform}");
-                    if (!empty($value)) {
-                        // If it starts with @, it's a username
-                        if (str_starts_with($value, '@')) {
-                            $username = substr($value, 1);
-                            $socialData[$platform] = $this->formatSocialLink($platform, $username);
-                        } 
-                        // If it doesn't start with http, assume it's a username without @
-                        elseif (!str_starts_with($value, 'http')) {
-                            $socialData[$platform] = $this->formatSocialLink($platform, $value);
-                        }
-                        // Otherwise, it's already a URL
-                        else {
-                            $socialData[$platform] = $value;
-                        }
-                    }
+                // Store new avatar
+                $path = $request->file('avatar')->store('avatars', 'public');
+                $updatedUser->update(['avatar' => $path]);
+            }
+            
+            // Handle social links
+            $socialData = [];
+            $socialPlatforms = ['facebook', 'twitter', 'linkedin', 'instagram'];
+            
+            foreach ($socialPlatforms as $platform) {
+                $value = $request->input("social.{$platform}");
+                if (!empty($value)) {
+                    $socialData[$platform] = $this->formatSocialLink($platform, $value);
                 }
-                
-                // Only encode if we have social data
-                if (!empty($socialData)) {
-                    $validated['social'] = json_encode($socialData);
-                } else {
-                    $validated['social'] = null;
-                }
-                
-                $user->fill($validated);
-                
-                if ($user->isDirty('email')) {
-                    $user->email_verified_at = null;
-                }
-                
-                $user->save();
-                
+            }
+            
+            if (!empty($socialData)) {
+                $updatedUser->update(['social' => json_encode($socialData)]);
+            }
+            
+            // Log the action
+            $this->coreService->log($user->id, 'profile_updated', 'User updated their profile');
+            
+            if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Profile updated successfully',
-                    'user' => $user->fresh(),
-                    'avatar_url' => $user->avatar ? asset('storage/' . $user->avatar) : null,
-                    'social' => json_decode($user->social, true) ?? []
+                    'user' => $updatedUser->fresh(),
+                    'avatar_url' => $updatedUser->avatar ? asset('storage/' . $updatedUser->avatar) : null,
+                    'social' => json_decode($updatedUser->social, true) ?? []
                 ]);
-            } catch (\Exception $e) {
+            }
+            
+            return Redirect::route('profile.edit')->with('status', 'profile-updated');
+            
+        } catch (\Exception $e) {
+            if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Error updating profile',
                     'error' => $e->getMessage()
                 ], 422);
             }
+            
+            return Redirect::route('profile.edit')
+                ->with('error', 'Error updating profile: ' . $e->getMessage());
         }
-        
-        // Original form submission handling
-        $request->user()->fill($request->validated());
-
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
@@ -171,6 +145,8 @@ class ProfileController extends Controller
                 Storage::disk('public')->delete($user->avatar);
                 $user->avatar = null;
                 $user->save();
+                
+                $this->coreService->log($user->id, 'avatar_deleted', 'User deleted their avatar');
             }
             
             return response()->json([
@@ -265,6 +241,8 @@ class ProfileController extends Controller
             
             $user->update($validated);
             
+            $this->coreService->log($user->id, 'address_updated', 'User updated their address');
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Address updated successfully',
@@ -279,7 +257,6 @@ class ProfileController extends Controller
         }
     }
 
-
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
@@ -292,6 +269,9 @@ class ProfileController extends Controller
         if ($user->avatar) {
             Storage::disk('public')->delete($user->avatar);
         }
+
+        // Log the deletion
+        $this->coreService->log($user->id, 'account_deleted', 'User deleted their account');
 
         Auth::logout();
 
@@ -311,5 +291,4 @@ class ProfileController extends Controller
             'user' => $user->only(['name', 'email', 'phone', 'bio', 'country', 'city', 'state', 'postal_code', 'tax_id'])
         ]);
     }
-    
 }

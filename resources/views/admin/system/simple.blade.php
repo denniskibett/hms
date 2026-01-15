@@ -3,6 +3,9 @@
 @section('title', 'System Settings')
 
 @section('content')
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
 <div x-data="{ pageName: 'System Settings' }">
     @include('partials.breadcrumb', ['pageName' => 'System Settings'])
 </div>
@@ -132,8 +135,9 @@
                         </label>
                         <div class="flex items-center gap-4">
                             @if($system->logo)
-                                <img src="{{ Storage::url($system->logo) }}" alt="Logo" class="h-12 w-auto rounded-lg">
+                                <img src="{{ asset('images/logo/' . basename($system->logo)) }}" alt="Logo" class="h-12 w-auto rounded-lg">
                             @endif
+
                             <div class="flex-1">
                                 <input type="file" name="logo" accept="image/*"
                                        class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
@@ -148,7 +152,7 @@
                         </label>
                         <div class="flex items-center gap-4">
                             @if($system->favicon)
-                                <img src="{{ Storage::url($system->favicon) }}" alt="Favicon" class="h-8 w-8 rounded">
+                                <img src="{{ asset('images/logo/' . basename($system->favicon)) }}" alt="Favicon" class="h-8 w-8 rounded">
                             @endif
                             <div class="flex-1">
                                 <input type="file" name="favicon" accept="image/*"
@@ -244,10 +248,13 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Currency *
                             </label>
-                            <select name="currency" required
+                            <select id="currency-select" name="currency" required
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200">
-                                @foreach($currencies as $code => $name)
-                                    <option value="{{ $code }}" {{ old('currency', $system->currency) == $code ? 'selected' : '' }}>{{ $name }}</option>
+                                @foreach($currencies as $code => $details)
+                                    <option value="{{ $code }}" data-symbol="{{ $details['symbol'] ?? '' }}"
+                                        {{ old('currency', $system->currency) == $code ? 'selected' : '' }}>
+                                        {{ $details['name'] }} ({{ $details['symbol'] ?? $code }})
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -256,11 +263,13 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Currency Symbol *
                             </label>
-                            <input type="text" name="currency_symbol" value="{{ old('currency_symbol', $system->currency_symbol) }}" required
-                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200">
+                            <input type="text" id="currency-symbol" name="currency_symbol" 
+                                value="{{ old('currency_symbol', $system->currency_symbol) }}" required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200">
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <!-- Colors Tab -->
@@ -565,6 +574,22 @@
         }
     });
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const currencySelect = document.getElementById('currency-select');
+    const symbolInput = document.getElementById('currency-symbol');
+
+    currencySelect.addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const symbol = selectedOption.getAttribute('data-symbol') || '';
+        symbolInput.value = symbol;
+    });
+
+    // Trigger once on page load in case of pre-selected currency
+    currencySelect.dispatchEvent(new Event('change'));
+});
+</script>
+
 
 <style>
     .tab-button {

@@ -1,3 +1,7 @@
+@php
+use Illuminate\Support\Facades\Route;
+@endphp
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -322,7 +326,19 @@
         <!-- ===== Common Grid Shape End ===== -->
         <div class="flex max-w-xs flex-col items-center">
           <a href="{{ route('dashboard') }}" class="mb-4 block">
-            <img src="{{ SystemHelper::authLogoUrl() ?? asset('images/logo/auth-logo.svg') }}" alt="Logo" />
+            {{-- <!-- Light logo -->
+            <img
+                class="dark:hidden h-40 w-auto"
+                src="{{ SystemHelper::logoUrl() ?? asset('images/logo/auth-logo.svg') }}"
+                alt="{{ SystemHelper::appName() }} Logo"
+            />
+            <!-- Dark logo --> --}}
+            <img
+                class=" dark:block h-40 w-auto"
+                src="{{ SystemHelper::logoUrl(true) ?? asset('images/logo/auth-logo-dark.svg') }}"
+                alt="{{ SystemHelper::appName() }} Logo"
+            />
+
           </a>
           <p class="text-center text-gray-400 dark:text-white/60">
             {{ SystemHelper::slogan() }}

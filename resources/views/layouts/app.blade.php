@@ -24,6 +24,7 @@
     {{-- Fonts --}}
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+   
     {{-- Vite --}}
     @vite([
         'resources/css/app.css',
@@ -39,6 +40,20 @@
     @foreach ($components as $component)
         @vite(['resources/js/components/' . $component])
     @endforeach
+
+     {{-- <style>
+        :root {
+            --primary-color: {{ SystemHelper::primaryColor() }};
+            --secondary-color: {{ SystemHelper::secondaryColor() }};
+        }
+
+        /* You can now use these anywhere in your HTML */
+        .bg-primary { background-color: var(--primary-color); }
+        .text-primary { color: var(--primary-color); }
+        .bg-secondary { background-color: var(--secondary-color); }
+        .text-secondary { color: var(--secondary-color); }
+    </style> --}}
+
 </head>
 
 <body class="font-outfit antialiased bg-gray-100"
@@ -52,7 +67,7 @@
           selected: $persist('{{ ucfirst(request()->segment(1) ?? 'Dashboard') }}')
       }"
       x-init="$watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
-      :class=\"{'dark bg-gray-900': darkMode}\">
+      :class="{'dark bg-gray-900': darkMode}">
 
 @include('partials.preloader')
 

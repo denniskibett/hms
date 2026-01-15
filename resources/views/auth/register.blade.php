@@ -376,7 +376,11 @@
         <!-- ===== Common Grid Shape End ===== -->
         <div class="flex max-w-xs flex-col items-center">
           <a href="{{ route('dashboard') }}" class="mb-4 block">
-            <img src="{{ SystemHelper::authLogoUrl() }}" alt="{{ SystemHelper::appName() }}" />
+              <img
+                class=" dark:block h-40 w-auto"
+                src="{{ SystemHelper::logoUrl(true) ?? asset('images/logo/auth-logo-dark.svg') }}"
+                alt="{{ SystemHelper::appName() }} Logo"
+            />
           </a>
           <p class="text-center text-gray-400 dark:text-white/60">
             {{ SystemHelper::slogan() }}

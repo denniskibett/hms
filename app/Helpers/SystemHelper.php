@@ -18,10 +18,10 @@ class SystemHelper
                 'name' => config('app.name', 'Laravel'),
                 'slogan' => 'Your trusted application',
                 'timezone' => config('app.timezone', 'UTC'),
-                'date_format' => 'Y-m-d',
+                'date_format' => 'd-m-Y',
                 'time_format' => 'H:i:s',
-                'currency' => 'USD',
-                'currency_symbol' => '$',
+                'currency' => 'KES',
+                'currency_symbol' => 'KES',
                 'primary_color' => '#3A57E8',
                 'secondary_color' => '#08B1BA',
                 'pagination_limit' => 15,
@@ -54,14 +54,56 @@ class SystemHelper
                         'backup_retention' => 30,
                         'backup_to_cloud' => false,
                     ],
+                    // Add About Us
+                    'about_us' => [
+                        'title' => 'About Us',
+                        'subtitle' => "South Rift's Finest",
+                        'description' => "Nearness to the lake region counties which includes Narok county, Kericho, Kisii, Migori, Homabay and Kisumu counties respectively. In addition, it’s a gateway to the neighbouring countries of Uganda and Tanzania. It’s also a gateway to the Mau forest and the Tea growing highlands of both Bomet and Kericho counties. It’s within the Maasai Mara tourist circuit and a link to the North Rift of Nakuru and Eldoret tourist sites and hospitality industry in the region.",
+                        'extra' => "So when it comes to booking the perfect hotel, vacation rental, resort, apartment, guest house, or tree house, we’ve got you covered.",
+                        'images' => [
+                            asset('twh/img/about/about-1.jpg'),
+                            asset('twh/img/about/about-2.jpg')
+                        ]
+                    ],
+                    // Add Services
+                    'services' => [
+                        [
+                            'icon' => 'flaticon-036-parking',
+                            'title' => 'Travel Plan',
+                            'description' => 'Plan your travel with ease and comfort.'
+                        ],
+                        [
+                            'icon' => 'flaticon-033-dinner',
+                            'title' => 'Catering Service',
+                            'description' => 'Enjoy quality meals and catering service.'
+                        ],
+                        [
+                            'icon' => 'flaticon-026-bed',
+                            'title' => 'Babysitting',
+                            'description' => 'Professional babysitting services for your kids.'
+                        ],
+                        [
+                            'icon' => 'flaticon-024-towel',
+                            'title' => 'Laundry',
+                            'description' => 'Quick and reliable laundry services.'
+                        ],
+                        [
+                            'icon' => 'flaticon-044-clock-1',
+                            'title' => 'Hire Driver',
+                            'description' => 'Safe and convenient transportation services.'
+                        ],
+                        [
+                            'icon' => 'flaticon-012-cocktail',
+                            'title' => 'Bar & Drink',
+                            'description' => 'Relax with drinks at our bar.'
+                        ],
+                    ]
                 ],
             ]);
         });
     }
 
-    /**
-     * Clear system settings cache
-     */
+
     public static function clearCache()
     {
         Cache::forget('system_settings');
@@ -92,9 +134,6 @@ class SystemHelper
         return $settings->$key ?? $default;
     }
 
-    /**
-     * Get application name
-     */
     public static function appName()
     {
         return self::get('name', config('app.name'));
@@ -105,29 +144,23 @@ class SystemHelper
         return self::get('slogan', 'Your trusted application');
     }
 
-    /**
-     * Get logo URL (with icon support)
-     */
-    public static function logoUrl($icon = false)
+    public static function logoUrl($dark = false, $icon = false)
     {
-        $logo = self::get('logo');
-        
-        if ($logo) {
-            try {
-                $url = asset('storage/' . $logo);
-                // You could add logic here to return different URLs for icon vs full logo
-                // For now, same URL for both
-                return $url;
-            } catch (\Exception $e) {
-                // Fallback to default if there's an error
-            }
+        $system = Cache::rememberForever('system_settings', function () {
+            return System::firstOrCreate([]);
+        });
+
+        if ($icon) {
+            return $system->logo_icon ? asset('images/logo/' . basename($system->logo_icon)) : asset('images/logo/logo-icon.svg');
         }
-        
-        // Default fallback logos
-        return $icon 
-            ? asset('images/logo/logo-icon.svg')
-            : asset('images/logo/logo.svg');
+
+        if ($dark) {
+            return $system->logo_dark ? asset('images/logo/' . basename($system->logo_dark)) : asset('images/logo/logo-dark.svg');
+        }
+
+        return $system->logo ? asset('images/logo/' . basename($system->logo)) : asset('images/logo/logo.svg');
     }
+
 
     public static function authLogoUrl()
     {
@@ -159,9 +192,28 @@ class SystemHelper
         return asset('images/favicon.ico');
     }
 
-    /**
-     * Check if maintenance mode is enabled
-     */
+    public static function aboutUs()
+    {
+        $settings = self::settings();
+
+        // Get the about_us JSON field
+        $aboutUs = $settings->about_us ?? null;
+
+        // Decode if it's stored as a JSON string
+        if (is_string($aboutUs)) {
+            $aboutUs = json_decode($aboutUs, true);
+        }
+
+        // Fallback default if empty
+        return $aboutUs ?? [
+            'title' => 'About Us',
+            'subtitle' => "South Rift's Finest",
+            'description' => "Nearness to the lake region counties which includes Narok county, Kericho, Kisii, Migori, Homabay and Kisumu counties respectively. In addition, it’s a gate way to the neighbouring countries of Uganda and Tanzania. It’s also a gateway to the Mau forest and the Tea growing highlands of both Bomet and Kericho counties. It’s within the Maasai Mara tourist circuit and a link to the North Rift of Nakuru and Eldoret tourist sites and hospitality industry in the region.",
+            'extra' => "So when it comes to booking the perfect hotel, vacation rental, resort, apartment, guest house, or tree house, we’ve got you covered.",
+        ];
+    }
+
+
     public static function isMaintenanceMode()
     {
         return (bool) self::get('maintenance_mode', false);
@@ -180,7 +232,7 @@ class SystemHelper
      */
     public static function currency($amount)
     {
-        $symbol = self::get('currency_symbol', '$');
+        $symbol = self::get('currency_symbol', 'KES');
         $position = self::get('settings.currency_position', 'before');
         
         if ($position === 'after') {
@@ -190,41 +242,39 @@ class SystemHelper
         return $symbol . number_format($amount, 2);
     }
 
-    /**
-     * Get primary color
-     */
+
     public static function primaryColor()
     {
         return self::get('primary_color', '#3A57E8');
     }
 
-    /**
-     * Get secondary color
-     */
+
     public static function secondaryColor()
     {
         return self::get('secondary_color', '#08B1BA');
     }
 
-    /**
-     * Get contact email
-     */
+
     public static function contactEmail()
     {
         return self::get('contact_email');
     }
 
-    /**
-     * Get contact phone
-     */
+    public static function socials()
+    {
+        $system = System::first();
+        
+        // Decode JSON into an array, fallback to empty array
+        return $system && $system->socials ? json_decode($system->socials, true) : [];
+    }
+
+
     public static function contactPhone()
     {
         return self::get('contact_phone');
     }
 
-    /**
-     * Get address
-     */
+
     public static function address()
     {
         return self::get('address');
@@ -274,7 +324,7 @@ class SystemHelper
      */
     public static function dateFormat()
     {
-        return self::get('date_format', 'Y-m-d');
+        return self::get('date_format', 'd-m-Y');
     }
 
     /**
@@ -290,7 +340,7 @@ class SystemHelper
      */
     public static function currencyCode()
     {
-        return self::get('currency', 'USD');
+        return self::get('currency', 'KES');
     }
 
     /**
@@ -298,7 +348,7 @@ class SystemHelper
      */
     public static function currencySymbol()
     {
-        return self::get('currency_symbol', '$');
+        return self::get('currency_symbol', 'KES');
     }
 
     /**
@@ -329,5 +379,50 @@ class SystemHelper
 
         return $settings['security']['two_factor_auth'] ?? false;
     }
+
+    public static function services()
+    {
+        $settings = self::settings();
+
+        $services = $settings->services ?? null;
+
+        if (is_string($services)) {
+            $services = json_decode($services, true);
+        }
+
+        return $services ?? [
+            [
+                "icon" => "flaticon-036-parking",
+                "title" => "Conferencing",
+                "description" => "Create your own meaningful connections in modern spaces designed for sharing, socializing, and collaborating."
+            ],
+            [
+                "icon" => "flaticon-033-dinner",
+                "title" => "Restaurant",
+                "description" => "Come dine at our main restaurant after your busy day and sample the best of Bomet's finest cuisine."
+            ],
+            [
+                "icon" => "flaticon-026-bed",
+                "title" => "Accommodation",
+                "description" => "Enjoy comfortable rooms with regionally inspired artwork and spacious suites with residential features."
+            ],
+            [
+                "icon" => "flaticon-044-clock-1",
+                "title" => "Events",
+                "description" => "Versatile venues. Dedicated event planners. Customizable catering. Wedding packages. All of this and more..."
+            ],
+            [
+                "icon" => "flaticon-012-cocktail",
+                "title" => "Tour Bomet",
+                "description" => "Bomet County bursts with a lot of life and tourism. Do not be left behind. Explore and discover."
+            ],
+            [
+                "icon" => "flaticon-024-towel",
+                "title" => "Bar & Drink",
+                "description" => "Think spirited restaurants and bars, vibrant event venues, and their trademark atrium setting—each one distinct from the next."
+            ]
+        ];
+    }
+
 
 }

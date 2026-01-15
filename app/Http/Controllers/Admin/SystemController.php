@@ -8,6 +8,7 @@ use App\Helpers\SystemHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Alcohol\ISO4217;
 
 class SystemController extends Controller
 {
@@ -20,13 +21,17 @@ class SystemController extends Controller
         $primaryColor = SystemHelper::primaryColor();
         $system = System::settings();
         $timezones = \DateTimeZone::listIdentifiers(\DateTimeZone::ALL);
-        $currencies = [
-            'USD' => 'US Dollar ($)',
-            'EUR' => 'Euro (€)',
-            'GBP' => 'British Pound (£)',
-            'JPY' => 'Japanese Yen (¥)',
-            'CAD' => 'Canadian Dollar (C$)',
-        ];
+        $iso4217 = new ISO4217();
+
+        // Fetch all currencies
+        $currencies = [];
+        foreach ($iso4217->getAll() as $currency) {
+            $currencies[$currency['alpha3']] = [
+                'name' => $currency['name'],
+                'symbol' => $currency['symbol'] ?? '',
+            ];
+        }
+
 
         return view('admin.system.simple', compact('system', 'timezones', 'currencies', 'appName', 'logoUrl', 'authLogoUrl', 'slogan', 'primaryColor'));
     }
