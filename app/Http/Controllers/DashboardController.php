@@ -22,6 +22,7 @@ use App\Models\LeaveRequest;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\Facility;
 
 class DashboardController extends Controller
 {

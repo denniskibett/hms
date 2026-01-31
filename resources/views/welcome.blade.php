@@ -173,6 +173,8 @@
             <div class="hs-item set-bg" data-setbg="{{ asset('twh/img/hero/hero-1.jpg') }}"></div>
             <div class="hs-item set-bg" data-setbg="{{ asset('twh/img/hero/hero-2.jpg') }}"></div>
             <div class="hs-item set-bg" data-setbg="{{ asset('twh/img/hero/hero-3.jpg') }}"></div>
+            <div class="hs-item set-bg" data-setbg="{{ asset('twh/img/hero/hero-4.jpg') }}"></div>
+            <div class="hs-item set-bg" data-setbg="{{ asset('twh/img/hero/hero-5.jpg') }}"></div>
         </div>
     </section>
     <!-- Hero Section End -->
@@ -247,8 +249,8 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/room-b1.jpg') }}">
                             <div class="hr-text">
-                                <h3>Double Room</h3>
-                                <h2>199$<span>/Pernight</span></h2>
+                                <h3>Deluxe Room</h3>
+                                <h2>50$<span>/Pernight</span></h2>
                                 <table>
                                     <tbody>
                                         <tr>
@@ -276,8 +278,8 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/room-b2.jpg') }}">
                             <div class="hr-text">
-                                <h3>Premium King Room</h3>
-                                <h2>159$<span>/Pernight</span></h2>
+                                <h3>Standard room</h3>
+                                <h2>35$<span>/Pernight</span></h2>
                                 <table>
                                     <tbody>
                                         <tr>
@@ -286,7 +288,7 @@
                                         </tr>
                                         <tr>
                                             <td class="r-o">Capacity:</td>
-                                            <td>Max persion 5</td>
+                                            <td>Max persion 2</td>
                                         </tr>
                                         <tr>
                                             <td class="r-o">Bed:</td>
@@ -294,7 +296,7 @@
                                         </tr>
                                         <tr>
                                             <td class="r-o">Services:</td>
-                                            <td>Wifi, Television, Bathroom,...</td>
+                                            <td>Wifi, Television, Balcony</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -305,8 +307,8 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/room-b3.jpg') }}">
                             <div class="hr-text">
-                                <h3>Deluxe Room</h3>
-                                <h2>198$<span>/Pernight</span></h2>
+                                <h3>Deluxe Room with Balcony</h3>
+                                <h2>50$<span>/Pernight</span></h2>
                                 <table>
                                     <tbody>
                                         <tr>
@@ -323,7 +325,7 @@
                                         </tr>
                                         <tr>
                                             <td class="r-o">Services:</td>
-                                            <td>Wifi, Television, Bathroom,...</td>
+                                            <td>Wifi, Television, Balcony</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -334,17 +336,17 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/room-b4.jpg') }}">
                             <div class="hr-text">
-                                <h3>Family Room</h3>
-                                <h2>299$<span>/Pernight</span></h2>
+                                <h3>Executive Room</h3>
+                                <h2>100$<span>/Pernight</span></h2>
                                 <table>
                                     <tbody>
                                         <tr>
                                             <td class="r-o">Size:</td>
-                                            <td>30 ft</td>
+                                            <td>75 ft</td>
                                         </tr>
                                         <tr>
                                             <td class="r-o">Capacity:</td>
-                                            <td>Max persion 5</td>
+                                            <td>Max persion 4</td>
                                         </tr>
                                         <tr>
                                             <td class="r-o">Bed:</td>
@@ -352,7 +354,7 @@
                                         </tr>
                                         <tr>
                                             <td class="r-o">Services:</td>
-                                            <td>Wifi, Television, Bathroom,...</td>
+                                            <td>Wifi, Television, Balcony,</td>
                                         </tr>
                                     </tbody>
                                 </table>
