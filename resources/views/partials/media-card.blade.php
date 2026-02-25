@@ -170,7 +170,7 @@
       >
         <div class="flex items-center gap-4">
           <div
-            class="flex h-[52px] w-[52px] items-center justify-center rounded-xl bg-blue-500/[0.08] text-blue-light-500"
+            class="flex h-[52px] w-[52px] items-center justify-center rounded-xl bg-primary/[0.08] text-blue-light-500"
           >
             <svg
               class="fill-current"

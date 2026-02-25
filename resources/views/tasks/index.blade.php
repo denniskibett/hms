@@ -73,7 +73,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 mr-4">
+                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 text-primary dark:text-blue-400 mr-4">
                     <i class="fas fa-list-check text-xl"></i>
                 </div>
                 <div>

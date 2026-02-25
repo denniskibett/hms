@@ -440,7 +440,7 @@
             <div class="bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 shadow-sm p-6">
                 <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Quick Actions</h4>
                 <div class="space-y-3">
-                    <a href="{{ route('hr.attendance.index', ['employee' => $employee->id]) }}" class="flex items-center p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30">
+                    <a href="{{ route('hr.attendance.index', ['employee' => $employee->id]) }}" class="flex items-center p-3 bg-blue-50 dark:bg-blue-900/20 text-primary dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30">
                         <i class="fas fa-clock mr-2"></i>
                         <span>View Attendance</span>
                     </a>

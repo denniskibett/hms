@@ -130,7 +130,7 @@
                         {{ SystemHelper::currencySymbol() }} {{ number_format($roomTypes->avg('base_rate') ?? 0, 2) }}
                     </h4>
                 </div>
-                <div class="rounded-full bg-blue-500/10 p-3">
+                <div class="rounded-full bg-primary/10 p-3">
                     <i class="fas fa-money-bill text-blue-500 text-lg"></i>
                 </div>
             </div>
@@ -268,7 +268,7 @@
                                     View
                                 </a>
                                 <button @click="openEditModal(@json($roomType))"
-                                        class="inline-flex items-center gap-1 rounded-lg bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-200 dark:bg-blue-500/15 dark:text-blue-400">
+                                        class="inline-flex items-center gap-1 rounded-lg bg-blue-100 px-2.5 py-1 text-xs font-medium text-primary hover:bg-blue-200 dark:bg-primary/15 dark:text-blue-400">
                                     <i class="fas fa-edit text-xs"></i>
                                     Edit
                                 </button>
@@ -549,7 +549,7 @@ document.addEventListener('alpine:init', () => {
                 type === 'success' ? 'bg-green-500' : 
                 type === 'error' ? 'bg-red-500' : 
                 type === 'warning' ? 'bg-yellow-500' : 
-                'bg-blue-500'
+                'bg-primary'
             }`;
             toast.textContent = message;
             

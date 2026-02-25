@@ -756,7 +756,7 @@ function facilitiesTable() {
         getFacilityTypeClass(type) {
             const classes = {
                 'conference': 'bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-500',
-                'pool': 'bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-500',
+                'pool': 'bg-blue-100 text-blue-800 dark:bg-primary/15 dark:text-blue-500',
                 'gym': 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-500',
                 'spa': 'bg-pink-100 text-pink-800 dark:bg-pink-500/15 dark:text-pink-500'
             };

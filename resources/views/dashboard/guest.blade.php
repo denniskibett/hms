@@ -57,7 +57,7 @@
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Current Stays</h3>
                         @if(count($currentStays) > 0)
-                            <a href="{{ route('guests.current-stays', $user) }}" class="text-sm text-primary hover:underline">View All</a>
+                            <a href="{{ route('guests.index', $user) }}" class="text-sm text-primary hover:underline">View All</a>
                         @endif
 
                     </div>
@@ -150,7 +150,7 @@
                             </div>
                             <p class="font-medium text-gray-900 dark:text-white">Book a Room</p>
                         </a>
-                        <a href="{{ route('kitchen.orders.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
+                        <a href="{{ route('kitchen.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
                             <div class="p-2 rounded-full bg-success/10 inline-block mb-2">
                                 <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
@@ -182,7 +182,7 @@
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Recent Past Stays</h3>
                         @if(count($pastStays) > 0)
-                            <a href="{{ route('guests.current-stays', $user) }}" class="text-sm text-primary hover:underline">View All</a>
+                            <a href="{{ route('guests.index', $user) }}" class="text-sm text-primary hover:underline">View All</a>
                         @endif
                     </div>
                     <div class="space-y-3">
@@ -192,7 +192,7 @@
                                 @foreach($currentStays as $stay)
                                 <p class="font-medium text-gray-900 dark:text-white">Stay #{{ $stay->id }}</p>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    {{ \App\Helpers\SystemHelper::date_format($stay->arrival_date) }} - {{ \App\Helpers\SystemHelper::date_format($stay->departure_date) }}
+                                    {{ \App\Helpers\SystemHelper::dateFormat($stay->arrival_date) }} - {{ \App\Helpers\SystemHelper::dateFormat($stay->departure_date) }}
                                     @foreach($stay->roomAllocations as $allocation)
                                         • Room {{ $allocation->room->room_number }}
                                     @endforeach
