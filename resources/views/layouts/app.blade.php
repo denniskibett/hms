@@ -80,8 +80,43 @@
         --primary-hover: rgba(var(--primary-rgb), 0.9);
         --secondary-hover: rgba(var(--secondary-rgb), 0.9);
         --primary-dark: rgba(var(--primary-rgb), 0.8);
+        
+        /* ===== NEW STATUS COLORS (ADDED) ===== */
+        /* Success colors (green) */
+        --success-color: #10b981;
+        --success-rgb: 16, 185, 129;
+        --success-50: rgba(var(--success-rgb), 0.1);   /* 10% - for bg-success-50 */
+        --success-100: rgba(var(--success-rgb), 0.2);  /* 20% */
+        --success-200: rgba(var(--success-rgb), 0.3);  /* 30% */
+        --success-300: rgba(var(--success-rgb), 0.4);  /* 40% */
+        --success-400: rgba(var(--success-rgb), 0.5);  /* 50% */
+        --success-500: var(--success-color);           /* 100% - solid color */
+        --success-600: #059669;                         /* darker green for text-success-600 */
+        
+        /* Error colors (red) */
+        --error-color: #ef4444;
+        --error-rgb: 239, 68, 68;
+        --error-50: rgba(var(--error-rgb), 0.1);       /* 10% - for bg-error-50 */
+        --error-100: rgba(var(--error-rgb), 0.2);       /* 20% */
+        --error-200: rgba(var(--error-rgb), 0.3);       /* 30% */
+        --error-300: rgba(var(--error-rgb), 0.4);       /* 40% */
+        --error-400: rgba(var(--error-rgb), 0.5);       /* 50% */
+        --error-500: var(--error-color);                /* 100% - solid color */
+        --error-600: #dc2626;                            /* darker red for text-error-600 */
+        
+        /* Warning colors (orange/amber) */
+        --warning-color: #f59e0b;
+        --warning-rgb: 245, 158, 11;
+        --warning-50: rgba(var(--warning-rgb), 0.1);    /* 10% - for bg-warning-50 */
+        --warning-100: rgba(var(--warning-rgb), 0.2);    /* 20% */
+        --warning-200: rgba(var(--warning-rgb), 0.3);    /* 30% */
+        --warning-300: rgba(var(--warning-rgb), 0.4);    /* 40% */
+        --warning-400: rgba(var(--warning-rgb), 0.5);    /* 50% */
+        --warning-500: var(--warning-color);             /* 100% - solid color */
+        --warning-600: #d97706;                           /* darker orange for text-warning-600 */
     }
 
+    /* ===== ORIGINAL PRIMARY/SECONDARY CLASSES (KEPT INTACT) ===== */
     /* Primary color utility classes */
     .bg-primary { background-color: var(--primary-color); }
     .bg-primary-10 { background-color: var(--primary-10); }
@@ -255,6 +290,29 @@
     .bg-gradient-secondary {
         background: linear-gradient(135deg, var(--secondary-color), var(--secondary-70));
     }
+    
+    /* ===== NEW STATUS CLASSES (ADDED) ===== */
+    /* Success classes */
+    .bg-success-50 { background-color: var(--success-50); }
+    .text-success-600 { color: var(--success-600); }
+    
+    /* Error classes */
+    .bg-error-50 { background-color: var(--error-50); }
+    .text-error-600 { color: var(--error-600); }
+    
+    /* Warning classes */
+    .bg-warning-50 { background-color: var(--warning-50); }
+    .text-warning-600 { color: var(--warning-600); }
+    
+    /* Dark mode status classes */
+    .dark .bg-success-500\/15 { background-color: rgba(var(--success-rgb), 0.15); }
+    .dark .text-success-500 { color: var(--success-500); }
+    
+    .dark .bg-error-500\/15 { background-color: rgba(var(--error-rgb), 0.15); }
+    .dark .text-error-500 { color: var(--error-500); }
+    
+    .dark .bg-warning-500\/15 { background-color: rgba(var(--warning-rgb), 0.15); }
+    .dark .text-orange-400 { color: #fb923c; } /* Keeping original orange-400 for dark mode warning */
 </style>
 
 </head>

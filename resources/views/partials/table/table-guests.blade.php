@@ -35,13 +35,13 @@
                 <div class="relative">
                     <input type="text" x-model="filters.search" @input.debounce.500ms="fetchGuests()" 
                            placeholder="Search guests..." 
-                           class="w-full md:w-64 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2.5 text-sm dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
+                           class="w-full md:w-64 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2.5 text-sm dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
                     <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
                 </div>
                 
                 <!-- Status Filter -->
                 <select x-model="filters.status" @change="fetchGuests()" 
-                        class="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
+                        class="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
                     <option value="">All Guests</option>
                     <option value="active">Active Guests</option>
                     <option value="inactive">Inactive Guests</option>
@@ -62,7 +62,7 @@
 
         <!-- Loading State -->
         <div x-show="loading" class="py-12 text-center">
-            <div class="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div> {{-- UPDATED --}}
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
             <p class="mt-3 text-gray-500">Loading guests...</p>
         </div>
 
@@ -144,7 +144,7 @@
                                     </div>
                                     <div>
                                         <a :href="`/guests/${guest.id}`"
-                                           class="font-medium text-gray-800 text-sm dark:text-white/90 hover:text-primary hover:underline" {{-- UPDATED --}}
+                                           class="font-medium text-gray-800 text-sm dark:text-white/90 hover:text-primary hover:underline"
                                            x-text="guest.user?.name || 'N/A'"></a>
                                     </div>
                                 </div>
@@ -186,18 +186,18 @@
                             </td>
                             <td class="py-3 pr-4">
                                 <div x-data="dropdown()" class="relative">
-                                    <button @click="toggle()" class="text-gray-500 dark:text-gray-400 hover:text-primary"> {{-- UPDATED --}}
+                                    <button @click="toggle()" class="text-gray-500 dark:text-gray-400 hover:text-primary">
                                         <svg class="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path fill-rule="evenodd" clip-rule="evenodd" d="M5.99902 10.245C6.96552 10.245 7.74902 11.0285 7.74902 11.995V12.005C7.74902 12.9715 6.96552 13.755 5.99902 13.755C5.03253 13.755 4.24902 12.9715 4.24902 12.005V11.995C4.24902 11.0285 5.03253 10.245 5.99902 10.245ZM17.999 10.245C18.9655 10.245 19.749 11.0285 19.749 11.995V12.005C19.749 12.9715 18.9655 13.755 17.999 13.755C17.0325 13.755 16.249 12.9715 16.249 12.005V11.995C16.249 11.0285 17.0325 10.245 17.999 10.245ZM13.749 11.995C13.749 11.0285 12.9655 10.245 11.999 10.245C11.0325 10.245 10.249 11.0285 10.249 11.995V12.005C10.249 12.9715 11.0325 13.755 11.999 13.755C12.9655 13.755 13.749 12.9715 13.749 12.005V11.995Z" fill=""/>
                                         </svg>
                                     </button>
                                     <div x-show="open" @click.outside="open = false" class="shadow-theme-lg dark:bg-gray-dark absolute right-0 top-full z-50 mt-2 w-40 space-y-1 rounded-2xl border border-gray-200 bg-white p-2 dark:border-gray-800" x-ref="dropdown">
                                         <a :href="`/guests/${guest.id}`" 
-                                           class="text-theme-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-primary/10 hover:text-primary dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-primary"> {{-- UPDATED --}}
+                                           class="text-theme-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-primary/10 hover:text-primary dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-primary">
                                             View More
                                         </a>
                                         <button @click="openEditModal(guest)"
-                                                class="text-theme-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-primary/10 hover:text-primary dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-primary"> {{-- UPDATED --}}
+                                                class="text-theme-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-primary/10 hover:text-primary dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-primary">
                                             Edit
                                         </button>
                                         <button @click="confirmDeleteGuest(guest.id, guest.user?.name)"
@@ -236,30 +236,30 @@
 
                 <div class="flex items-center justify-center gap-0.5 pt-4 xl:justify-end xl:pt-0">
                     <button @click="prevPage()" :disabled="pagination.currentPage === 1"
-                            class="shadow-theme-xs mr-2.5 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-primary/10 hover:text-primary disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"> {{-- UPDATED --}}
+                            class="shadow-theme-xs mr-2.5 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-primary/10 hover:text-primary disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">
                         <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M2.58301 9.99868C2.58272 10.1909 2.65588 10.3833 2.80249 10.53L7.79915 15.5301C8.09194 15.8231 8.56682 15.8233 8.85981 15.5305C9.15281 15.2377 9.15297 14.7629 8.86018 14.4699L5.14009 10.7472L16.6675 10.7472C17.0817 10.7472 17.4175 10.4114 17.4175 9.99715C17.4175 9.58294 17.0817 9.24715 16.6675 9.24715L5.14554 9.24715L8.86017 5.53016C9.15297 5.23717 9.15282 4.7623 8.85983 4.4695C8.56684 4.1767 8.09197 4.17685 7.79917 4.46984L2.84167 9.43049C2.68321 9.568 2.58301 9.77087 2.58301 9.99715C2.58301 9.99766 2.58301 9.99817 2.58301 9.99868Z" fill=""/>
                         </svg>
                     </button>
 
                     <template x-if="pagination.currentPage > 3">
-                        <span class="hover:text-primary dark:hover:text-primary flex h-10 w-10 items-center justify-center rounded-lg hover:bg-primary/10">...</span> {{-- UPDATED --}}
+                        <span class="hover:text-primary dark:hover:text-primary flex h-10 w-10 items-center justify-center rounded-lg hover:bg-primary/10">...</span>
                     </template>
 
                     <template x-for="page in getVisiblePages()" :key="page">
                         <button @click="goToPage(page)" 
-                                :class="pagination.currentPage === page ? 'bg-primary/10 text-primary' : 'text-gray-700 dark:text-gray-400 hover:text-primary hover:bg-primary/10'" {{-- UPDATED --}}
+                                :class="pagination.currentPage === page ? 'bg-primary/10 text-primary' : 'text-gray-700 dark:text-gray-400 hover:text-primary hover:bg-primary/10'"
                                 class="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium">
                             <span x-text="page"></span>
                         </button>
                     </template>
 
                     <template x-if="pagination.currentPage < pagination.lastPage - 2">
-                        <span class="hover:text-primary dark:hover:text-primary flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium text-gray-700 hover:bg-primary/10 dark:text-gray-400">...</span> {{-- UPDATED --}}
+                        <span class="hover:text-primary dark:hover:text-primary flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium text-gray-700 hover:bg-primary/10 dark:text-gray-400">...</span>
                     </template>
 
                     <button @click="nextPage()" :disabled="pagination.currentPage === pagination.lastPage"
-                            class="shadow-theme-xs ml-2.5 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-primary/10 hover:text-primary disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"> {{-- UPDATED --}}
+                            class="shadow-theme-xs ml-2.5 flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-primary/10 hover:text-primary disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">
                         <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M17.4175 9.9986C17.4178 10.1909 17.3446 10.3832 17.198 10.53L12.2013 15.5301C11.9085 15.8231 11.4337 15.8233 11.1407 15.5305C10.8477 15.2377 10.8475 14.7629 11.1403 14.4699L14.8604 10.7472L3.33301 10.7472C2.91879 10.7472 2.58301 10.4114 2.58301 9.99715C2.58301 9.58294 2.91879 9.24715 3.33301 9.24715L14.8549 9.24715L11.1403 5.53016C10.8475 5.23717 10.8477 4.7623 11.1407 4.4695C11.4336 4.1767 11.9085 4.17685 12.2013 4.46984L17.1588 9.43049C17.3173 9.568 17.4175 9.77087 17.4175 9.99715C17.4175 9.99763 17.4175 9.99812 17.4175 9.9986Z" fill=""/>
                         </svg>
@@ -268,8 +268,9 @@
             </div>
         </div>
 
-    <!-- Create/Edit Guest Modal -->
-    <div x-show="showGuestModal" x-cloak class="fixed inset-0 z-99999 overflow-y-auto px-4 py-6 sm:px-0">
+    <!-- Create/Edit Guest Slideover Modal -->
+    <div x-show="showGuestModal" x-cloak class="fixed inset-0 z-99999 overflow-hidden">
+        <!-- Backdrop with frost effect -->
         <div x-show="showGuestModal" 
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0"
@@ -277,101 +278,133 @@
              x-transition:leave="ease-in duration-200"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-gray-500 opacity-75" @click="showGuestModal = false"></div>
+             class="fixed inset-0 bg-gray-500/50 backdrop-blur-sm"
+             @click="showGuestModal = false"></div>
 
+        <!-- Slideover Panel -->
         <div x-show="showGuestModal"
-             x-transition:enter="ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave="ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-             class="relative bg-white rounded-lg shadow-xl transform transition-all sm:w-full sm:max-w-4xl sm:mx-auto my-8">
+             x-transition:enter="transform transition ease-out duration-300"
+             x-transition:enter-start="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transform transition ease-in duration-200"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="translate-x-full"
+             class="fixed right-0 top-0 h-full w-full max-w-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-2xl overflow-y-auto">
+            
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                <h3 class="text-lg font-semibold text-gray-800" x-text="editingGuest ? 'Edit Guest' : 'Add New Guest'"></h3>
-                <button @click="showGuestModal = false" class="text-gray-400 hover:text-gray-500">
+            <div class="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white/90 backdrop-blur-sm px-6 py-4 dark:border-gray-700 dark:bg-gray-900/90">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90" x-text="editingGuest ? 'Edit Guest' : 'Add New Guest'"></h3>
+                <button @click="showGuestModal = false" class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-800">
                     <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
             
+            <!-- Tabs Navigation -->
+            <div class="border-b border-gray-200 px-6 dark:border-gray-700">
+                <div class="flex space-x-6">
+                    <button @click="activeTab = 'personal'" 
+                            :class="activeTab === 'personal' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                            class="border-b-2 py-3 text-sm font-medium transition-colors">
+                        <i class="fas fa-user mr-2"></i>Personal Information
+                    </button>
+                    <button @click="activeTab = 'preferences'" 
+                            :class="activeTab === 'preferences' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                            class="border-b-2 py-3 text-sm font-medium transition-colors">
+                        <i class="fas fa-heart mr-2"></i>Preferences
+                    </button>
+                </div>
+            </div>
+            
             <!-- Modal Body -->
-            <div class="p-6 max-h-[80vh] overflow-y-auto">
+            <div class="p-6">
                 <form id="guestForm" @submit.prevent="editingGuest ? updateGuest() : createGuest()" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Personal Information -->
-                        <div>
-                            <h4 class="text-sm font-semibold text-gray-700 mb-4 pb-2 border-b">Personal Information</h4>
+                    <!-- Personal Information Tab -->
+                    <div x-show="activeTab === 'personal'" x-cloak>
+                        <!-- Personal Details Section -->
+                        <div class="rounded-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 p-5 dark:from-blue-950/20 dark:to-indigo-950/20 border border-blue-100/50 dark:border-blue-900/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-blue-700 dark:text-blue-400">
+                                <i class="fas fa-user-circle mr-2"></i>Personal Details
+                            </h4>
                             <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
-                                        First Name *
-                                    </label>
-                                    <input type="text" x-model="guestForm.user.first_name" required
-                                           class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            First Name <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" x-model="guestForm.user.first_name" required
+                                               class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            Last Name <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" x-model="guestForm.user.last_name" required
+                                               class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                    </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
-                                        Last Name *
-                                    </label>
-                                    <input type="text" x-model="guestForm.user.last_name" required
-                                           class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
+                                
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            Email <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="email" x-model="guestForm.user.email" required
+                                               class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            Phone Number
+                                        </label>
+                                        <input type="tel" x-model="guestForm.user.phone"
+                                               class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                    </div>
                                 </div>
+                                
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
-                                        Email *
-                                    </label>
-                                    <input type="email" x-model="guestForm.user.email" required
-                                           class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
-                                        Phone Number
-                                    </label>
-                                    <input type="tel" x-model="guestForm.user.phone"
-                                           class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                                         Address
                                     </label>
                                     <textarea x-model="guestForm.guest_profile.address" rows="2"
-                                              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"></textarea> {{-- UPDATED --}}
+                                              class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90"></textarea>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Identification & Preferences -->
-                        <div>
-                            <h4 class="text-sm font-semibold text-gray-700 mb-4 pb-2 border-b">Identification & Preferences</h4>
+                        <!-- Identification Section -->
+                        <div class="mt-6 rounded-xl bg-gradient-to-br from-purple-50/50 to-pink-50/50 p-5 dark:from-purple-950/20 dark:to-pink-950/20 border border-purple-100/50 dark:border-purple-900/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-purple-700 dark:text-purple-400">
+                                <i class="fas fa-id-card mr-2"></i>Identification
+                            </h4>
                             <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
-                                        ID Type *
-                                    </label>
-                                    <select x-model="guestForm.guest_profile.id_type" required
-                                            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
-                                        <option value="">Select ID Type</option>
-                                        <option value="passport">Passport</option>
-                                        <option value="national_id">National ID</option>
-                                        <option value="driving_license">Driving License</option>
-                                        <option value="other">Other</option>
-                                    </select>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            ID Type <span class="text-red-500">*</span>
+                                        </label>
+                                        <select x-model="guestForm.guest_profile.id_type" required
+                                                class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                            <option value="">Select ID Type</option>
+                                            <option value="passport">Passport</option>
+                                            <option value="national_id">National ID</option>
+                                            <option value="driving_license">Driving License</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            ID Number <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="text" x-model="guestForm.guest_profile.id_number" required
+                                               class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
-                                        ID Number *
-                                    </label>
-                                    <input type="text" x-model="guestForm.guest_profile.id_number" required
-                                           class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
-                                        Nationality *
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                        Nationality <span class="text-red-500">*</span>
                                     </label>
                                     <div class="relative">
                                         <select x-model="guestForm.guest_profile.nationality" required
-                                                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
+                                                class="w-full appearance-none rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
                                             <option value="">Select Nationality</option>
                                             @foreach($countries as $country)
                                                 <option value="{{ $country['name'] }}">
@@ -379,506 +412,485 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute right-2 top-2 text-gray-400 pointer-events-none">
+                                        <div class="pointer-events-none absolute right-3 top-3 text-gray-400">
                                             <i class="fas fa-chevron-down"></i>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- Preferences with Multiple Selection -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-2">
-                                        Preferences
-                                    </label>
-                                    <div class="space-y-3">
-                                        <!-- Room Preferences (Multiple Select) - Simplified Version -->
-                                        <div x-data="{
-                                            open: false,
-                                            get selected() {
-                                                return guestForm.guest_profile.preferences.room_preference || [];
-                                            },
-                                            set selected(value) {
-                                                guestForm.guest_profile.preferences.room_preference = value;
-                                            },
-                                            options: [
-                                                { id: 'quiet_room', name: 'Quiet Room' },
-                                                { id: 'high_floor', name: 'High Floor' },
-                                                { id: 'near_elevator', name: 'Near Elevator' },
-                                                { id: 'pool_view', name: 'Pool View' },
-                                                { id: 'city_view', name: 'City View' },
-                                                { id: 'smoking', name: 'Smoking Room' },
-                                                { id: 'non_smoking', name: 'Non-Smoking Room' },
-                                                { id: 'accessible', name: 'Accessible Room' },
-                                                { id: 'connecting', name: 'Connecting Room' }
-                                            ],
-                                            toggleOption(id) {
-                                                if (this.selected.includes(id)) {
-                                                    this.selected = this.selected.filter(i => i !== id);
-                                                } else {
-                                                    this.selected = [...this.selected, id];
-                                                }
-                                            },
-                                            isSelected(id) {
-                                                return this.selected.includes(id);
-                                            }
-                                        }" class="relative">
-                                            <label class="block text-sm font-medium text-gray-600 mb-1">
-                                                Room Preferences
-                                            </label>
-                                            
-                                            <!-- Select Input with Selected Tags -->
-                                            <div @click="open = !open"
-                                                class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 transition dark:border-gray-700 dark:bg-gray-900">
-                                                <!-- Selected Items as Tags -->
-                                                <div class="flex flex-1 flex-wrap items-center gap-2">
-                                                    <template x-for="id in selected" :key="id">
-                                                        <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pr-2 pl-2.5 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800">
-                                                            <span x-text="options.find(o => o.id === id).name"></span>
-                                                            <button type="button"
-                                                                    @click.stop="toggleOption(id)"
-                                                                    class="ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                                                                <svg class="fill-current" role="button" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z" fill=""/>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </template>
-                                                    <template x-if="selected.length === 0">
-                                                        <span class="text-gray-400">Select room preferences...</span>
-                                                    </template>
-                                                </div>
-                                                <!-- Dropdown Arrow -->
-                                                <span class="flex items-center text-gray-400">
-                                                    <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 7.29289C5.68342 6.90237 6.31658 6.90237 6.70711 7.29289L10 10.5858L13.2929 7.29289C13.6834 6.90237 14.3166 6.90237 14.7071 7.29289C15.0976 7.68342 15.0976 8.31658 14.7071 8.70711L10.7071 12.7071C10.3166 13.0976 9.68342 13.0976 9.29289 12.7071L5.29289 8.70711C4.90237 8.31658 4.90237 7.68342 5.29289 7.29289Z" fill=""/>
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            
-                                            <!-- Dropdown Options -->
-                                            <div x-show="open" @click.outside="open = false"
-                                                class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="max-h-60 overflow-y-auto p-2">
-                                                    <template x-for="option in options" :key="option.id">
-                                                        <div @click="toggleOption(option.id)"
-                                                            :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'" {{-- UPDATED --}}
-                                                            class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
-                                                            <div class="flex h-5 w-5 items-center justify-center rounded border border-gray-300 mr-2">
-                                                                <template x-if="isSelected(option.id)">
-                                                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.7071 2.29289C11.0976 2.68342 11.0976 3.31658 10.7071 3.70711L4.70711 9.70711C4.31658 10.0976 3.68342 10.0976 3.29289 9.70711L0.292893 6.70711C-0.0976311 6.31658 -0.0976311 5.68342 0.292893 5.29289C0.683417 4.90237 1.31658 4.90237 1.70711 5.29289L4 7.58579L9.29289 2.29289C9.68342 1.90237 10.3166 1.90237 10.7071 2.29289Z" fill=""/>
-                                                                    </svg>
-                                                                </template>
-                                                            </div>
-                                                            <span x-text="option.name"></span>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Entertainment Preferences (Multiple Select) -->
-                                        <div x-data="{
-                                            open: false,
-                                            get selected() {
-                                                return guestForm.guest_profile.preferences.entertainment || [];
-                                            },
-                                            set selected(value) {
-                                                guestForm.guest_profile.preferences.entertainment = value;
-                                            },
-                                            options: [
-                                                { id: 'netflix', name: 'Netflix' },
-                                                { id: 'cable_tv', name: 'Cable TV' },
-                                                { id: 'streaming', name: 'Streaming Services' },
-                                                { id: 'hbo', name: 'HBO Max' },
-                                                { id: 'disney', name: 'Disney+' },
-                                                { id: 'music', name: 'Music Streaming' },
-                                                { id: 'gaming', name: 'Gaming Console' },
-                                                { id: 'none', name: 'None' }
-                                            ],
-                                            toggleOption(id) {
-                                                if (this.selected.includes(id)) {
-                                                    this.selected = this.selected.filter(i => i !== id);
-                                                } else {
-                                                    this.selected = [...this.selected, id];
-                                                }
-                                            },
-                                            isSelected(id) {
-                                                return this.selected.includes(id);
-                                            }
-                                        }" class="relative">
-                                            <label class="block text-sm font-medium text-gray-600 mb-1">
-                                                Entertainment Preferences
-                                            </label>
-                                            
-                                            <div @click="open = !open"
-                                                class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 transition dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="flex flex-1 flex-wrap items-center gap-2">
-                                                    <template x-for="id in selected" :key="id">
-                                                        <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pr-2 pl-2.5 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800">
-                                                            <span x-text="options.find(o => o.id === id).name"></span>
-                                                            <button type="button"
-                                                                    @click.stop="toggleOption(id)"
-                                                                    class="ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                                                                <svg class="fill-current" role="button" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z" fill=""/>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </template>
-                                                    <template x-if="selected.length === 0">
-                                                        <span class="text-gray-400">Select entertainment preferences...</span>
-                                                    </template>
-                                                </div>
-                                                <span class="flex items-center text-gray-400">
-                                                    <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 7.29289C5.68342 6.90237 6.31658 6.90237 6.70711 7.29289L10 10.5858L13.2929 7.29289C13.6834 6.90237 14.3166 6.90237 14.7071 7.29289C15.0976 7.68342 15.0976 8.31658 14.7071 8.70711L10.7071 12.7071C10.3166 13.0976 9.68342 13.0976 9.29289 12.7071L5.29289 8.70711C4.90237 8.31658 4.90237 7.68342 5.29289 7.29289Z" fill=""/>
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            
-                                            <div x-show="open" @click.outside="open = false"
-                                                class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="max-h-60 overflow-y-auto p-2">
-                                                    <template x-for="option in options" :key="option.id">
-                                                        <div @click="toggleOption(option.id)"
-                                                            :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'" {{-- UPDATED --}}
-                                                            class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
-                                                            <div class="flex h-5 w-5 items-center justify-center rounded border border-gray-300 mr-2">
-                                                                <template x-if="isSelected(option.id)">
-                                                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.7071 2.29289C11.0976 2.68342 11.0976 3.31658 10.7071 3.70711L4.70711 9.70711C4.31658 10.0976 3.68342 10.0976 3.29289 9.70711L0.292893 6.70711C-0.0976311 6.31658 -0.0976311 5.68342 0.292893 5.29289C0.683417 4.90237 1.31658 4.90237 1.70711 5.29289L4 7.58579L9.29289 2.29289C9.68342 1.90237 10.3166 1.90237 10.7071 2.29289Z" fill=""/>
-                                                                    </svg>
-                                                                </template>
-                                                            </div>
-                                                            <span x-text="option.name"></span>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Room Service Preferences -->
-                                        <div x-data="{
-                                            open: false,
-                                            get selected() {
-                                                return guestForm.guest_profile.preferences.room_service || [];
-                                            },
-                                            set selected(value) {
-                                                guestForm.guest_profile.preferences.room_service = value;
-                                            },
-                                            options: [
-                                                { id: 'full_service', name: 'Full Service' },
-                                                { id: 'limited', name: 'Limited' },
-                                                { id: 'morning', name: 'Morning Only' },
-                                                { id: 'evening', name: 'Evening Only' },
-                                                { id: 'turndown', name: 'Turndown Service' },
-                                                { id: 'minibar', name: 'Minibar Restock' },
-                                                { id: 'none', name: 'No Room Service' }
-                                            ],
-                                            toggleOption(id) {
-                                                if (this.selected.includes(id)) {
-                                                    this.selected = this.selected.filter(i => i !== id);
-                                                } else {
-                                                    this.selected = [...this.selected, id];
-                                                }
-                                            },
-                                            isSelected(id) {
-                                                return this.selected.includes(id);
-                                            }
-                                        }" class="relative">
-                                            <label class="block text-sm font-medium text-gray-600 mb-1">
-                                                Room Service Preferences
-                                            </label>
-                                            
-                                            <div @click="open = !open"
-                                                class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 transition dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="flex flex-1 flex-wrap items-center gap-2">
-                                                    <template x-for="id in selected" :key="id">
-                                                        <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pr-2 pl-2.5 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800">
-                                                            <span x-text="options.find(o => o.id === id).name"></span>
-                                                            <button type="button"
-                                                                    @click.stop="toggleOption(id)"
-                                                                    class="ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                                                                <svg class="fill-current" role="button" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z" fill=""/>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </template>
-                                                    <template x-if="selected.length === 0">
-                                                        <span class="text-gray-400">Select room service preferences...</span>
-                                                    </template>
-                                                </div>
-                                                <span class="flex items-center text-gray-400">
-                                                    <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 7.29289C5.68342 6.90237 6.31658 6.90237 6.70711 7.29289L10 10.5858L13.2929 7.29289C13.6834 6.90237 14.3166 6.90237 14.7071 7.29289C15.0976 7.68342 15.0976 8.31658 14.7071 8.70711L10.7071 12.7071C10.3166 13.0976 9.68342 13.0976 9.29289 12.7071L5.29289 8.70711C4.90237 8.31658 4.90237 7.68342 5.29289 7.29289Z" fill=""/>
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            
-                                            <div x-show="open" @click.outside="open = false"
-                                                class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="max-h-60 overflow-y-auto p-2">
-                                                    <template x-for="option in options" :key="option.id">
-                                                        <div @click="toggleOption(option.id)"
-                                                            :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'" {{-- UPDATED --}}
-                                                            class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
-                                                            <div class="flex h-5 w-5 items-center justify-center rounded border border-gray-300 mr-2">
-                                                                <template x-if="isSelected(option.id)">
-                                                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.7071 2.29289C11.0976 2.68342 11.0976 3.31658 10.7071 3.70711L4.70711 9.70711C4.31658 10.0976 3.68342 10.0976 3.29289 9.70711L0.292893 6.70711C-0.0976311 6.31658 -0.0976311 5.68342 0.292893 5.29289C0.683417 4.90237 1.31658 4.90237 1.70711 5.29289L4 7.58579L9.29289 2.29289C9.68342 1.90237 10.3166 1.90237 10.7071 2.29289Z" fill=""/>
-                                                                    </svg>
-                                                                </template>
-                                                            </div>
-                                                            <span x-text="option.name"></span>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Restaurant Preferences -->
-                                        <div x-data="{
-                                            open: false,
-                                            get selected() {
-                                                return guestForm.guest_profile.preferences.restaurant || [];
-                                            },
-                                            set selected(value) {
-                                                guestForm.guest_profile.preferences.restaurant = value;
-                                            },
-                                            options: [
-                                                { id: 'quiet_spot', name: 'Quiet Spot' },
-                                                { id: 'window_table', name: 'Window Table' },
-                                                { id: 'private_booth', name: 'Private Booth' },
-                                                { id: 'outdoor', name: 'Outdoor Seating' },
-                                                { id: 'family', name: 'Family Area' },
-                                                { id: 'business', name: 'Business Area' },
-                                                { id: 'any', name: 'Any' }
-                                            ],
-                                            toggleOption(id) {
-                                                if (this.selected.includes(id)) {
-                                                    this.selected = this.selected.filter(i => i !== id);
-                                                } else {
-                                                    this.selected = [...this.selected, id];
-                                                }
-                                            },
-                                            isSelected(id) {
-                                                return this.selected.includes(id);
-                                            }
-                                        }" class="relative">
-                                            <label class="block text-sm font-medium text-gray-600 mb-1">
-                                                Restaurant Preferences
-                                            </label>
-                                            
-                                            <div @click="open = !open"
-                                                class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 transition dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="flex flex-1 flex-wrap items-center gap-2">
-                                                    <template x-for="id in selected" :key="id">
-                                                        <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pr-2 pl-2.5 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800">
-                                                            <span x-text="options.find(o => o.id === id).name"></span>
-                                                            <button type="button"
-                                                                    @click.stop="toggleOption(id)"
-                                                                    class="ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                                                                <svg class="fill-current" role="button" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z" fill=""/>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </template>
-                                                    <template x-if="selected.length === 0">
-                                                        <span class="text-gray-400">Select restaurant preferences...</span>
-                                                    </template>
-                                                </div>
-                                                <span class="flex items-center text-gray-400">
-                                                    <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 7.29289C5.68342 6.90237 6.31658 6.90237 6.70711 7.29289L10 10.5858L13.2929 7.29289C13.6834 6.90237 14.3166 6.90237 14.7071 7.29289C15.0976 7.68342 15.0976 8.31658 14.7071 8.70711L10.7071 12.7071C10.3166 13.0976 9.68342 13.0976 9.29289 12.7071L5.29289 8.70711C4.90237 8.31658 4.90237 7.68342 5.29289 7.29289Z" fill=""/>
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            
-                                            <div x-show="open" @click.outside="open = false"
-                                                class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="max-h-60 overflow-y-auto p-2">
-                                                    <template x-for="option in options" :key="option.id">
-                                                        <div @click="toggleOption(option.id)"
-                                                            :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'" {{-- UPDATED --}}
-                                                            class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
-                                                            <div class="flex h-5 w-5 items-center justify-center rounded border border-gray-300 mr-2">
-                                                                <template x-if="isSelected(option.id)">
-                                                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.7071 2.29289C11.0976 2.68342 11.0976 3.31658 10.7071 3.70711L4.70711 9.70711C4.31658 10.0976 3.68342 10.0976 3.29289 9.70711L0.292893 6.70711C-0.0976311 6.31658 -0.0976311 5.68342 0.292893 5.29289C0.683417 4.90237 1.31658 4.90237 1.70711 5.29289L4 7.58579L9.29289 2.29289C9.68342 1.90237 10.3166 1.90237 10.7071 2.29289Z" fill=""/>
-                                                                    </svg>
-                                                                </template>
-                                                            </div>
-                                                            <span x-text="option.name"></span>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Check-in Time Preferences -->
-                                        <div x-data="{
-                                            open: false,
-                                            get selected() {
-                                                return guestForm.guest_profile.preferences.checkin_time || [];
-                                            },
-                                            set selected(value) {
-                                                guestForm.guest_profile.preferences.checkin_time = value;
-                                            },
-                                            options: [
-                                                { id: 'early_check_in', name: 'Early Check-in (Before 2 PM)' },
-                                                { id: 'standard_time', name: 'Standard Time (2 PM)' },
-                                                { id: 'late_check_in', name: 'Late Check-in (After 4 PM)' },
-                                                { id: 'flexible', name: 'Flexible' },
-                                                { id: 'specific_time', name: 'Specific Time' }
-                                            ],
-                                            toggleOption(id) {
-                                                if (this.selected.includes(id)) {
-                                                    this.selected = this.selected.filter(i => i !== id);
-                                                } else {
-                                                    this.selected = [...this.selected, id];
-                                                }
-                                            },
-                                            isSelected(id) {
-                                                return this.selected.includes(id);
-                                            }
-                                        }" class="relative">
-                                            <label class="block text-sm font-medium text-gray-600 mb-1">
-                                                Check-in Time Preferences
-                                            </label>
-                                            
-                                            <div @click="open = !open"
-                                                class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 transition dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="flex flex-1 flex-wrap items-center gap-2">
-                                                    <template x-for="id in selected" :key="id">
-                                                        <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pr-2 pl-2.5 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800">
-                                                            <span x-text="options.find(o => o.id === id).name"></span>
-                                                            <button type="button"
-                                                                    @click.stop="toggleOption(id)"
-                                                                    class="ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                                                                <svg class="fill-current" role="button" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z" fill=""/>
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    </template>
-                                                    <template x-if="selected.length === 0">
-                                                        <span class="text-gray-400">Select check-in time preferences...</span>
-                                                    </template>
-                                                </div>
-                                                <span class="flex items-center text-gray-400">
-                                                    <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 7.29289C5.68342 6.90237 6.31658 6.90237 6.70711 7.29289L10 10.5858L13.2929 7.29289C13.6834 6.90237 14.3166 6.90237 14.7071 7.29289C15.0976 7.68342 15.0976 8.31658 14.7071 8.70711L10.7071 12.7071C10.3166 13.0976 9.68342 13.0976 9.29289 12.7071L5.29289 8.70711C4.90237 8.31658 4.90237 7.68342 5.29289 7.29289Z" fill=""/>
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                            
-                                            <div x-show="open" @click.outside="open = false"
-                                                class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
-                                                <div class="max-h-60 overflow-y-auto p-2">
-                                                    <template x-for="option in options" :key="option.id">
-                                                        <div @click="toggleOption(option.id)"
-                                                            :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'" {{-- UPDATED --}}
-                                                            class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
-                                                            <div class="flex h-5 w-5 items-center justify-center rounded border border-gray-300 mr-2">
-                                                                <template x-if="isSelected(option.id)">
-                                                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.7071 2.29289C11.0976 2.68342 11.0976 3.31658 10.7071 3.70711L4.70711 9.70711C4.31658 10.0976 3.68342 10.0976 3.29289 9.70711L0.292893 6.70711C-0.0976311 6.31658 -0.0976311 5.68342 0.292893 5.29289C0.683417 4.90237 1.31658 4.90237 1.70711 5.29289L4 7.58579L9.29289 2.29289C9.68342 1.90237 10.3166 1.90237 10.7071 2.29289Z" fill=""/>
-                                                                    </svg>
-                                                                </template>
-                                                            </div>
-                                                            <span x-text="option.name"></span>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Other Preferences Text Input -->
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-600 mb-1">
-                                                Other Preferences
-                                            </label>
-                                            <textarea x-model="guestForm.guest_profile.preferences.other" rows="2"
-                                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                                    placeholder="Any other preferences or comments..."></textarea> {{-- UPDATED --}}
-                                        </div>
-                                        
-                                        <!-- Allergies Text Input -->
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-600 mb-1">
-                                                Allergies / Dietary Restrictions
-                                            </label>
-                                            <textarea x-model="guestForm.guest_profile.preferences.allergies" rows="2"
-                                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                                    placeholder="List any allergies or dietary restrictions..."></textarea> {{-- UPDATED --}}
-                                        </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Emergency Contact Section -->
+                        <div class="mt-6 rounded-xl bg-gradient-to-br from-amber-50/50 to-orange-50/50 p-5 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-100/50 dark:border-amber-900/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-amber-700 dark:text-amber-400">
+                                <i class="fas fa-phone-alt mr-2"></i>Emergency Contact
+                            </h4>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            Contact Name
+                                        </label>
+                                        <input type="text" x-model="guestForm.guest_profile.emergency_contact.name"
+                                               class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
                                     </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            Relationship <span class="text-red-500">*</span>
+                                        </label>
+                                        <select x-model="guestForm.guest_profile.emergency_contact.relationship"
+                                                class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                            <option value="">Select Relationship</option>
+                                            <option value="spouse">Spouse</option>
+                                            <option value="parent">Parent</option>
+                                            <option value="child">Child</option>
+                                            <option value="sibling">Sibling</option>
+                                            <option value="friend">Friend</option>
+                                            <option value="colleague">Colleague</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            Emergency Phone
+                                        </label>
+                                        <input type="tel" x-model="guestForm.guest_profile.emergency_contact.phone"
+                                               class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            Emergency Email
+                                        </label>
+                                        <input type="email" x-model="guestForm.guest_profile.emergency_contact.email"
+                                               class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                        Emergency Address
+                                    </label>
+                                    <textarea x-model="guestForm.guest_profile.emergency_contact.address" rows="2"
+                                              class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90"></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Emergency Contact -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-4">Emergency Contact</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">
-                                    Emergency Contact Name
-                                </label>
-                                <input type="text" x-model="guestForm.guest_profile.emergency_contact.name"
-                                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
+                    <!-- Preferences Tab -->
+                    <div x-show="activeTab === 'preferences'" x-cloak>
+                        <!-- Room Preferences Section -->
+                        <div class="rounded-xl bg-gradient-to-br from-green-50/50 to-emerald-50/50 p-5 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-100/50 dark:border-green-900/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-green-700 dark:text-green-400">
+                                <i class="fas fa-bed mr-2"></i>Room Preferences
+                            </h4>
+                            <div x-data="{
+                                open: false,
+                                get selected() {
+                                    return guestForm.guest_profile.preferences.room_preference || [];
+                                },
+                                set selected(value) {
+                                    guestForm.guest_profile.preferences.room_preference = value;
+                                },
+                                options: [
+                                    { id: 'quiet_room', name: 'Quiet Room' },
+                                    { id: 'high_floor', name: 'High Floor' },
+                                    { id: 'near_elevator', name: 'Near Elevator' },
+                                    { id: 'pool_view', name: 'Pool View' },
+                                    { id: 'city_view', name: 'City View' },
+                                    { id: 'smoking', name: 'Smoking Room' },
+                                    { id: 'non_smoking', name: 'Non-Smoking Room' },
+                                    { id: 'accessible', name: 'Accessible Room' },
+                                    { id: 'connecting', name: 'Connecting Room' }
+                                ],
+                                toggleOption(id) {
+                                    if (this.selected.includes(id)) {
+                                        this.selected = this.selected.filter(i => i !== id);
+                                    } else {
+                                        this.selected = [...this.selected, id];
+                                    }
+                                },
+                                isSelected(id) {
+                                    return this.selected.includes(id);
+                                }
+                            }" class="relative">
+                                <div @click="open = !open"
+                                    class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-200 bg-white/50 px-3 py-2 transition dark:border-gray-700 dark:bg-gray-800/50">
+                                    <div class="flex flex-1 flex-wrap items-center gap-2">
+                                        <template x-for="id in selected" :key="id">
+                                            <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-white px-2.5 py-1 text-sm text-gray-800 shadow-sm hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-700">
+                                                <span x-text="options.find(o => o.id === id).name"></span>
+                                                <button type="button"
+                                                        @click.stop="toggleOption(id)"
+                                                        class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                                                    <i class="fas fa-times text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                        <template x-if="selected.length === 0">
+                                            <span class="text-gray-400">Select room preferences...</span>
+                                        </template>
+                                    </div>
+                                    <span class="flex items-center text-gray-400">
+                                        <i class="fas fa-chevron-down text-sm"></i>
+                                    </span>
+                                </div>
+                                
+                                <div x-show="open" @click.outside="open = false"
+                                    class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                                    <div class="max-h-60 overflow-y-auto p-2">
+                                        <template x-for="option in options" :key="option.id">
+                                            <div @click="toggleOption(option.id)"
+                                                :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                                                class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
+                                                <div class="mr-2 flex h-5 w-5 items-center justify-center rounded border border-gray-300">
+                                                    <template x-if="isSelected(option.id)">
+                                                        <i class="fas fa-check text-primary text-xs"></i>
+                                                    </template>
+                                                </div>
+                                                <span x-text="option.name"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">
-                                    Relationship *
-                                </label>
-                                <select x-model="guestForm.guest_profile.emergency_contact.relationship"
-                                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
-                                    <option value="">Select Relationship</option>
-                                    <option value="spouse">Spouse</option>
-                                    <option value="parent">Parent</option>
-                                    <option value="child">Child</option>
-                                    <option value="sibling">Sibling</option>
-                                    <option value="friend">Friend</option>
-                                    <option value="colleague">Colleague</option>
-                                    <option value="other">Other</option>
-                                </select>
+                        </div>
+                        
+                        <!-- Entertainment Preferences Section -->
+                        <div class="mt-6 rounded-xl bg-gradient-to-br from-pink-50/50 to-rose-50/50 p-5 dark:from-pink-950/20 dark:to-rose-950/20 border border-pink-100/50 dark:border-pink-900/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-pink-700 dark:text-pink-400">
+                                <i class="fas fa-tv mr-2"></i>Entertainment Preferences
+                            </h4>
+                            <div x-data="{
+                                open: false,
+                                get selected() {
+                                    return guestForm.guest_profile.preferences.entertainment || [];
+                                },
+                                set selected(value) {
+                                    guestForm.guest_profile.preferences.entertainment = value;
+                                },
+                                options: [
+                                    { id: 'netflix', name: 'Netflix' },
+                                    { id: 'cable_tv', name: 'Cable TV' },
+                                    { id: 'streaming', name: 'Streaming Services' },
+                                    { id: 'hbo', name: 'HBO Max' },
+                                    { id: 'disney', name: 'Disney+' },
+                                    { id: 'music', name: 'Music Streaming' },
+                                    { id: 'gaming', name: 'Gaming Console' },
+                                    { id: 'none', name: 'None' }
+                                ],
+                                toggleOption(id) {
+                                    if (this.selected.includes(id)) {
+                                        this.selected = this.selected.filter(i => i !== id);
+                                    } else {
+                                        this.selected = [...this.selected, id];
+                                    }
+                                },
+                                isSelected(id) {
+                                    return this.selected.includes(id);
+                                }
+                            }" class="relative">
+                                <div @click="open = !open"
+                                    class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-200 bg-white/50 px-3 py-2 transition dark:border-gray-700 dark:bg-gray-800/50">
+                                    <div class="flex flex-1 flex-wrap items-center gap-2">
+                                        <template x-for="id in selected" :key="id">
+                                            <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-white px-2.5 py-1 text-sm text-gray-800 shadow-sm hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-700">
+                                                <span x-text="options.find(o => o.id === id).name"></span>
+                                                <button type="button"
+                                                        @click.stop="toggleOption(id)"
+                                                        class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                                                    <i class="fas fa-times text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                        <template x-if="selected.length === 0">
+                                            <span class="text-gray-400">Select entertainment preferences...</span>
+                                        </template>
+                                    </div>
+                                    <span class="flex items-center text-gray-400">
+                                        <i class="fas fa-chevron-down text-sm"></i>
+                                    </span>
+                                </div>
+                                
+                                <div x-show="open" @click.outside="open = false"
+                                    class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                                    <div class="max-h-60 overflow-y-auto p-2">
+                                        <template x-for="option in options" :key="option.id">
+                                            <div @click="toggleOption(option.id)"
+                                                :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                                                class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
+                                                <div class="mr-2 flex h-5 w-5 items-center justify-center rounded border border-gray-300">
+                                                    <template x-if="isSelected(option.id)">
+                                                        <i class="fas fa-check text-primary text-xs"></i>
+                                                    </template>
+                                                </div>
+                                                <span x-text="option.name"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">
-                                    Emergency Phone
-                                </label>
-                                <input type="tel" x-model="guestForm.guest_profile.emergency_contact.phone"
-                                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
+                        </div>
+                        
+                        <!-- Room Service Preferences Section -->
+                        <div class="mt-6 rounded-xl bg-gradient-to-br from-blue-50/50 to-cyan-50/50 p-5 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-100/50 dark:border-blue-900/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-blue-700 dark:text-blue-400">
+                                <i class="fas fa-concierge-bell mr-2"></i>Room Service Preferences
+                            </h4>
+                            <div x-data="{
+                                open: false,
+                                get selected() {
+                                    return guestForm.guest_profile.preferences.room_service || [];
+                                },
+                                set selected(value) {
+                                    guestForm.guest_profile.preferences.room_service = value;
+                                },
+                                options: [
+                                    { id: 'full_service', name: 'Full Service' },
+                                    { id: 'limited', name: 'Limited' },
+                                    { id: 'morning', name: 'Morning Only' },
+                                    { id: 'evening', name: 'Evening Only' },
+                                    { id: 'turndown', name: 'Turndown Service' },
+                                    { id: 'minibar', name: 'Minibar Restock' },
+                                    { id: 'none', name: 'No Room Service' }
+                                ],
+                                toggleOption(id) {
+                                    if (this.selected.includes(id)) {
+                                        this.selected = this.selected.filter(i => i !== id);
+                                    } else {
+                                        this.selected = [...this.selected, id];
+                                    }
+                                },
+                                isSelected(id) {
+                                    return this.selected.includes(id);
+                                }
+                            }" class="relative">
+                                <div @click="open = !open"
+                                    class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-200 bg-white/50 px-3 py-2 transition dark:border-gray-700 dark:bg-gray-800/50">
+                                    <div class="flex flex-1 flex-wrap items-center gap-2">
+                                        <template x-for="id in selected" :key="id">
+                                            <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-white px-2.5 py-1 text-sm text-gray-800 shadow-sm hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-700">
+                                                <span x-text="options.find(o => o.id === id).name"></span>
+                                                <button type="button"
+                                                        @click.stop="toggleOption(id)"
+                                                        class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                                                    <i class="fas fa-times text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                        <template x-if="selected.length === 0">
+                                            <span class="text-gray-400">Select room service preferences...</span>
+                                        </template>
+                                    </div>
+                                    <span class="flex items-center text-gray-400">
+                                        <i class="fas fa-chevron-down text-sm"></i>
+                                    </span>
+                                </div>
+                                
+                                <div x-show="open" @click.outside="open = false"
+                                    class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                                    <div class="max-h-60 overflow-y-auto p-2">
+                                        <template x-for="option in options" :key="option.id">
+                                            <div @click="toggleOption(option.id)"
+                                                :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                                                class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
+                                                <div class="mr-2 flex h-5 w-5 items-center justify-center rounded border border-gray-300">
+                                                    <template x-if="isSelected(option.id)">
+                                                        <i class="fas fa-check text-primary text-xs"></i>
+                                                    </template>
+                                                </div>
+                                                <span x-text="option.name"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">
-                                    Emergency Email
-                                </label>
-                                <input type="email" x-model="guestForm.guest_profile.emergency_contact.email"
-                                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"> {{-- UPDATED --}}
+                        </div>
+                        
+                        <!-- Restaurant Preferences Section -->
+                        <div class="mt-6 rounded-xl bg-gradient-to-br from-amber-50/50 to-yellow-50/50 p-5 dark:from-amber-950/20 dark:to-yellow-950/20 border border-amber-100/50 dark:border-amber-900/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-amber-700 dark:text-amber-400">
+                                <i class="fas fa-utensils mr-2"></i>Restaurant Preferences
+                            </h4>
+                            <div x-data="{
+                                open: false,
+                                get selected() {
+                                    return guestForm.guest_profile.preferences.restaurant || [];
+                                },
+                                set selected(value) {
+                                    guestForm.guest_profile.preferences.restaurant = value;
+                                },
+                                options: [
+                                    { id: 'quiet_spot', name: 'Quiet Spot' },
+                                    { id: 'window_table', name: 'Window Table' },
+                                    { id: 'private_booth', name: 'Private Booth' },
+                                    { id: 'outdoor', name: 'Outdoor Seating' },
+                                    { id: 'family', name: 'Family Area' },
+                                    { id: 'business', name: 'Business Area' },
+                                    { id: 'any', name: 'Any' }
+                                ],
+                                toggleOption(id) {
+                                    if (this.selected.includes(id)) {
+                                        this.selected = this.selected.filter(i => i !== id);
+                                    } else {
+                                        this.selected = [...this.selected, id];
+                                    }
+                                },
+                                isSelected(id) {
+                                    return this.selected.includes(id);
+                                }
+                            }" class="relative">
+                                <div @click="open = !open"
+                                    class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-200 bg-white/50 px-3 py-2 transition dark:border-gray-700 dark:bg-gray-800/50">
+                                    <div class="flex flex-1 flex-wrap items-center gap-2">
+                                        <template x-for="id in selected" :key="id">
+                                            <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-white px-2.5 py-1 text-sm text-gray-800 shadow-sm hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-700">
+                                                <span x-text="options.find(o => o.id === id).name"></span>
+                                                <button type="button"
+                                                        @click.stop="toggleOption(id)"
+                                                        class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                                                    <i class="fas fa-times text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                        <template x-if="selected.length === 0">
+                                            <span class="text-gray-400">Select restaurant preferences...</span>
+                                        </template>
+                                    </div>
+                                    <span class="flex items-center text-gray-400">
+                                        <i class="fas fa-chevron-down text-sm"></i>
+                                    </span>
+                                </div>
+                                
+                                <div x-show="open" @click.outside="open = false"
+                                    class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                                    <div class="max-h-60 overflow-y-auto p-2">
+                                        <template x-for="option in options" :key="option.id">
+                                            <div @click="toggleOption(option.id)"
+                                                :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                                                class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
+                                                <div class="mr-2 flex h-5 w-5 items-center justify-center rounded border border-gray-300">
+                                                    <template x-if="isSelected(option.id)">
+                                                        <i class="fas fa-check text-primary text-xs"></i>
+                                                    </template>
+                                                </div>
+                                                <span x-text="option.name"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-600 mb-1">
-                                    Emergency Address
-                                </label>
-                                <textarea x-model="guestForm.guest_profile.emergency_contact.address" rows="2"
-                                          class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"></textarea> {{-- UPDATED --}}
+                        </div>
+                        
+                        <!-- Check-in Time Preferences Section -->
+                        <div class="mt-6 rounded-xl bg-gradient-to-br from-indigo-50/50 to-purple-50/50 p-5 dark:from-indigo-950/20 dark:to-purple-950/20 border border-indigo-100/50 dark:border-indigo-900/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-indigo-700 dark:text-indigo-400">
+                                <i class="fas fa-clock mr-2"></i>Check-in Time Preferences
+                            </h4>
+                            <div x-data="{
+                                open: false,
+                                get selected() {
+                                    return guestForm.guest_profile.preferences.checkin_time || [];
+                                },
+                                set selected(value) {
+                                    guestForm.guest_profile.preferences.checkin_time = value;
+                                },
+                                options: [
+                                    { id: 'early_check_in', name: 'Early Check-in (Before 2 PM)' },
+                                    { id: 'standard_time', name: 'Standard Time (2 PM)' },
+                                    { id: 'late_check_in', name: 'Late Check-in (After 4 PM)' },
+                                    { id: 'flexible', name: 'Flexible' },
+                                    { id: 'specific_time', name: 'Specific Time' }
+                                ],
+                                toggleOption(id) {
+                                    if (this.selected.includes(id)) {
+                                        this.selected = this.selected.filter(i => i !== id);
+                                    } else {
+                                        this.selected = [...this.selected, id];
+                                    }
+                                },
+                                isSelected(id) {
+                                    return this.selected.includes(id);
+                                }
+                            }" class="relative">
+                                <div @click="open = !open"
+                                    class="shadow-theme-xs flex min-h-11 cursor-pointer gap-2 rounded-lg border border-gray-200 bg-white/50 px-3 py-2 transition dark:border-gray-700 dark:bg-gray-800/50">
+                                    <div class="flex flex-1 flex-wrap items-center gap-2">
+                                        <template x-for="id in selected" :key="id">
+                                            <div class="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-white px-2.5 py-1 text-sm text-gray-800 shadow-sm hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-700">
+                                                <span x-text="options.find(o => o.id === id).name"></span>
+                                                <button type="button"
+                                                        @click.stop="toggleOption(id)"
+                                                        class="ml-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                                                    <i class="fas fa-times text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                        <template x-if="selected.length === 0">
+                                            <span class="text-gray-400">Select check-in time preferences...</span>
+                                        </template>
+                                    </div>
+                                    <span class="flex items-center text-gray-400">
+                                        <i class="fas fa-chevron-down text-sm"></i>
+                                    </span>
+                                </div>
+                                
+                                <div x-show="open" @click.outside="open = false"
+                                    class="absolute z-99999 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                                    <div class="max-h-60 overflow-y-auto p-2">
+                                        <template x-for="option in options" :key="option.id">
+                                            <div @click="toggleOption(option.id)"
+                                                :class="isSelected(option.id) ? 'bg-primary/5 text-primary' : 'hover:bg-gray-50 dark:hover:bg-gray-800'"
+                                                class="flex cursor-pointer items-center rounded-lg px-3 py-2 text-sm">
+                                                <div class="mr-2 flex h-5 w-5 items-center justify-center rounded border border-gray-300">
+                                                    <template x-if="isSelected(option.id)">
+                                                        <i class="fas fa-check text-primary text-xs"></i>
+                                                    </template>
+                                                </div>
+                                                <span x-text="option.name"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Preferences Section -->
+                        <div class="mt-6 rounded-xl bg-gradient-to-br from-gray-50/50 to-slate-50/50 p-5 dark:from-gray-800/30 dark:to-slate-800/30 border border-gray-200/50 dark:border-gray-700/50">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-ellipsis-h mr-2"></i>Additional Preferences
+                            </h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                        Other Preferences
+                                    </label>
+                                    <textarea x-model="guestForm.guest_profile.preferences.other" rows="2"
+                                              class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90"
+                                              placeholder="Any other preferences or comments..."></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                        Allergies / Dietary Restrictions
+                                    </label>
+                                    <textarea x-model="guestForm.guest_profile.preferences.allergies" rows="2"
+                                              class="w-full rounded-lg border border-gray-200 bg-white/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white/90"
+                                              placeholder="List any allergies or dietary restrictions..."></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 mt-6">
+                    <!-- Form Actions -->
+                    <div class="sticky bottom-0 mt-8 flex items-center justify-end gap-3 border-t border-gray-200 bg-white/90 backdrop-blur-sm px-6 py-4 dark:border-gray-700 dark:bg-gray-900/90 -mx-6 -mb-6">
                         <button type="button" @click="showGuestModal = false" 
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                                class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
                             Cancel
                         </button>
                         <button type="submit" :disabled="isSubmitting"
-                                class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"> {{-- UPDATED --}}
+                                class="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">
                             <span x-show="!isSubmitting" x-text="editingGuest ? 'Update Guest' : 'Create Guest'"></span>
                             <span x-show="isSubmitting">
                                 <i class="fas fa-spinner fa-spin mr-1"></i> <span x-text="editingGuest ? 'Updating...' : 'Creating...'"></span>
@@ -1025,7 +1037,7 @@
                 
                 <div class="mt-6 space-y-3">
                     <button @click="redirectToGuest()" 
-                            class="flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition-colors hover:bg-primary/90"> {{-- UPDATED --}}
+                            class="flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition-colors hover:bg-primary/90">
                         <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
@@ -1033,7 +1045,7 @@
                     </button>
                     
                     <button @click="redirectToGuestWithStay()" 
-                            class="flex w-full items-center justify-center rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition-colors hover:bg-secondary/90"> {{-- UPDATED --}}
+                            class="flex w-full items-center justify-center rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-white shadow-theme-xs transition-colors hover:bg-secondary/90">
                         <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
@@ -1076,6 +1088,7 @@ function guestTable() {
         guestToDeleteId: null,
         guestToDeleteName: '',
         editingGuest: false,
+        activeTab: 'personal', // Add this to track active tab
 
         loading: true,
         guests: [],
@@ -1291,109 +1304,111 @@ function guestTable() {
         openCreateModal() {
             this.showGuestModal = true;
             this.editingGuest = false;
+            this.activeTab = 'personal'; // Reset to first tab
             this.resetGuestForm();
         },
 
-openEditModal(guest) {
-    this.showGuestModal = true;
-    this.editingGuest = true;
-    this.resetGuestForm();
-    
-    // Populate form with guest data
-    this.guestForm.id = guest.id;
-    
-    // Split name into first and last
-    if (guest.user?.name) {
-        const names = guest.user.name.split(' ');
-        this.guestForm.user.first_name = names[0] || '';
-        this.guestForm.user.last_name = names.slice(1).join(' ') || '';
-    }
-    
-    this.guestForm.user.email = guest.user?.email || '';
-    this.guestForm.user.phone = guest.user?.phone || '';
-    
-    this.guestForm.guest_profile.id_type = guest.id_type || '';
-    this.guestForm.guest_profile.id_number = guest.id_number || '';
-    this.guestForm.guest_profile.nationality = guest.nationality || '';
-    this.guestForm.guest_profile.address = guest.address || '';
-    
-    // Parse emergency contact
-    if (guest.emergency_contact) {
-        if (typeof guest.emergency_contact === 'string') {
-            try {
-                const ec = JSON.parse(guest.emergency_contact);
-                this.guestForm.guest_profile.emergency_contact = {
-                    name: ec.name || '',
-                    email: ec.email || '',
-                    phone: ec.phone || '',
-                    relationship: ec.relationship || '',
-                    address: ec.address || ''
-                };
-            } catch (e) {
-                this.guestForm.guest_profile.emergency_contact.name = guest.emergency_contact;
+        openEditModal(guest) {
+            this.showGuestModal = true;
+            this.editingGuest = true;
+            this.activeTab = 'personal'; // Reset to first tab
+            this.resetGuestForm();
+            
+            // Populate form with guest data
+            this.guestForm.id = guest.id;
+            
+            // Split name into first and last
+            if (guest.user?.name) {
+                const names = guest.user.name.split(' ');
+                this.guestForm.user.first_name = names[0] || '';
+                this.guestForm.user.last_name = names.slice(1).join(' ') || '';
             }
-        } else if (typeof guest.emergency_contact === 'object') {
-            this.guestForm.guest_profile.emergency_contact = guest.emergency_contact;
-        }
-    }
-    
-    // Parse preferences - FIX: Handle null values
-    if (guest.preferences) {
-        if (typeof guest.preferences === 'string') {
-            try {
-                const prefs = JSON.parse(guest.preferences);
-                // Convert null to empty strings
-                this.guestForm.guest_profile.preferences = {
-                    room_preference: prefs.room_preference ? 
-                        (Array.isArray(prefs.room_preference) ? prefs.room_preference : 
-                        (typeof prefs.room_preference === 'string' ? prefs.room_preference.split(',').filter(v => v) : [])) 
-                        : [],
-                    entertainment: prefs.entertainment ? 
-                        (Array.isArray(prefs.entertainment) ? prefs.entertainment : 
-                        (typeof prefs.entertainment === 'string' ? prefs.entertainment.split(',').filter(v => v) : [])) 
-                        : [],
-                    room_service: prefs.room_service ? 
-                        (Array.isArray(prefs.room_service) ? prefs.room_service : 
-                        (typeof prefs.room_service === 'string' ? prefs.room_service.split(',').filter(v => v) : [])) 
-                        : [],
-                    restaurant: prefs.restaurant ? 
-                        (Array.isArray(prefs.restaurant) ? prefs.restaurant : 
-                        (typeof prefs.restaurant === 'string' ? prefs.restaurant.split(',').filter(v => v) : [])) 
-                        : [],
-                    checkin_time: prefs.checkin_time ? 
-                        (Array.isArray(prefs.checkin_time) ? prefs.checkin_time : 
-                        (typeof prefs.checkin_time === 'string' ? prefs.checkin_time.split(',').filter(v => v) : [])) 
-                        : [],
-                    other: prefs.other || '',
-                    allergies: prefs.allergies || ''
-                };
-            } catch (e) {
-                console.error('Error parsing preferences:', e);
-                // Set defaults
-                this.guestForm.guest_profile.preferences = {
-                    room_preference: [],
-                    entertainment: [],
-                    room_service: [],
-                    restaurant: [],
-                    checkin_time: [],
-                    other: '',
-                    allergies: ''
-                };
+            
+            this.guestForm.user.email = guest.user?.email || '';
+            this.guestForm.user.phone = guest.user?.phone || '';
+            
+            this.guestForm.guest_profile.id_type = guest.id_type || '';
+            this.guestForm.guest_profile.id_number = guest.id_number || '';
+            this.guestForm.guest_profile.nationality = guest.nationality || '';
+            this.guestForm.guest_profile.address = guest.address || '';
+            
+            // Parse emergency contact
+            if (guest.emergency_contact) {
+                if (typeof guest.emergency_contact === 'string') {
+                    try {
+                        const ec = JSON.parse(guest.emergency_contact);
+                        this.guestForm.guest_profile.emergency_contact = {
+                            name: ec.name || '',
+                            email: ec.email || '',
+                            phone: ec.phone || '',
+                            relationship: ec.relationship || '',
+                            address: ec.address || ''
+                        };
+                    } catch (e) {
+                        this.guestForm.guest_profile.emergency_contact.name = guest.emergency_contact;
+                    }
+                } else if (typeof guest.emergency_contact === 'object') {
+                    this.guestForm.guest_profile.emergency_contact = guest.emergency_contact;
+                }
             }
-        } else if (typeof guest.preferences === 'object') {
-            // Handle object directly
-            this.guestForm.guest_profile.preferences = {
-                room_preference: guest.preferences.room_preference || [],
-                entertainment: guest.preferences.entertainment || [],
-                room_service: guest.preferences.room_service || [],
-                restaurant: guest.preferences.restaurant || [],
-                checkin_time: guest.preferences.checkin_time || [],
-                other: guest.preferences.other || '',
-                allergies: guest.preferences.allergies || ''
-            };
-        }
-    }
-},
+            
+            // Parse preferences - FIX: Handle null values
+            if (guest.preferences) {
+                if (typeof guest.preferences === 'string') {
+                    try {
+                        const prefs = JSON.parse(guest.preferences);
+                        // Convert null to empty strings
+                        this.guestForm.guest_profile.preferences = {
+                            room_preference: prefs.room_preference ? 
+                                (Array.isArray(prefs.room_preference) ? prefs.room_preference : 
+                                (typeof prefs.room_preference === 'string' ? prefs.room_preference.split(',').filter(v => v) : [])) 
+                                : [],
+                            entertainment: prefs.entertainment ? 
+                                (Array.isArray(prefs.entertainment) ? prefs.entertainment : 
+                                (typeof prefs.entertainment === 'string' ? prefs.entertainment.split(',').filter(v => v) : [])) 
+                                : [],
+                            room_service: prefs.room_service ? 
+                                (Array.isArray(prefs.room_service) ? prefs.room_service : 
+                                (typeof prefs.room_service === 'string' ? prefs.room_service.split(',').filter(v => v) : [])) 
+                                : [],
+                            restaurant: prefs.restaurant ? 
+                                (Array.isArray(prefs.restaurant) ? prefs.restaurant : 
+                                (typeof prefs.restaurant === 'string' ? prefs.restaurant.split(',').filter(v => v) : [])) 
+                                : [],
+                            checkin_time: prefs.checkin_time ? 
+                                (Array.isArray(prefs.checkin_time) ? prefs.checkin_time : 
+                                (typeof prefs.checkin_time === 'string' ? prefs.checkin_time.split(',').filter(v => v) : [])) 
+                                : [],
+                            other: prefs.other || '',
+                            allergies: prefs.allergies || ''
+                        };
+                    } catch (e) {
+                        console.error('Error parsing preferences:', e);
+                        // Set defaults
+                        this.guestForm.guest_profile.preferences = {
+                            room_preference: [],
+                            entertainment: [],
+                            room_service: [],
+                            restaurant: [],
+                            checkin_time: [],
+                            other: '',
+                            allergies: ''
+                        };
+                    }
+                } else if (typeof guest.preferences === 'object') {
+                    // Handle object directly
+                    this.guestForm.guest_profile.preferences = {
+                        room_preference: guest.preferences.room_preference || [],
+                        entertainment: guest.preferences.entertainment || [],
+                        room_service: guest.preferences.room_service || [],
+                        restaurant: guest.preferences.restaurant || [],
+                        checkin_time: guest.preferences.checkin_time || [],
+                        other: guest.preferences.other || '',
+                        allergies: guest.preferences.allergies || ''
+                    };
+                }
+            }
+        },
 
         resetGuestForm() {
             this.guestForm = {
