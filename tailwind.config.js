@@ -44,6 +44,31 @@ module.exports = {
         white: "#FFFFFF",
         black: "#101828",
         "gray-dark": "#1a1a1a",
+
+        /* ===============================
+        * BRAND (DYNAMIC – FROM SYSTEM)
+        * =============================== */
+        brand: {
+          25: "color-mix(in srgb, var(--color-primary) 5%, white)",
+          50: "color-mix(in srgb, var(--color-primary) 10%, white)",
+          100: "color-mix(in srgb, var(--color-primary) 20%, white)",
+          200: "color-mix(in srgb, var(--color-primary) 40%, white)",
+          300: "color-mix(in srgb, var(--color-primary) 60%, white)",
+          400: "color-mix(in srgb, var(--color-primary) 80%, white)",
+          500: "var(--color-primary)",
+          600: "color-mix(in srgb, var(--color-primary) 90%, black)",
+          700: "color-mix(in srgb, var(--color-primary) 80%, black)",
+          800: "color-mix(in srgb, var(--color-primary) 65%, black)",
+          900: "color-mix(in srgb, var(--color-primary) 50%, black)",
+          950: "color-mix(in srgb, var(--color-primary) 35%, black)",
+        },
+
+        /* ===============================
+        * SECONDARY (DYNAMIC)
+        * =============================== */
+        secondary: {
+          500: "var(--color-secondary)",
+        },
         success: {
           50: "#d1fae5", // Light success color
           100: "#a7f3d0",

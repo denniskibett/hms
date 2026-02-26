@@ -247,7 +247,7 @@ function diagnoseForm() {
     html += '<div class="space-y-4">';
     
     Object.entries(elementsByType).forEach(([type, elements]) => {
-        html += `<div><strong class="text-blue-600 dark:text-blue-400">${type.toUpperCase()}</strong> (${elements.length}):</div>`;
+        html += `<div><strong class="text-primary dark:text-blue-400">${type.toUpperCase()}</strong> (${elements.length}):</div>`;
         html += '<div class="ml-4 space-y-1">';
         
         elements.forEach(input => {

@@ -17,7 +17,7 @@
                     {{ ucfirst($stay->status) }}
                 </span>
                 @if($stay->is_checked_in)
-                <span class="bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-500 inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-medium">
+                <span class="bg-blue-50 text-primary dark:bg-primary/15 dark:text-blue-500 inline-flex items-center justify-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-medium">
                     <i class="fas fa-door-open mr-1"></i> Checked-in
                 </span>
                 @endif

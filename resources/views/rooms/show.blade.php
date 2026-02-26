@@ -95,7 +95,7 @@
                                           @class([
                                             'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500' => $room->status === 'available',
                                             'bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400' => $room->status === 'occupied',
-                                            'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400' => $room->status === 'cleaning',
+                                            'bg-blue-50 text-primary dark:bg-primary/15 dark:text-blue-400' => $room->status === 'cleaning',
                                             'bg-danger-50 text-danger-600 dark:bg-danger-500/15 dark:text-danger-500' => in_array($room->status, ['maintenance', 'out_of_order']),
                                             'bg-gray-50 text-gray-600 dark:bg-gray-500/15 dark:text-gray-400' => $room->status === 'reserved',
                                           ])>
@@ -256,7 +256,7 @@
                                     <span class="text-xs px-2 py-1 rounded-full 
                                         {{ $allocation->from_date->isPast() && $allocation->to_date->isPast() ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' : 
                                            ($allocation->from_date->isPast() && $allocation->to_date->isFuture() ? 'bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400' : 
-                                           'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400') }}">
+                                           'bg-blue-100 text-primary dark:bg-primary/15 dark:text-blue-400') }}">
                                         {{ $allocation->from_date->isPast() && $allocation->to_date->isPast() ? 'Past' : 
                                            ($allocation->from_date->isPast() && $allocation->to_date->isFuture() ? 'Current' : 'Upcoming') }}
                                     </span>
@@ -715,7 +715,7 @@ function roomShow() {
                 type === 'success' ? 'bg-green-500' : 
                 type === 'error' ? 'bg-red-500' : 
                 type === 'warning' ? 'bg-yellow-500' : 
-                'bg-blue-500'
+                'bg-primary'
             }`;
             toast.textContent = message;
             

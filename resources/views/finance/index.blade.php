@@ -47,11 +47,11 @@
                         KSH {{ number_format($stats['today_revenue'], 2) }}
                     </p>
                 </div>
-                <div class="rounded-full bg-blue-50 p-3 dark:bg-blue-500/10">
-                    <i class="fas fa-money-bill-wave text-blue-600 dark:text-blue-400 text-xl"></i>
+                <div class="rounded-full bg-blue-50 p-3 dark:bg-primary/10">
+                    <i class="fas fa-money-bill-wave text-primary dark:text-blue-400 text-xl"></i>
                 </div>
             </div>
-            <a href="{{ route('payments.index') }}" class="mt-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400">
+            <a href="{{ route('payments.index') }}" class="mt-4 inline-flex items-center text-sm text-primary hover:text-blue-700 dark:text-blue-400">
                 View details
                 <i class="fas fa-arrow-right ml-1.5"></i>
             </a>
@@ -247,8 +247,8 @@
                         class="flex flex-col items-center justify-center gap-3 rounded-lg border border-gray-200 p-6 text-center transition-colors hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:hover:border-gray-700 dark:hover:bg-gray-900"
                         data-toggle="modal" 
                         data-target="#createInvoiceModal">
-                    <div class="rounded-full bg-blue-50 p-4 dark:bg-blue-500/10">
-                        <i class="fas fa-file-invoice-dollar text-2xl text-blue-600 dark:text-blue-400"></i>
+                    <div class="rounded-full bg-blue-50 p-4 dark:bg-primary/10">
+                        <i class="fas fa-file-invoice-dollar text-2xl text-primary dark:text-blue-400"></i>
                     </div>
                     <p class="font-medium text-gray-700 dark:text-gray-300">Create Invoice</p>
                 </button>

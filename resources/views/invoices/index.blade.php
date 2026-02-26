@@ -3,7 +3,7 @@
 @section('title', 'Invoices')
 
 @section('content')
-<div class="container-fluid px-0" x-data="invoiceApp()">
+<div class="container-fluid px-0">
     <!-- Overview -->
     <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 dark:border-gray-800 dark:bg-white/[0.03]">
         <div class="mb-6 flex items-center justify-between">
@@ -11,7 +11,7 @@
                 <h2 class="font-semibold text-gray-800 dark:text-white/90">Overview</h2>
             </div>
             <div>
-                <button type="button" @click="showCreateModal = true" class="bg-brand-500 shadow-theme-xs hover:bg-brand-600 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition">
+                <button type="button" class="bg-brand-500 shadow-theme-xs hover:bg-brand-600 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white transition" data-toggle="modal" data-target="#createInvoiceModal">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M5 10.0002H15.0006M10.0002 5V15.0006" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -48,13 +48,13 @@
             </div>
             <div class="flex gap-3.5">
                 <div class="hidden h-11 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 lg:inline-flex dark:bg-gray-900">
-                    <button @click="filterStatus = 'All'; filterInvoices()" :class="filterStatus === 'All' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'" class="text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white">
+                    <button @click="filterStatus = 'All'; currentPage = 1" :class="filterStatus === 'All' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'" class="text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white">
                         All Invoices
                     </button>
-                    <button @click="filterStatus = 'Unpaid'; filterInvoices()" :class="filterStatus === 'Unpaid' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'" class="text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white">
+                    <button @click="filterStatus = 'Unpaid'; currentPage = 1" :class="filterStatus === 'Unpaid' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'" class="text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white">
                         Unpaid
                     </button>
-                    <button @click="filterStatus = 'Draft'; filterInvoices()" :class="filterStatus === 'Draft' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'" class="text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white">
+                    <button @click="filterStatus = 'Draft'; currentPage = 1" :class="filterStatus === 'Draft' ? 'shadow-theme-xs text-gray-900 dark:text-white bg-white dark:bg-gray-800' : 'text-gray-500 dark:text-gray-400'" class="text-theme-sm h-10 rounded-md px-3 py-2 font-medium hover:text-gray-900 dark:hover:text-white">
                         Draft
                     </button>
                 </div>
@@ -65,7 +65,7 @@
                                 <path fill-rule="evenodd" clip-rule="evenodd" d="M3.04199 9.37363C3.04199 5.87693 5.87735 3.04199 9.37533 3.04199C12.8733 3.04199 15.7087 5.87693 15.7087 9.37363C15.7087 12.8703 12.8733 15.7053 9.37533 15.7053C5.87735 15.7053 3.04199 12.8703 3.04199 9.37363ZM9.37533 1.54199C5.04926 1.54199 1.54199 5.04817 1.54199 9.37363C1.54199 13.6991 5.04926 17.2053 9.37533 17.2053C11.2676 17.2053 13.0032 16.5344 14.3572 15.4176L17.1773 18.238C17.4702 18.5309 17.945 18.5309 18.2379 18.238C18.5308 17.9451 18.5309 17.4703 18.238 17.1773L15.4182 14.3573C16.5367 13.0033 17.2087 11.2669 17.2087 9.37363C17.2087 5.04817 13.7014 1.54199 9.37533 1.54199Z" fill=""/>
                             </svg>
                         </span>
-                        <input type="text" placeholder="Search..." x-model="searchQuery" @input.debounce.300ms="filterInvoices()" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pr-4 pl-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden xl:w-[300px] dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"/>
+                        <input type="text" placeholder="Search..." x-model="searchQuery" @input="filterInvoices()" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pr-4 pl-11 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden xl:w-[300px] dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"/>
                     </div>
 
                     <div class="relative" x-data="{ showFilter: false }">
@@ -75,29 +75,29 @@
                             </svg>
                             Filter
                         </button>
-                        <div x-show="showFilter" @click.away="showFilter = false" class="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800" x-cloak>
+                        <div x-show="showFilter" @click.away="showFilter = false" class="absolute right-0 z-10 mt-2 w-56 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                             <div class="mb-5">
                                 <label class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">Customer</label>
-                                <input type="text" x-model="customerFilter" @input.debounce.300ms="filterInvoices()" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" placeholder="Search customer..."/>
+                                <input type="text" x-model="customerFilter" @input="filterInvoices()" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" placeholder="Search customer..."/>
                             </div>
                             <div class="mb-5">
                                 <label class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">Date From</label>
-                                <input type="date" x-model="dateFrom" @input.debounce.300ms="filterInvoices()" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"/>
+                                <input type="date" x-model="dateFrom" @input="filterInvoices()" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"/>
                             </div>
                             <div class="mb-5">
                                 <label class="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">Date To</label>
-                                <input type="date" x-model="dateTo" @input.debounce.300ms="filterInvoices()" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"/>
+                                <input type="date" x-model="dateTo" @input="filterInvoices()" class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-10 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"/>
                             </div>
                             <button @click="resetFilters()" class="bg-brand-500 hover:bg-brand-600 h-10 w-full rounded-lg px-3 py-2 text-sm font-medium text-white">
                                 Apply
                             </button>
                         </div>
                     </div>
-                    <button @click="exportCSV()" class="shadow-theme-xs flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-[11px] text-sm font-medium text-gray-700 sm:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                    <button @click="exportInvoices()" class="shadow-theme-xs flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-[11px] text-sm font-medium text-gray-700 sm:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path d="M16.6671 13.3333V15.4166C16.6671 16.1069 16.1074 16.6666 15.4171 16.6666H4.58301C3.89265 16.6666 3.33301 16.1069 3.33301 15.4166V13.3333M10.0013 3.33325L10.0013 13.3333M6.14553 7.18708L9.99958 3.33549L13.8539 7.18708" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Export CSV
+                        Export
                     </button>
                 </div>
             </div>
@@ -180,9 +180,9 @@
                             <div class="group flex items-center gap-3">
                                 <label class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                                     <span class="relative">
-                                        <input type="checkbox" class="sr-only invoice-checkbox" data-id="{{ $invoice->id }}" @change="toggleSelect($event, {{ $invoice->id }})"/>
-                                        <span :class="selected.includes({{ $invoice->id }}) ? 'border-brand-500 bg-brand-500' : 'bg-transparent border-gray-300 dark:border-gray-700'" class="flex h-4 w-4 items-center justify-center rounded-sm border-[1.25px]">
-                                            <span :class="selected.includes({{ $invoice->id }}) ? '' : 'opacity-0'">
+                                        <input type="checkbox" class="sr-only invoice-checkbox" data-id="{{ $invoice->id }}"/>
+                                        <span class="flex h-4 w-4 items-center justify-center rounded-sm border-[1.25px] border-gray-300 dark:border-gray-700 bg-transparent">
+                                            <span class="opacity-0">
                                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                                                     <path d="M10 3L4.5 8.5L2 6" stroke="white" stroke-width="1.6666" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
@@ -230,35 +230,24 @@
                             </span>
                         </td>
                         <td class="p-4 whitespace-nowrap">
-                            <div class="relative flex justify-center" x-data="{ open: false }" @click.outside="open = false">
-                                <button @click="open = !open" class="text-gray-500 dark:text-gray-400 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <div class="relative flex justify-center">
+                                <button class="text-gray-500 dark:text-gray-400 dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <svg class="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path fill-rule="evenodd" clip-rule="evenodd" d="M5.99902 10.245C6.96552 10.245 7.74902 11.0285 7.74902 11.995V12.005C7.74902 12.9715 6.96552 13.755 5.99902 13.755C5.03253 13.755 4.24902 12.9715 4.24902 12.005V11.995C4.24902 11.0285 5.03253 10.245 5.99902 10.245ZM17.999 10.245C18.9655 10.245 19.749 11.0285 19.749 11.995V12.005C19.749 12.9715 18.9655 13.755 17.999 13.755C17.0325 13.755 16.249 12.9715 16.249 12.005V11.995C16.249 11.0285 17.0325 10.245 17.999 10.245ZM13.749 11.995C13.749 11.0285 12.9655 10.245 11.999 10.245C11.0325 10.245 10.249 11.0285 10.249 11.995V12.005C10.249 12.9715 11.0325 13.755 11.999 13.755C12.9655 13.755 13.749 12.9715 13.749 12.005V11.995Z" fill=""/>
                                     </svg>
                                 </button>
-                                
-                                <div x-show="open" x-cloak class="absolute right-0 z-50 mt-8 w-48 rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-800 dark:bg-gray-900">
-                                    <a href="{{ route('invoices.show', $invoice) }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        View Details
+                                <div class="dropdown-menu shadow-theme-lg dark:bg-gray-dark fixed w-40 space-y-1 rounded-2xl border border-gray-200 bg-white p-2 dark:border-gray-800">
+                                    <a href="{{ route('invoices.show', $invoice) }}" class="text-theme-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
+                                        View More
                                     </a>
-                                    <a href="{{ route('invoices.download', $invoice) }}" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                        </svg>
+                                    <a href="{{ route('invoices.show', $invoice) }}" class="text-theme-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
                                         Download PDF
                                     </a>
                                     @if($invoice->status === 'draft')
-                                    <form action="{{ route('invoices.destroy', $invoice) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this invoice?')">
+                                    <form action="{{ route('invoices.show', $invoice) }}" method="POST" class="inline">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
-                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                            Delete Invoice
+                                        <button type="submit" class="text-theme-xs flex w-full rounded-lg px-3 py-2 text-left font-medium text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300" onclick="return confirm('Are you sure you want to delete this invoice?')">
+                                            Delete
                                         </button>
                                     </form>
                                     @endif
@@ -325,62 +314,57 @@
 </div>
 
 <!-- Create Invoice Modal -->
-<div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex min-h-screen items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="fixed inset-0 bg-black/50 transition-opacity" @click="showCreateModal = false"></div>
-        
-        <!-- Modal -->
-        <div class="relative z-10 w-full max-w-4xl rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
-            <!-- Header -->
-            <div class="flex items-center justify-between border-b border-gray-200 p-6 dark:border-gray-800">
-                <h3 class="text-xl font-semibold text-gray-800 dark:text-white/90">Create Invoice</h3>
-                <button @click="showCreateModal = false" class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
+<div class="modal fade" id="createInvoiceModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Invoice</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            
-            <!-- Body -->
-            <form action="{{ route('invoices.store') }}" method="POST" id="createInvoiceForm">
+            <form action="{{ route('invoices.store') }}" method="POST">
                 @csrf
-                <div class="p-6">
-                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Guest/Stay</label>
-                            <select name="stay_id" required class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
-                                <option value="">-- Select Guest/Stay --</option>
-                                @foreach($stays as $stay)
-                                <option value="{{ $stay->id }}">
-                                    {{ $stay->guest->name }} - Stay #{{ $stay->id }} ({{ $stay->roomAllocations->first()->room->room_number ?? 'No Room' }})
-                                </option>
-                                @endforeach
-                            </select>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Guest/Stay</label>
+                                <select class="form-control select2" name="stay_id" required>
+                                    <option value="">-- Select Guest/Stay --</option>
+                                    @foreach($stays as $stay)
+                                    <option value="{{ $stay->id }}">
+                                        {{ $stay->guest->name }} - Stay #{{ $stay->id }} ({{ $stay->roomAllocations->first()->room->room_number ?? 'No Room' }})
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
-                            <input type="date" name="due_date" min="{{ date('Y-m-d') }}" required class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Due Date</label>
+                                <input type="date" class="form-control" name="due_date" min="{{ date('Y-m-d') }}" required>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Invoice Items -->
-                    <div class="mt-8">
-                        <h4 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">Invoice Items</h4>
-                        <div id="invoice-items-container" x-data="{ itemCount: 1 }">
-                            <template x-for="i in itemCount" :key="i">
-                                <div class="mb-4 grid grid-cols-12 gap-4 items-center">
-                                    <div class="col-span-5">
-                                        <input type="text" :name="'items[' + (i-1) + '][description]'" placeholder="Description" required class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Invoice Items</h5>
+                            <div id="invoice-items-container">
+                                <div class="invoice-item row mb-2">
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" name="items[0][description]" placeholder="Description" required>
                                     </div>
-                                    <div class="col-span-2">
-                                        <input type="number" :name="'items[' + (i-1) + '][quantity]'" placeholder="Qty" step="0.01" min="0.01" required class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control" name="items[0][quantity]" placeholder="Qty" step="0.01" min="0.01" required>
                                     </div>
-                                    <div class="col-span-2">
-                                        <input type="number" :name="'items[' + (i-1) + '][unit_price]'" placeholder="Unit Price" step="0.01" min="0" required class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control" name="items[0][unit_price]" placeholder="Unit Price" step="0.01" min="0" required>
                                     </div>
-                                    <div class="col-span-2">
-                                        <select :name="'items[' + (i-1) + '][source_type]'" required class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+                                    <div class="col-md-2">
+                                        <select class="form-control" name="items[0][source_type]" required>
                                             <option value="room">Room</option>
                                             <option value="food">Food & Beverage</option>
                                             <option value="facility">Facility</option>
@@ -388,64 +372,31 @@
                                             <option value="other">Other</option>
                                         </select>
                                     </div>
-                                    <div class="col-span-1">
-                                        <button type="button" @click="itemCount > 1 ? itemCount-- : null" class="rounded-lg p-2.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
-                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-danger remove-item"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </div>
-                            </template>
-                            <button type="button" @click="itemCount++" class="mt-2 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                                Add Item
+                            </div>
+                            <button type="button" class="btn btn-sm btn-success mt-2" id="add-item-btn">
+                                <i class="fas fa-plus"></i> Add Item
                             </button>
                         </div>
                     </div>
                     
-                    <div class="mt-6">
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Notes (Optional)</label>
-                        <textarea name="notes" rows="2" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-brand-500 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90"></textarea>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Notes (Optional)</label>
+                                <textarea class="form-control" name="notes" rows="2"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Footer -->
-                <div class="flex items-center justify-end gap-3 border-t border-gray-200 p-6 dark:border-gray-800">
-                    <button type="button" @click="showCreateModal = false" class="rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                        Cancel
-                    </button>
-                    <button type="submit" class="rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-600">
-                        Create Invoice
-                    </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Invoice</button>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
-
-<!-- Export Modal -->
-<div x-show="showExportModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex min-h-screen items-center justify-center p-4">
-        <div class="fixed inset-0 bg-black/50 transition-opacity" @click="showExportModal = false"></div>
-        <div class="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-900">
-            <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">Export Invoices</h3>
-            <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">Select export format:</p>
-            <div class="flex gap-3">
-                <button @click="exportCSV('csv')" class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                    CSV Format
-                </button>
-                <button @click="exportCSV('excel')" class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                    Excel Format
-                </button>
-            </div>
-            <div class="mt-6 flex justify-end">
-                <button @click="showExportModal = false" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400">
-                    Cancel
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -453,17 +404,6 @@
 
 @push('scripts')
 <script>
-function invoiceApp() {
-    return {
-        showCreateModal: false,
-        showExportModal: false,
-        
-        init() {
-            // Initialize any app-wide functionality
-        }
-    };
-}
-
 function invoiceTable() {
     return {
         searchQuery: '',
@@ -477,41 +417,55 @@ function invoiceTable() {
         currentPage: 1,
         itemsPerPage: 10,
         
-        init() {
-            // Load any saved filters from localStorage
-            const savedFilters = localStorage.getItem('invoiceFilters');
-            if (savedFilters) {
-                const filters = JSON.parse(savedFilters);
-                this.searchQuery = filters.searchQuery || '';
-                this.customerFilter = filters.customerFilter || '';
-                this.dateFrom = filters.dateFrom || '';
-                this.dateTo = filters.dateTo || '';
-                this.filterStatus = filters.filterStatus || 'All';
-            }
-        },
-        
         filterInvoices() {
-            // Save filters to localStorage
-            localStorage.setItem('invoiceFilters', JSON.stringify({
-                searchQuery: this.searchQuery,
-                customerFilter: this.customerFilter,
-                dateFrom: this.dateFrom,
-                dateTo: this.dateTo,
-                filterStatus: this.filterStatus
-            }));
+            // This would be handled server-side in a real application
+            // For now, we'll just submit the form
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = window.location.pathname;
             
-            // Build query string
-            const params = new URLSearchParams();
-            if (this.searchQuery) params.append('search', this.searchQuery);
-            if (this.customerFilter) params.append('customer', this.customerFilter);
-            if (this.dateFrom) params.append('date_from', this.dateFrom);
-            if (this.dateTo) params.append('date_to', this.dateTo);
-            if (this.filterStatus !== 'All') params.append('status', this.filterStatus);
+            if (this.searchQuery) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'search';
+                input.value = this.searchQuery;
+                form.appendChild(input);
+            }
             
-            // Redirect with filters
-            const url = new URL(window.location.href);
-            url.search = params.toString();
-            window.location.href = url.toString();
+            if (this.customerFilter) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'customer';
+                input.value = this.customerFilter;
+                form.appendChild(input);
+            }
+            
+            if (this.dateFrom) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'date_from';
+                input.value = this.dateFrom;
+                form.appendChild(input);
+            }
+            
+            if (this.dateTo) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'date_to';
+                input.value = this.dateTo;
+                form.appendChild(input);
+            }
+            
+            if (this.filterStatus !== 'All') {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'status';
+                input.value = this.filterStatus;
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
         },
         
         resetFilters() {
@@ -520,12 +474,10 @@ function invoiceTable() {
             this.dateFrom = '';
             this.dateTo = '';
             this.filterStatus = 'All';
-            localStorage.removeItem('invoiceFilters');
             window.location.href = window.location.pathname;
         },
         
-        exportCSV(format = 'csv') {
-            // Build query string for export
+        exportInvoices() {
             const params = new URLSearchParams();
             if (this.searchQuery) params.append('search', this.searchQuery);
             if (this.customerFilter) params.append('customer', this.customerFilter);
@@ -533,45 +485,7 @@ function invoiceTable() {
             if (this.dateTo) params.append('date_to', this.dateTo);
             if (this.filterStatus !== 'All') params.append('status', this.filterStatus);
             
-            // Add export format and selected IDs
-            params.append('export_format', format);
-            if (this.selected.length > 0) {
-                params.append('selected_ids', this.selected.join(','));
-            }
-            
-            // Create a form to submit the export request
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ route("invoices.export") }}';
-            
-            // Add CSRF token
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-            form.appendChild(csrfToken);
-            
-            // Add export parameters
-            const exportInput = document.createElement('input');
-            exportInput.type = 'hidden';
-            exportInput.name = 'export_params';
-            exportInput.value = params.toString();
-            form.appendChild(exportInput);
-            
-            // Submit the form
-            document.body.appendChild(form);
-            form.submit();
-        },
-        
-        toggleSelect(event, invoiceId) {
-            const checkbox = event.target;
-            if (checkbox.checked) {
-                if (!this.selected.includes(invoiceId)) {
-                    this.selected.push(invoiceId);
-                }
-            } else {
-                this.selected = this.selected.filter(id => id !== invoiceId);
-            }
+            window.location.href = `{{ route('invoices.create') }}?${params.toString()}`;
         },
         
         toggleSelectAll() {
@@ -580,7 +494,7 @@ function invoiceTable() {
             
             checkboxes.forEach(checkbox => {
                 checkbox.checked = isChecked;
-                const id = parseInt(checkbox.dataset.id);
+                const id = checkbox.dataset.id;
                 if (isChecked && !this.selected.includes(id)) {
                     this.selected.push(id);
                 } else if (!isChecked) {
@@ -601,42 +515,55 @@ function invoiceTable() {
                 this.sortBy = field;
                 this.sortDirection = 'asc';
             }
-            
-            // Redirect with sort parameters
-            const params = new URLSearchParams(window.location.search);
-            params.set('sort_by', this.sortBy);
-            params.set('sort_direction', this.sortDirection);
-            window.location.href = `${window.location.pathname}?${params.toString()}`;
         }
     };
 }
+
+$(document).ready(function() {
+    // Initialize Select2
+    $('.select2').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Select...'
+    });
+    
+    // Add invoice item
+    let itemCount = 1;
+    $('#add-item-btn').click(function() {
+        const itemHtml = `
+        <div class="invoice-item row mb-2">
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="items[${itemCount}][description]" placeholder="Description" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" class="form-control" name="items[${itemCount}][quantity]" placeholder="Qty" step="0.01" min="0.01" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" class="form-control" name="items[${itemCount}][unit_price]" placeholder="Unit Price" step="0.01" min="0" required>
+            </div>
+            <div class="col-md-2">
+                <select class="form-control" name="items[${itemCount}][source_type]" required>
+                    <option value="room">Room</option>
+                    <option value="food">Food & Beverage</option>
+                    <option value="facility">Facility</option>
+                    <option value="service">Service</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger remove-item"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>`;
+        $('#invoice-items-container').append(itemHtml);
+        itemCount++;
+    });
+    
+    // Remove invoice item
+    $(document).on('click', '.remove-item', function() {
+        $(this).closest('.invoice-item').remove();
+    });
+    
+    // Initialize dropdowns
+    $('.dropdown-toggle').dropdown();
+});
 </script>
-
-<style>
-[x-cloak] {
-    display: none !important;
-}
-
-.custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-    height: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #d1d5db;
-    border-radius: 3px;
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
-}
-</style>
 @endpush

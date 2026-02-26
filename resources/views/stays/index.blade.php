@@ -197,7 +197,7 @@
     getStatusBadgeClass(status) {
         switch(status) {
             case 'checked_in': return 'bg-success/10 text-success dark:bg-success/15';
-            case 'booked': return 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-500';
+            case 'booked': return 'bg-blue-50 text-primary dark:bg-primary/15 dark:text-blue-500';
             case 'reserved': return 'bg-warning/10 text-warning dark:bg-warning/15';
             case 'checked_out': return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
             case 'cancelled': return 'bg-danger/10 text-danger dark:bg-danger/15';
@@ -791,7 +791,7 @@ document.addEventListener('alpine:init', () => {
             notification.className = `fixed top-4 right-4 z-50 rounded-lg p-4 text-white shadow-lg ${
                 type === 'success' ? 'bg-green-500' : 
                 type === 'error' ? 'bg-red-500' : 
-                'bg-blue-500'
+                'bg-primary'
             }`;
             notification.innerHTML = `
                 <div class="flex items-center">
