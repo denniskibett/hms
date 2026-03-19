@@ -247,7 +247,7 @@
             <div class="hp-room-items">
                 <div class="row">
                     <div class="col-lg-3 col-md-6">
-                        <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/room-b1.jpg') }}">
+                        <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/Deluxe-Room/room-b1.jpg') }}">
                             <div class="hr-text">
                                 <h3>Deluxe Room</h3>
                                 <h2>50$<span>/Pernight</span></h2>
@@ -276,7 +276,7 @@
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/room-b2.jpg') }}">
+                        <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/Standard-room/room-b2.JPG') }}">
                             <div class="hr-text">
                                 <h3>Standard room</h3>
                                 <h2>35$<span>/Pernight</span></h2>
@@ -305,7 +305,7 @@
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/room-b3.jpg') }}">
+                        <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/Executive-room/room-b3.jpg') }}">
                             <div class="hr-text">
                                 <h3>Deluxe Room with Balcony</h3>
                                 <h2>50$<span>/Pernight</span></h2>
@@ -334,7 +334,7 @@
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/room-b4.jpg') }}">
+                        <div class="hp-room-item set-bg" data-setbg="{{ asset('twh/img/room/Executive-room/room-b4.jpg') }}">
                             <div class="hr-text">
                                 <h3>Executive Room</h3>
                                 <h2>100$<span>/Pernight</span></h2>
