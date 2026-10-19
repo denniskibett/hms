@@ -104,6 +104,7 @@
           <!-- Menu Item Dashboard -->
 
           <!-- Menu Item Guests -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist']))
           <li>
             <a
               href="{{ route('guests.index') }}"
@@ -135,9 +136,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Guests -->
 
           <!-- Menu Item Stays -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist']))
           <li>
             <a
               href="#"
@@ -209,9 +212,11 @@
             </div>
             <!-- Dropdown Menu End -->
           </li>
+          @endif
           <!-- Menu Item Stays -->
 
           <!-- Menu Item Rooms -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist', 'housekeeping']))
           <li>
             <a
               href="#"
@@ -301,9 +306,11 @@
             </div>
             <!-- Dropdown Menu End -->
           </li>
+          @endif
           <!-- Menu Item Rooms -->
 
           <!-- Menu Item Tasks -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist', 'housekeeping', 'kitchen', 'procurement', 'hr', 'finance']))
           <li>
             <a
               href="{{ route('tasks.index') }}"
@@ -335,9 +342,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Tasks -->
 
           <!-- Menu Item Finance -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'finance']))
           <li>
             <a
               href="#"
@@ -445,9 +454,11 @@
             </div>
             <!-- Dropdown Menu End -->
           </li>
+          @endif
           <!-- Menu Item Finance -->
 
           <!-- Menu Item Inventory -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'procurement', 'kitchen']))
           <li>
             <a
               href="{{ route('inventory.index') }}"
@@ -479,9 +490,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Inventory -->
 
           <!-- Menu Item Kitchen -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'kitchen']))
           <li>
             <a
               href="{{ route('kitchen.index') }}"
@@ -513,9 +526,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Kitchen -->
 
           <!-- Menu Item HR -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'hr']))
           <li>
             <a
               href="#"
@@ -623,6 +638,7 @@
             </div>
             <!-- Dropdown Menu End -->
           </li>
+          @endif
           <!-- Menu Item HR -->
 
           
@@ -656,6 +672,7 @@
 
         <ul class="flex flex-col gap-4 mb-6">
           <!-- Menu Item Reports -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'finance']))
           <li>
             <a
               href="{{ route('reports.index') }}"
@@ -687,9 +704,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Reports -->
 
           <!-- Menu Item Users -->
+          @if (auth()->user()->hasAnyRole(['admin']))
           <li>
             <a
               href="{{ route('users.index') }}"
@@ -721,9 +740,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Users -->
 
           <!-- Menu Item System -->
+          @if (auth()->user()->hasAnyRole(['admin']))
           <li>
             <a
               href="{{ route('system.index') }}"
@@ -755,41 +776,9 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item System -->
 
-          <!-- Menu Item UI Components -->
-          <li>
-            <a
-              href=""
-              @click="selected = (selected === 'UI' ? '':'UI')"
-              class="menu-item group"
-              :class="(selected === 'UI') || (page === 'ui') ? 'menu-item-active' : 'menu-item-inactive'"
-            >
-              <svg
-                :class="(selected === 'UI') || (page === 'ui') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H18.5001C19.7427 20.75 20.7501 19.7426 20.7501 18.5V5.5C20.7501 4.25736 19.7427 3.25 18.5001 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H18.5001C18.9143 4.75 19.2501 5.08579 19.2501 5.5V8.58325L19.2501 8.58325V5.5ZM19.2501 10.0833H15.416V13.9165H19.2501V10.0833ZM13.916 10.0833L10.083 10.0833V13.9165L13.916 13.9165V10.0833ZM8.58301 10.0833H4.75V13.9165H8.58301V10.0833ZM4.75 18.5V15.4165H8.58301V19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5ZM10.083 19.25V15.4165L13.916 15.4165V19.25H10.083ZM15.416 19.25V15.4165H19.2501V18.5C19.2501 18.9142 18.9142 19.25 18.5001 19.25H15.416Z"
-                  fill=""
-                />
-              </svg>
-
-              <span
-                class="menu-item-text"
-                :class="sidebarToggle ? 'lg:hidden' : ''"
-              >
-                UI Components
-              </span>
-            </a>
-          </li>
-          <!-- Menu Item UI Components -->
 
           <!-- Menu Item Calendar -->
           <li>

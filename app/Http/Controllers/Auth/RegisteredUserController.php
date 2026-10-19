@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -40,6 +41,11 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        // Public sign-ups are hotel guests; staff roles are granted by an admin
+        if ($guestRoleId = Role::where('name', 'guest')->value('id')) {
+            $user->roles()->attach($guestRoleId);
+        }
 
         event(new Registered($user));
 

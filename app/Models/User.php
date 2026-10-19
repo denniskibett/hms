@@ -275,17 +275,16 @@ class User extends Authenticatable
      */
     public function hasRole($role)
     {
-        if (is_array($role)) {
-            return $this->roles()->whereIn('name', $role)->exists();
-        }
-        
-        return $this->roles()->where('name', $role)->exists();
+        // Uses the loaded relation so repeated checks in one request cost one query
+        return $this->loadMissing('roles')->roles->pluck('name')
+            ->intersect((array) $role)
+            ->isNotEmpty();
     }
 
 
     public function hasAnyRole(array $roles)
     {
-        return $this->roles()->whereIn('name', $roles)->exists();
+        return $this->hasRole($roles);
     }
 
 

@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'hr', 'description' => 'Human Resources'],
             ['name' => 'guest', 'description' => 'Hotel Guest'],
             ['name' => 'manager', 'description' => 'Hotel Manager'],
+            ['name' => 'finance', 'description' => 'Finance Officer'],
         ];
         
         foreach ($roles as $role) {

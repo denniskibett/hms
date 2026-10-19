@@ -51,8 +51,15 @@ class SystemController extends Controller
             'primary_color' => 'required|string|max:7',
             'secondary_color' => 'required|string|max:7',
             'pagination_limit' => 'required|integer|min:5|max:100',
-            'logo' => 'nullable|image|max:2048',
-            'favicon' => 'nullable|image|max:1024',
+            // No SVG: it can carry script and is served from our own domain
+            'logo' => 'nullable|file|mimes:png,jpg,jpeg,webp|max:2048',
+            'favicon' => 'nullable|file|mimes:png,ico|max:1024',
+            'contact_email' => 'nullable|email|max:255',
+            'login_attempts' => 'nullable|integer|min:1|max:20',
+            'session_timeout' => 'nullable|integer|min:5|max:1440',
+            'password_expiry' => 'nullable|integer|min:0|max:365',
+            'backup_frequency' => 'nullable|in:daily,weekly,monthly',
+            'backup_retention' => 'nullable|integer|min:1|max:365',
         ]);
 
         // Prepare data for update
@@ -65,11 +72,11 @@ class SystemController extends Controller
         ]);
 
         // Handle file uploads
+        // store() names the file by hash with an extension guessed from its content,
+        // never the client-supplied one
         if ($request->hasFile('logo')) {
-            $logo = $request->file('logo');
-            $logoName = 'logo-' . time() . '.' . $logo->getClientOriginalExtension();
-            $data['logo'] = $logo->storeAs('system', $logoName, 'public');
-            
+            $data['logo'] = $request->file('logo')->store('system', 'public');
+
             // Delete old logo
             if ($system->logo) {
                 Storage::disk('public')->delete($system->logo);
@@ -77,10 +84,8 @@ class SystemController extends Controller
         }
 
         if ($request->hasFile('favicon')) {
-            $favicon = $request->file('favicon');
-            $faviconName = 'favicon-' . time() . '.' . $favicon->getClientOriginalExtension();
-            $data['favicon'] = $favicon->storeAs('system', $faviconName, 'public');
-            
+            $data['favicon'] = $request->file('favicon')->store('system', 'public');
+
             // Delete old favicon
             if ($system->favicon) {
                 Storage::disk('public')->delete($system->favicon);
@@ -104,9 +109,9 @@ class SystemController extends Controller
         // Update security settings
         $settings['security'] = [
             'two_factor_auth' => $request->boolean('two_factor_auth'),
-            'login_attempts' => $request->input('login_attempts', 5),
-            'session_timeout' => $request->input('session_timeout', 30),
-            'password_expiry' => $request->input('password_expiry', 90),
+            'login_attempts' => $request->integer('login_attempts', 5),
+            'session_timeout' => $request->integer('session_timeout', 30),
+            'password_expiry' => $request->integer('password_expiry', 90),
         ];
 
         // Update integrations
@@ -119,7 +124,7 @@ class SystemController extends Controller
         $settings['backup'] = [
             'auto_backup' => $request->boolean('auto_backup', true),
             'backup_frequency' => $request->input('backup_frequency', 'daily'),
-            'backup_retention' => $request->input('backup_retention', 30),
+            'backup_retention' => $request->integer('backup_retention', 30),
             'backup_to_cloud' => $request->boolean('backup_to_cloud', false),
         ];
 
