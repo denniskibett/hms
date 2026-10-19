@@ -65,6 +65,11 @@ class User extends Authenticatable
         return $this->hasOne(StaffProfile::class);
     }
 
+    public function guestProfile()
+    {
+        return $this->hasOne(Guest::class, 'user_id');
+    }
+
     /**
      * Stays created by this user (for guests).
      */
@@ -291,6 +296,12 @@ class User extends Authenticatable
     public function isGuest()
     {
         return $this->hasRole('guest');
+    }
+
+    // Staff = any role other than guest
+    public function isStaff()
+    {
+        return $this->loadMissing('roles')->roles->pluck('name')->diff(['guest'])->isNotEmpty();
     }
 
     public function isAdmin()

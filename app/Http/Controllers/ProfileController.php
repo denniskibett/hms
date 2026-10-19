@@ -74,8 +74,16 @@ class ProfileController extends Controller
         try {
             $user = $request->user();
             
-            // Update user using CoreService
-            $updatedUser = $this->coreService->updateUser($user, $request->validated());
+            // Avatar and social links are handled separately below
+            $user->fill(collect($request->validated())->except(['avatar', 'social'])->all());
+
+            // A changed email must be verified again
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+
+            $user->save();
+            $updatedUser = $user;
             
             // Handle avatar upload
             if ($request->hasFile('avatar')) {
