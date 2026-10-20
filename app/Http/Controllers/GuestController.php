@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use PragmaRX\Countries\Package\Countries;
 use Illuminate\Support\Carbon;
 use App\Helpers\SystemHelper;
+use App\Enums\StayStatus;
 
 class GuestController extends Controller
 {
@@ -453,116 +454,23 @@ class GuestController extends Controller
         }
     }
 
-public function show(Guest $guest)
-{
-    $roomAllocations = RoomAllocation::with('stay')
-    ->whereHas('stay', function($query) {
-        $query->whereNotIn('status', ['checked_out', 'cancelled']);
-    })
-    ->get()
-    ->map(function($allocation) {
-        return [
-            'id' => $allocation->id,
-            'room_id' => $allocation->room_id,
-            'stay_id' => $allocation->stay_id,
-            'from_date' => $allocation->from_date->toDateString(),
-            'to_date' => $allocation->to_date->toDateString(),
-        ];
-    });
+    public function show(Guest $guest)
+    {
+        $allStays = Stay::where('guest_id', $guest->user_id)
+            ->with(['guest', 'roomAllocations.room.roomType'])
+            ->orderByDesc('arrival_date')
+            ->get();
 
-    // Load stays with room allocations and rooms
-    $allStays = Stay::where('guest_id', $guest->user_id)
-        ->with(['roomAllocations.room.roomType', 'invoices'])
-        ->latest()
-        ->get();
+        $totalNights = $allStays
+            ->where('status', '!=', StayStatus::Cancelled->value)
+            ->sum(fn (Stay $stay) => $stay->nights);
 
-    // Transform stays for the view
-    $stays = $allStays->map(function ($stay) {
-        // Get all room allocations for this stay
-        $roomAllocations = $stay->roomAllocations;
-        
-        // Calculate total nights
-        $nights = 0;
-        if ($stay->arrival_date && $stay->departure_date) {
-            $arrival = Carbon::parse($stay->arrival_date);
-            $departure = Carbon::parse($stay->departure_date);
-            $nights = $arrival->diffInDays($departure);
-        }
-        
-        return [
-            'id' => $stay->id,
-            'status' => $stay->status,
-            'arrival_date' => $stay->arrival_date?->toDateString(), 
-            'departure_date' => $stay->departure_date?->toDateString(),
-            'check_in' => $stay->check_in?->format(SystemHelper::dateFormat()),
-            'check_out' => $stay->check_out?->format(SystemHelper::dateFormat()),
-            'adults' => $stay->adults,
-            'children' => $stay->children,
-            'nights' => $nights,
-            'room_allocations' => $roomAllocations->map(function ($allocation) {
-                return [
-                    'id' => $allocation->id,
-                    'room_id' => $allocation->room_id,
-                    'adults' => $allocation->adults,
-                    'children' => $allocation->children,
-                    'guest_notes' => $allocation->guest_notes,
-                    'rate_applied' => $allocation->rate_applied,
-                    'room' => $allocation->room ? [
-                        'id' => $allocation->room->id,
-                        'room_number' => $allocation->room->room_number,
-                        'room_type' => $allocation->room->roomType ? [
-                            'name' => $allocation->room->roomType->name,
-                            'base_rate' => $allocation->room->roomType->base_rate,
-                            'capacity' => $allocation->room->roomType->capacity,
-                        ] : null
-                    ] : null
-                ];
-            })->toArray(),
-            'created_at' => $stay->created_at?->format(SystemHelper::dateFormat()),
-        ];
-    });
-
-    // Get available rooms
-    $allRooms = Room::with(['roomType'])
-        ->where('status', 'available')
-        ->orderBy('room_number')
-        ->get()
-        ->map(function ($room) {
-            return [
-                'id' => $room->id,
-                'room_number' => $room->room_number,
-                'room_type' => [
-                    'id' => $room->roomType->id,
-                    'name' => $room->roomType->name ?? 'N/A',
-                    'base_rate' => $room->roomType->base_rate ?? 0,
-                    'capacity' => $room->roomType->capacity ?? 1,
-                    'bed_type' => $room->roomType->bed_type ?? 'double',
-                    'amenities' => $room->roomType->amenities ?? [],
-                ],
-                'floor' => $room->floor,
-                'wing' => $room->wing,
-                'features' => $room->features ?? [],
-            ];
-        });
-
-    // Calculate total nights
-    $totalNights = $allStays->sum(function ($stay) {
-        if ($stay->arrival_date && $stay->departure_date) {
-            return Carbon::parse($stay->arrival_date)
-                ->diffInDays(Carbon::parse($stay->departure_date));
-        }
-        return 0;
-    });
-
-    return view('guests.show', [
-        'guest'    => $guest,
-        'stays'    => $stays,
-        'allRooms' => $allRooms,
-        'allStays' => $allStays,
-        'totalNights' => $totalNights,    
-        'roomAllocations' => $roomAllocations, 
-    ]);
-}
+        return view('guests.show', [
+            'guest' => $guest,
+            'allStays' => $allStays,
+            'totalNights' => $totalNights,
+        ]);
+    }
     
     public function destroy(Guest $guest)
     {
@@ -602,157 +510,6 @@ public function show(Guest $guest)
             return back()->with('error', 'Error deleting guest: ' . $e->getMessage());
         }
     }
-
-    public function createStay(Request $request, Guest $guest)
-    {
-        try {
-            $validated = $request->validate([
-                'arrival_date' => 'required|date|after_or_equal:today',
-                'departure_date' => 'required|date|after:arrival_date',
-                'room_allocations' => 'required|array|min:1',
-                'room_allocations.*.room_id' => 'required|exists:rooms,id',
-                'room_allocations.*.adults' => 'required|integer|min:1|max:4',
-                'room_allocations.*.children' => 'integer|min:0|max:4',
-                'room_allocations.*.rate' => 'nullable|numeric|min:0',
-                'room_allocations.*.guest_notes' => 'nullable|string|max:255',
-                'special_requests' => 'nullable|string',
-                'status' => 'required|in:booked,checked_in',
-            ]);
-
-            // Get the guest's user
-            $guestUser = $guest->user;
-            
-            // Prepare stay data
-            $stayData = [
-                'arrival_date' => $validated['arrival_date'],
-                'departure_date' => $validated['departure_date'],
-                'adults' => collect($validated['room_allocations'])->sum('adults'),
-                'children' => collect($validated['room_allocations'])->sum('children'),
-                'special_requests' => $validated['special_requests'] ?? null,
-                'status' => $validated['status'],
-                'room_allocations' => $validated['room_allocations'],
-            ];
-            
-            // Use enhanced GuestService to create stay with multiple rooms
-            $result = $this->guestService->createStayWithMultipleRooms($guestUser, $stayData);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Stay created successfully with ' . count($result['room_allocations']) . ' rooms',
-                'stay' => [
-                    'id' => $result['stay']->id,
-                    'status' => $result['stay']->status,
-                    'total_amount' => $result['total_amount'],
-                    'room_count' => count($result['room_allocations']),
-                ]
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('Error creating stay: ' . $e->getMessage(), [
-                'guest_id' => $guest->id,
-                'request' => $request->all()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error creating stay: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function checkinStay(Request $request, Guest $guest, $stayId)
-    {
-        try {
-            $stay = Stay::findOrFail($stayId);
-            
-            // Verify the stay belongs to this guest
-            if ($stay->guest_id !== $guest->user->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Stay does not belong to this guest'
-                ], 403);
-            }
-            
-            if ($stay->status !== 'booked') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Only booked stays can be checked in'
-                ], 400);
-            }
-            
-            // Use GuestService to check in
-            $stay = $this->guestService->checkIn($stay);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Guest checked in successfully',
-                'stay' => [
-                    'id' => $stay->id,
-                    'status' => $stay->status,
-                ]
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('Error checking in stay: ' . $e->getMessage(), [
-                'guest_id' => $guest->id,
-                'stay_id' => $stayId
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error checking in: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-    
-
-    public function checkoutStay(Request $request, Guest $guest, $stayId)
-    {
-        try {
-            $stay = Stay::findOrFail($stayId);
-            
-            // Verify the stay belongs to this guest
-            if ($stay->guest_id !== $guest->user->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Stay does not belong to this guest'
-                ], 403);
-            }
-            
-            if ($stay->status !== 'checked_in') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Only checked-in stays can be checked out'
-                ], 400);
-            }
-            
-            // Use GuestService to check out
-            $result = $this->guestService->checkOut($stay, [
-                'notes' => $request->input('notes', 'Checked out via guest profile')
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Guest checked out successfully',
-                'stay' => [
-                    'id' => $stay->id,
-                    'status' => $stay->status,
-                ]
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('Error checking out stay: ' . $e->getMessage(), [
-                'guest_id' => $guest->id,
-                'stay_id' => $stayId
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error checking out: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
     private function getCountriesList()
     {
         try {

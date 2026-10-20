@@ -15,7 +15,7 @@ class RoomTypeFactory extends Factory
             'name' => fake()->randomElement(['Standard', 'Deluxe', 'Executive', 'Suite']) . ' ' . fake()->unique()->numberBetween(1, 9999),
             'code' => strtoupper(fake()->unique()->bothify('RT-####')),
             'base_rate' => fake()->randomElement([5000, 7500, 12000, 20000]),
-            'capacity' => fake()->numberBetween(1, 4),
+            'capacity' => fake()->numberBetween(2, 4), // tests book 2 adults by default
             'bed_type' => fake()->randomElement(['single', 'double', 'queen', 'king', 'twin']),
             'description' => null,
             'amenities' => [],

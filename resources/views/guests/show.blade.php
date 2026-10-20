@@ -219,12 +219,20 @@
 
             <!-- Stays Tab Content -->
             <div id="stays-tab-content" class="tab-content">
-                @include('partials.table.table-stays', [
-                    'stays' => $stays,
-                    'guest' => $guest,
-                    'allRooms' => $allRooms,
-                    'totalNights' => $totalNights
-                ])
+                <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3">
+                    <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+                        <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90">Bookings</h2>
+                        <a href="{{ route('stays.create', ['guest_id' => $guest->user_id]) }}"
+                           class="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90">
+                            <i class="fas fa-plus"></i> New Booking
+                        </a>
+                    </div>
+                    @include('stays.partials.table', [
+                        'stays' => $allStays,
+                        'showGuest' => false,
+                        'empty' => 'This guest has no bookings yet',
+                    ])
+                </div>
             </div>
 
             <!-- Preferences Tab Content -->

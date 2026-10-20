@@ -68,13 +68,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware('role:manager,receptionist')->group(function () {
         Route::resource('guests', GuestController::class);
-        Route::prefix('guests/{guest}')->group(function () {
-            Route::post('/stays', [GuestController::class, 'createStay'])->name('guest.stays.store');
-            Route::post('/stays/{stay}/checkin', [GuestController::class, 'checkinStay'])->name('guest.stays.checkin');
-            Route::post('/stays/{stay}/checkout', [GuestController::class, 'checkoutStay'])->name('guest.stays.checkout');
-        });
 
-        Route::resource('stays', StayController::class);
+        // Bookings
+        Route::post('stays/quote', [StayController::class, 'quote'])->name('stays.quote');
+        Route::resource('stays', StayController::class)->except(['destroy']);
+        Route::post('stays/{stay}/check-in', [StayController::class, 'checkIn'])->name('stays.check-in');
+        Route::post('stays/{stay}/check-out', [StayController::class, 'checkOut'])->name('stays.check-out');
+        Route::post('stays/{stay}/cancel', [StayController::class, 'cancel'])->name('stays.cancel');
         Route::resource('room-types', RoomTypeController::class);
         Route::resource('facilities', FacilityController::class);
     });
@@ -88,6 +88,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('rooms', RoomController::class)
         ->only(['store', 'update', 'destroy'])
         ->middleware('role:manager');
+    Route::delete('stays/{stay}', [StayController::class, 'destroy'])
+        ->middleware('role:manager')
+        ->name('stays.destroy');
 
     /*
     |--------------------------------------------------------------------------
