@@ -47,9 +47,11 @@
                                                 <p class="font-medium text-gray-800 dark:text-white">{{ $stay->guest->full_name }}</p>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ $stay->guest->email }}</p>
                                             </div>
-                                            <a href="{{ route('guests.show', $stay->guest) }}" class="text-primary hover:text-primary/80 text-sm">
+                                            @if ($stay->guest?->guestProfile)
+                                            <a href="{{ route('guests.show', $stay->guest->guestProfile) }}" class="text-primary hover:text-primary/80 text-sm">
                                                 View Profile
                                             </a>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

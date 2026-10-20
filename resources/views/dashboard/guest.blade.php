@@ -127,7 +127,7 @@
                         @empty
                         <div class="text-center py-8">
                             <p class="text-gray-500 dark:text-gray-400 mb-4">You don't have any current stays.</p>
-                            <a href="{{ route('guests.create') }}" class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">
+                            <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">
                                 Book a Stay
                             </a>
                         </div>
@@ -142,7 +142,7 @@
                 <div class="bg-white rounded-lg border border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] p-6">
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Quick Actions</h3>
                     <div class="grid grid-cols-2 gap-3">
-                        <a href="{{ route('guests.create') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
+                        <a href="{{ route('dashboard') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
                             <div class="p-2 rounded-full bg-primary/10 inline-block mb-2">
                                 <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

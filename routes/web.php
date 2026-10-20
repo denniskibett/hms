@@ -68,7 +68,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:manager,receptionist')->group(function () {
-        Route::resource('guests', GuestController::class);
+        Route::resource('guests', GuestController::class)->except(['create', 'edit', 'destroy']);
+        Route::delete('guests/{guest}', [GuestController::class, 'destroy'])
+            ->middleware('role:manager')
+            ->name('guests.destroy');
 
         // Bookings
         Route::post('stays/quote', [StayController::class, 'quote'])->name('stays.quote');
@@ -131,9 +134,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('invoices', InvoiceController::class);
         Route::resource('payments', PaymentController::class);
 
-        Route::resource('reports', ReportController::class)->only([
-            'index', 'show', 'store'
-        ]);
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     });
 
     /*

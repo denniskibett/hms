@@ -51,7 +51,8 @@
                             <p class="text-gray-800 dark:text-white/90">{{ $stay->guest->name ?? '—' }}</p>
                         @else
                             <div class="flex gap-2">
-                                <select name="guest_id" required class="{{ $inputClass }}">
+                                <select name="guest_id" required x-ref="guestSelect" class="{{ $inputClass }}"
+                                        x-on:guest-saved.window="addGuest($event.detail.guest)">
                                     <option value="">Select guest</option>
                                     @foreach ($guests as $guest)
                                         <option value="{{ $guest->id }}" @selected((string) old('guest_id', $stay->guest_id) === (string) $guest->id)>
@@ -59,10 +60,10 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <a href="{{ route('guests.create') }}" target="_blank" title="Register a new guest (opens a new tab)"
-                                   class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                                <button type="button" @click="$dispatch('open-guest-form')" title="Register a new guest"
+                                        class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
                                     <i class="fas fa-user-plus"></i> New
-                                </a>
+                                </button>
                             </div>
                         @endif
                     </div>
@@ -223,6 +224,9 @@
     </div>
 </form>
 
+{{-- Outside the booking <form>: the modal has its own form --}}
+@include('guests.partials.modal-form')
+
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('bookingForm', (config) => ({
@@ -241,6 +245,20 @@ document.addEventListener('alpine:init', () => {
 
         init() {
             this.refresh();
+        },
+
+        // A guest registered from the modal joins the picker, selected
+        addGuest(guest) {
+            const select = this.$refs.guestSelect;
+            if (!select) return;
+            const label = guest.name + (guest.phone ? ` — ${guest.phone}` : (guest.email ? ` — ${guest.email}` : ''));
+            let option = [...select.options].find(o => o.value === String(guest.user_id));
+            if (!option) {
+                option = new Option(label, guest.user_id);
+                select.add(option, 1);
+            }
+            option.text = label;
+            select.value = String(guest.user_id);
         },
 
         addLine() {
