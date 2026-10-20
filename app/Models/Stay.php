@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\MealPlan;
+use App\Enums\StayStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -17,228 +20,211 @@ class Stay extends Model
         'departure_date',
         'adults',
         'children',
+        'meal_plan',
         'special_requests',
         'created_by',
         'check_in',
         'check_out',
     ];
 
+    // `status` stays a string for now (many older views compare it as text);
+    // use $stay->state for the StayStatus enum.
     protected $casts = [
         'arrival_date' => 'date',
         'departure_date' => 'date',
         'check_in' => 'datetime',
         'check_out' => 'datetime',
+        'meal_plan' => MealPlan::class,
+        'adults' => 'integer',
+        'children' => 'integer',
     ];
 
-    /**
-     * Guest for this stay.
-     */
+    // ---- Relationships ---------------------------------------------------
+
     public function guest()
     {
         return $this->belongsTo(User::class, 'guest_id');
     }
-
 
     public function createdByUser()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Room allocations for this stay.
-     */
     public function roomAllocations()
     {
         return $this->hasMany(RoomAllocation::class);
     }
 
-    /**
-     * Rooms through allocations.
-     */
     public function rooms()
     {
         return $this->hasManyThrough(Room::class, RoomAllocation::class, 'stay_id', 'id', 'id', 'room_id');
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasManyThrough(Payment::class, Invoice::class);
+    }
+
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'stay_service')
+            ->withPivot(['quantity', 'price'])
+            ->withTimestamps();
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
     /**
-     * Current room allocation.
+     * Allocation covering today (or null).
      */
     public function currentRoomAllocation()
     {
         return $this->roomAllocations()
-            ->whereDate('from_date', '<=', now())
-            ->whereDate('to_date', '>=', now())
+            ->whereDate('from_date', '<=', today())
+            ->whereDate('to_date', '>', today())
             ->first();
     }
 
-    /**
-     * Current room.
-     */
     public function currentRoom()
     {
         return optional($this->currentRoomAllocation())->room;
     }
 
     /**
-     * All invoices for this stay.
-     */
-    public function invoices()
-    {
-        return $this->hasMany(Invoice::class);
-    }
-
-    /**
-     * Current or main invoice for this stay.
+     * Open invoice for this stay (latest unpaid / partly paid).
      */
     public function currentInvoice()
     {
         return $this->invoices()
-            ->whereIn('status', ['draft', 'sent', 'partial'])
+            ->whereIn('status', ['draft', 'sent', 'partial', 'overdue'])
             ->latest()
             ->first();
     }
 
-    /**
-     * Payments through invoices.
-     */
-    public function payments()
+    // ---- State -----------------------------------------------------------
+
+    public function getStateAttribute(): StayStatus
     {
-        return $this->hasManyThrough(Payment::class, Invoice::class);
+        return StayStatus::from($this->status);
+    }
+
+    public function getIsCheckedInAttribute(): bool
+    {
+        return $this->status === StayStatus::CheckedIn->value;
+    }
+
+    public function getIsCheckedOutAttribute(): bool
+    {
+        return $this->status === StayStatus::CheckedOut->value;
+    }
+
+    // ---- Money (single definition used everywhere) ---------------------
+
+    public function getNightsAttribute(): int
+    {
+        return (int) $this->arrival_date->diffInDays($this->departure_date);
     }
 
     /**
-     * Get all payments for this stay.
+     * Σ rate_applied × nights for each room. rate_applied is the room's
+     * full nightly price (already includes per-person maths at booking time).
      */
+    public function getRoomChargesAttribute(): float
+    {
+        return round($this->roomAllocations->sum(fn (RoomAllocation $a) => $a->total), 2);
+    }
+
+    public function getAdditionalChargesAttribute(): float
+    {
+        return round($this->services->sum(fn ($s) => $s->pivot->quantity * $s->pivot->price), 2);
+    }
+
+    public function getTotalAmountAttribute(): float
+    {
+        return round($this->room_charges + $this->additional_charges, 2);
+    }
+
+    public function getAmountPaidAttribute(): float
+    {
+        return round((float) $this->invoices->sum('paid_amount'), 2);
+    }
+
     public function getAllPaymentsAttribute()
     {
-        return \App\Models\Payment::whereIn('invoice_id', $this->invoices()->pluck('id'))->get();
+        return Payment::whereIn('invoice_id', $this->invoices()->pluck('id'))->get();
     }
 
-    /**
-     * Get total nights.
-     */
-    public function getNightsAttribute()
-    {
-        return $this->arrival_date->diffInDays($this->departure_date);
-    }
-
-    /**
-     * Get room charges.
-     */
-    public function getRoomChargesAttribute()
-    {
-        if (!$this->roomAllocations) {
-            return 0;
-        }
-        
-        return $this->roomAllocations->sum(function ($allocation) {
-            $nights = $this->nights;
-            $adultCharge = $allocation->rate_applied * $nights * $allocation->adults;
-            $childCharge = $allocation->rate_applied * 0.5 * $nights * $allocation->children;
-            return $adultCharge + $childCharge;
-        });
-    }
-
-    /**
-     * Get additional charges (currently 0 - we're not using services).
-     */
-    public function getAdditionalChargesAttribute()
-    {
-        return 0;
-    }
-
-    /**
-     * Get total amount with calculations.
-     */
-    public function getTotalAmountAttribute()
-    {
-        return $this->room_charges + $this->additional_charges;
-    }
-
-    /**
-     * Get amount paid.
-     */
-    public function getAmountPaidAttribute()
-    {
-        return $this->invoices->sum('paid_amount');
-    }
-
-    /**
-     * Get payment status.
-     */
-    public function getPaymentStatusAttribute()
+    public function getPaymentStatusAttribute(): string
     {
         $total = $this->total_amount;
         $paid = $this->amount_paid;
 
-        if ($total <= 0) {
-            return 'free';
-        } elseif ($paid >= $total) {
-            return 'paid';
-        } elseif ($paid > 0) {
-            return 'partial';
-        } else {
-            return 'unpaid';
-        }
+        return match (true) {
+            $total <= 0 => 'free',
+            $paid >= $total => 'paid',
+            $paid > 0 => 'partial',
+            default => 'unpaid',
+        };
+    }
+
+    // ---- Scopes ----------------------------------------------------------
+
+    public function scopeWithStatus(Builder $query, StayStatus|string $status): Builder
+    {
+        return $query->where('status', $status instanceof StayStatus ? $status->value : $status);
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereIn('status', StayStatus::activeValues());
+    }
+
+    public function scopeUpcoming(Builder $query): Builder
+    {
+        return $query->whereIn('status', [StayStatus::Reserved->value, StayStatus::Booked->value])
+            ->whereDate('arrival_date', '>', today());
     }
 
     /**
-     * Check if stay is checked in.
+     * Expected to arrive today (or overdue arrivals not yet checked in).
      */
-    public function getIsCheckedInAttribute()
+    public function scopeArrivingToday(Builder $query): Builder
     {
-        return $this->check_in !== null && $this->check_out === null;
+        return $query->whereIn('status', [StayStatus::Reserved->value, StayStatus::Booked->value])
+            ->whereDate('arrival_date', '<=', today());
     }
 
     /**
-     * Check if stay is checked out.
+     * In house and due out today (or overdue).
      */
-    public function getIsCheckedOutAttribute()
+    public function scopeDepartingToday(Builder $query): Builder
     {
-        return $this->check_out !== null;
+        return $query->where('status', StayStatus::CheckedIn->value)
+            ->whereDate('departure_date', '<=', today());
     }
 
-    /**
-     * Scope for active stays.
-     */
-    public function scopeActive($query)
+    public function scopeInHouse(Builder $query): Builder
     {
-        return $query->whereIn('status', ['reserved', 'booked', 'checked_in']);
+        return $query->where('status', StayStatus::CheckedIn->value);
     }
 
-    /**
-     * Scope for upcoming stays.
-     */
-    public function scopeUpcoming($query)
+    // Older names kept for existing callers
+    public function scopeTodayCheckins(Builder $query): Builder
     {
-        return $query->where('status', 'reserved')
-            ->where('arrival_date', '>', now());
+        return $query->arrivingToday();
     }
 
-    /**
-     * Scope for today's check-ins.
-     */
-    public function scopeTodayCheckins($query)
+    public function scopeTodayCheckouts(Builder $query): Builder
     {
-        return $query->where('status', 'booked')
-            ->whereDate('arrival_date', today());
+        return $query->departingToday();
     }
-
-    /**
-     * Scope for today's check-outs.
-     */
-    public function scopeTodayCheckouts($query)
-    {
-        return $query->where('status', 'checked_in')
-            ->whereDate('departure_date', today());
-    }
-
-    public function services()
-    {
-        return $this->belongsToMany(
-            Service::class,
-            'stay_service'
-        )->withPivot(['quantity', 'price'])->withTimestamps();
-    }
-
 }

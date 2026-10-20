@@ -385,6 +385,33 @@ class SystemHelper
         return config('services.google.analytics_id');
     }
 
+    /*
+     * Billing settings (system.settings.billing). Defaults follow common Kenyan practice;
+     * confirm the tax rates with your accountant.
+     */
+
+    // Children sharing with adults pay this % of the adult per-person rate
+    public static function childRatePercent(): float
+    {
+        return (float) self::get('billing.child_rate_percent', 50);
+    }
+
+    public static function vatPercent(): float
+    {
+        return (float) self::get('billing.vat_percent', 16);
+    }
+
+    public static function tourismLevyPercent(): float
+    {
+        return (float) self::get('billing.tourism_levy_percent', 2);
+    }
+
+    // true: rates already include VAT and levy (taxes are extracted on the invoice)
+    public static function pricesIncludeTax(): bool
+    {
+        return (bool) self::get('billing.prices_include_tax', false);
+    }
+
     public static function twoFactorAuthEnabled()
     {
         $settings = System::settings()->settings ?? [];

@@ -15,60 +15,64 @@ class RoomAllocation extends Model
         'from_date',
         'to_date',
         'rate_applied',
+        'adults',
+        'children',
+        'guest_notes',
     ];
 
     protected $casts = [
         'from_date' => 'date',
         'to_date' => 'date',
         'rate_applied' => 'decimal:2',
+        'adults' => 'integer',
+        'children' => 'integer',
     ];
 
-    /**
-     * Stay for this allocation.
-     */
     public function stay()
     {
         return $this->belongsTo(Stay::class);
     }
 
-    /**
-     * Room for this allocation.
-     */
     public function room()
     {
         return $this->belongsTo(Room::class);
     }
 
     /**
-     * Scope for current allocations.
+     * Allocations covering today (departure day excluded).
      */
     public function scopeCurrent($query)
     {
-        return $query->whereDate('from_date', '<=', now())
-            ->whereDate('to_date', '>=', now());
+        return $query->whereDate('from_date', '<=', today())
+            ->whereDate('to_date', '>', today());
+    }
+
+    public function getNightsAttribute(): int
+    {
+        return (int) $this->from_date->diffInDays($this->to_date);
     }
 
     /**
-     * Calculate total nights.
+     * rate_applied is the room's full nightly price, so total = rate × nights.
      */
-    public function getTotalNightsAttribute()
+    public function getTotalAttribute(): float
     {
-        return $this->from_date->diffInDays($this->to_date);
+        return round((float) $this->rate_applied * $this->nights, 2);
     }
 
-    /**
-     * Calculate total cost.
-     */
-    public function getTotalCostAttribute()
+    // Older names kept for existing callers
+    public function getTotalNightsAttribute(): int
     {
-        return $this->rate_applied * $this->total_nights;
+        return $this->nights;
     }
 
-    /**
-     * Check if allocation is active.
-     */
-    public function getIsActiveAttribute()
+    public function getTotalCostAttribute(): float
     {
-        return now()->between($this->from_date, $this->to_date);
+        return $this->total;
+    }
+
+    public function getIsActiveAttribute(): bool
+    {
+        return $this->from_date->lte(today()) && $this->to_date->gt(today());
     }
 }
