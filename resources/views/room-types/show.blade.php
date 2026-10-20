@@ -28,7 +28,7 @@
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-white">
                 <i class="fas fa-edit"></i> Edit Room Type
             </button>
-            <a href="{{ route('rooms.index', ['room_type' => $roomType->id]) }}"
+            <a href="{{ route('rooms.index', ['room_type_id' => $roomType->id]) }}"
                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs transition-colors hover:bg-primary/90">
                 <i class="fas fa-hotel"></i> View Rooms
             </a>
@@ -122,7 +122,7 @@
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Rooms ({{ $roomType->rooms->count() }})</h3>
-                        <a href="{{ route('rooms.create', ['room_type_id' => $roomType->id]) }}"
+                        <a href="{{ route('rooms.index', ['room_type_id' => $roomType->id, 'create' => 1]) }}"
                            class="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90">
                             <i class="fas fa-plus"></i> Add Room
                         </a>
@@ -143,16 +143,7 @@
                                         @endif
                                     </p>
                                 </div>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium"
-                                      @class([
-                                        'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500' => $room->status === 'available',
-                                        'bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400' => $room->status === 'occupied',
-                                        'bg-blue-50 text-primary dark:bg-primary/15 dark:text-blue-400' => $room->status === 'cleaning',
-                                        'bg-danger-50 text-danger-600 dark:bg-danger-500/15 dark:text-danger-500' => in_array($room->status, ['maintenance', 'out_of_order']),
-                                        'bg-gray-50 text-gray-600 dark:bg-gray-500/15 dark:text-gray-400' => $room->status === 'reserved',
-                                      ])>
-                                    {{ \App\Models\Room::getStatusOptions()[$room->status] ?? $room->status }}
-                                </span>
+                                @include('partials.status-badge', ['status' => $room->status])
                             </div>
                             
                             <div class="space-y-2">
@@ -188,7 +179,7 @@
                     <div class="text-center py-8">
                         <i class="fas fa-door-closed text-3xl text-gray-300 dark:text-gray-600 mb-3"></i>
                         <p class="text-gray-500 dark:text-gray-400">No rooms assigned to this room type yet</p>
-                        <a href="{{ route('rooms.create', ['room_type_id' => $roomType->id]) }}"
+                        <a href="{{ route('rooms.index', ['room_type_id' => $roomType->id, 'create' => 1]) }}"
                            class="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
                             <i class="fas fa-plus"></i> Create First Room
                         </a>
@@ -261,7 +252,7 @@
                 </div>
                 <div class="p-5">
                     <div class="space-y-3">
-                        <a href="{{ route('rooms.create', ['room_type_id' => $roomType->id]) }}"
+                        <a href="{{ route('rooms.index', ['room_type_id' => $roomType->id, 'create' => 1]) }}"
                            class="flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-white">
                             <span class="flex items-center gap-2">
                                 <i class="fas fa-plus-circle"></i>
@@ -546,7 +537,7 @@ function roomTypeShow() {
                                 <tr>
                                     <td style="border: 1px solid #ddd; padding: 8px;">{{ $room->room_number }}</td>
                                     <td style="border: 1px solid #ddd; padding: 8px;">{{ $room->floor }}</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">{{ \App\Models\Room::getStatusOptions()[$room->status] ?? $room->status }}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">{{ $room->status?->label() }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>

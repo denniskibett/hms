@@ -11,6 +11,35 @@
 }
 
 @layer components {
+  /* Theme helpers (colours come from System Settings via tailwind.config.js) */
+  .btn-primary {
+    @apply bg-primary text-white transition hover:bg-primary/90 active:bg-primary/80;
+  }
+  .btn-secondary {
+    @apply bg-secondary text-white transition hover:bg-secondary/90;
+  }
+  .btn-outline-primary {
+    @apply border border-primary bg-transparent text-primary transition hover:border-primary/80 hover:bg-primary/10;
+  }
+  .btn-outline-secondary {
+    @apply border border-secondary bg-transparent text-secondary transition hover:border-secondary/80 hover:bg-secondary/10;
+  }
+  .link-primary {
+    @apply text-primary transition-colors hover:text-primary/80;
+  }
+  .badge-primary {
+    @apply border border-primary/20 bg-primary/15 text-primary;
+  }
+  .badge-secondary {
+    @apply border border-secondary/20 bg-secondary/10 text-secondary;
+  }
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, rgb(var(--color-primary-rgb)), rgb(var(--color-primary-rgb) / 0.7));
+  }
+  .bg-gradient-secondary {
+    background: linear-gradient(135deg, rgb(var(--color-secondary-rgb)), rgb(var(--color-secondary-rgb) / 0.7));
+  }
+
   .menu-item {
     @apply relative flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium;
   }

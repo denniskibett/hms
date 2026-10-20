@@ -281,27 +281,10 @@ class GuestService
      */
     public function isRoomAvailable(int $roomId, $checkIn, $checkOut, $excludeStayId = null): bool
     {
-        $query = RoomAllocation::where('room_id', $roomId)
-            ->where(function ($query) use ($checkIn, $checkOut) {
-                $query->whereBetween('from_date', [$checkIn, $checkOut])
-                      ->orWhereBetween('to_date', [$checkIn, $checkOut])
-                      ->orWhere(function ($q) use ($checkIn, $checkOut) {
-                          $q->where('from_date', '<=', $checkIn)
-                            ->where('to_date', '>=', $checkOut);
-                      });
-            });
-        
-        if ($excludeStayId) {
-            $query->whereHas('stay', function ($q) use ($excludeStayId) {
-                $q->where('id', '!=', $excludeStayId);
-            });
-        }
-        
-        $conflict = $query->exists();
-        
-        $room = Room::find($roomId);
-        
-        return !$conflict && $room && in_array($room->status, ['available', 'cleaning']);
+        // Single source of truth for availability lives on the Room model
+        return Room::whereKey($roomId)
+            ->availableBetween($checkIn, $checkOut, $excludeStayId)
+            ->exists();
     }
     
     /**

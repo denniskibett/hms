@@ -254,6 +254,18 @@ class SystemHelper
         return self::get('secondary_color', '#08B1BA');
     }
 
+    /**
+     * Hex colour as "r g b" for CSS variables used by Tailwind (rgb(var(--x) / alpha)).
+     */
+    public static function rgb(?string $hex, string $fallback = '58 87 232'): string
+    {
+        if (! preg_match('/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i', (string) $hex, $m)) {
+            return $fallback;
+        }
+
+        return implode(' ', array_map('hexdec', array_slice($m, 1)));
+    }
+
 
     public static function contactEmail()
     {

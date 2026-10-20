@@ -16,6 +16,17 @@
         </h4>
 
         <form @submit.prevent="submitForm()">
+            <!-- Validation errors from the server -->
+            <div x-show="Object.keys(errors).length" x-cloak
+                 class="mb-6 rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">
+                <p class="mb-1 font-medium">Please fix the following:</p>
+                <ul class="list-inside list-disc space-y-0.5">
+                    <template x-for="(messages, field) in errors" :key="field">
+                        <li x-text="messages[0]"></li>
+                    </template>
+                </ul>
+            </div>
+
             <!-- Basic Information -->
             <div class="space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -63,7 +74,7 @@
                         <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             Floor *
                         </label>
-                        <input type="number" x-model="formData.floor" required min="1" max="50"
+                        <input type="number" x-model="formData.floor" required min="0" max="200"
                                class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 pr-11 pl-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
                                placeholder="Floor number">
                     </div>
@@ -87,11 +98,11 @@
                         </label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                                {{ config('system.currency_symbol', '$') }}
+                                {{ SystemHelper::currencySymbol() }}
                             </span>
                             <input type="number" x-model="formData.adult_price" min="0" step="0.01"
                                    class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none pl-10 pr-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                                   placeholder="Leave empty to use room type default">
+                                   placeholder="0.00">
                         </div>
                     </div>
                     
@@ -101,11 +112,11 @@
                         </label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                                {{ config('system.currency_symbol', '$') }}
+                                {{ SystemHelper::currencySymbol() }}
                             </span>
                             <input type="number" x-model="formData.child_price" min="0" step="0.01"
                                    class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none pl-10 pr-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
-                                   placeholder="Leave empty to use 50% of adult price">
+                                   placeholder="0.00">
                         </div>
                     </div>
                 </div>

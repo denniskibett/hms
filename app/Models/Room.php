@@ -2,12 +2,24 @@
 
 namespace App\Models;
 
+use App\Enums\RoomStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Room extends Model
 {
     use HasFactory;
+
+    /**
+     * Stay statuses that hold a room for their dates.
+     */
+    public const ACTIVE_STAY_STATUSES = ['reserved', 'booked', 'checked_in'];
+
+    /**
+     * Fields the create/edit modal works with (also what we send to the browser).
+     */
+    public const FORM_FIELDS = ['id', 'room_number', 'room_type_id', 'status', 'floor', 'wing', 'adult_price', 'child_price', 'features'];
 
     protected $fillable = [
         'room_number',
@@ -16,10 +28,16 @@ class Room extends Model
         'floor',
         'wing',
         'features',
+        'adult_price',
+        'child_price',
     ];
 
     protected $casts = [
+        'status' => RoomStatus::class,
         'features' => 'array',
+        'floor' => 'integer',
+        'adult_price' => 'decimal:2',
+        'child_price' => 'decimal:2',
     ];
 
     /**
@@ -31,16 +49,6 @@ class Room extends Model
     }
 
     /**
-     * Current room allocation.
-     */
-    public function currentAllocation()
-    {
-        return $this->hasOne(RoomAllocation::class)
-            ->whereDate('from_date', '<=', now())
-            ->whereDate('to_date', '>=', now());
-    }
-
-    /**
      * Room allocations.
      */
     public function allocations()
@@ -49,95 +57,118 @@ class Room extends Model
     }
 
     /**
-     * Current stay in this room.
+     * Allocation covering today (departure day excluded).
+     */
+    public function currentAllocation()
+    {
+        return $this->hasOne(RoomAllocation::class)
+            ->whereDate('from_date', '<=', today())
+            ->whereDate('to_date', '>', today());
+    }
+
+    /**
+     * Checked-in stay currently in this room.
      */
     public function currentStay()
     {
         return $this->hasOneThrough(Stay::class, RoomAllocation::class, 'room_id', 'id', 'id', 'stay_id')
-            ->whereIn('stays.status', ['checked_in'])
-            ->whereDate('room_allocations.from_date', '<=', now())
-            ->whereDate('room_allocations.to_date', '>=', now());
+            ->where('stays.status', 'checked_in')
+            ->whereDate('room_allocations.from_date', '<=', today())
+            ->whereDate('room_allocations.to_date', '>=', today());
     }
 
     /**
-     * Housekeeping tasks for this room.
+     * Housekeeping / maintenance tasks raised against this room.
      */
     public function housekeepingTasks()
     {
-        return $this->hasMany(HousekeepingTask::class);
+        return $this->hasMany(Task::class);
     }
-    
 
     /**
-     * Pending housekeeping tasks.
+     * Open tasks for this room.
      */
     public function pendingTasks()
     {
-        return $this->housekeepingTasks()->whereIn('status', ['pending', 'assigned']);
+        return $this->housekeepingTasks()->whereIn('status', ['pending', 'assigned', 'in_progress']);
     }
 
     /**
-     * Scope for available rooms.
+     * Scope by status.
      */
-    public function scopeAvailable($query)
+    public function scopeWithStatus(Builder $query, RoomStatus|string $status): Builder
     {
-        return $query->where('status', 'available');
+        return $query->where('status', $status instanceof RoomStatus ? $status->value : $status);
     }
 
-    /**
-     * Scope for occupied rooms.
-     */
-    public function scopeOccupied($query)
+    public function scopeAvailable(Builder $query): Builder
     {
-        return $query->where('status', 'occupied');
+        return $query->withStatus(RoomStatus::Available);
     }
 
-    /**
-     * Scope by floor.
-     */
-    public function scopeByFloor($query, $floor)
+    public function scopeOccupied(Builder $query): Builder
+    {
+        return $query->withStatus(RoomStatus::Occupied);
+    }
+
+    public function scopeByFloor(Builder $query, $floor): Builder
     {
         return $query->where('floor', $floor);
     }
 
-    /**
-     * Scope by room type.
-     */
-    public function scopeByRoomType($query, $roomTypeId)
+    public function scopeByRoomType(Builder $query, $roomTypeId): Builder
     {
         return $query->where('room_type_id', $roomTypeId);
     }
 
     /**
-     * Check if room is available for dates.
+     * Rooms that can be booked from $from (arrival) to $to (departure).
+     *
+     * Dates are half-open: a guest leaving on the 10th doesn't block one arriving on the 10th.
+     * Only active stays block a room; cancelled, checked-out and deleted stays don't.
+     * Today's housekeeping status doesn't matter for future dates, but rooms under
+     * maintenance / out of order are excluded.
      */
-    public function isAvailableForDates($fromDate, $toDate)
+    public function scopeAvailableBetween(Builder $query, $from, $to, ?int $ignoreStayId = null): Builder
     {
-        $conflictingAllocation = $this->allocations()
-            ->where(function ($query) use ($fromDate, $toDate) {
-                $query->whereBetween('from_date', [$fromDate, $toDate])
-                    ->orWhereBetween('to_date', [$fromDate, $toDate])
-                    ->orWhere(function ($q) use ($fromDate, $toDate) {
-                        $q->where('from_date', '<=', $fromDate)
-                            ->where('to_date', '>=', $toDate);
-                    });
-            })
-            ->exists();
-        
-        return !$conflictingAllocation && $this->status === 'available';
+        return $query
+            ->whereNotIn('status', [RoomStatus::Maintenance->value, RoomStatus::OutOfOrder->value])
+            ->whereDoesntHave('allocations', function (Builder $q) use ($from, $to, $ignoreStayId) {
+                $q->whereDate('from_date', '<', $to)
+                    ->whereDate('to_date', '>', $from)
+                    ->whereHas('stay', fn (Builder $s) => $s->whereIn('status', self::ACTIVE_STAY_STATUSES))
+                    ->when($ignoreStayId, fn (Builder $q) => $q->where('stay_id', '!=', $ignoreStayId));
+            });
     }
 
     /**
-     * Get status options.
+     * Check if this room can be booked for the given dates.
      */
-    public static function getStatusOptions()
+    public function isAvailableForDates($fromDate, $toDate, ?int $ignoreStayId = null): bool
     {
-        return [
-            'available' => 'Available',
-            'occupied' => 'Occupied',
-            'cleaning' => 'Cleaning',
-            'maintenance' => 'Maintenance',
-            'out_of_order' => 'Out of Order',
-        ];
+        return static::whereKey($this->getKey())
+            ->availableBetween($fromDate, $toDate, $ignoreStayId)
+            ->exists();
+    }
+
+    /**
+     * First allocation blocking these dates, if any (for "next available" hints).
+     */
+    public function conflictingAllocation($fromDate, $toDate): ?RoomAllocation
+    {
+        return $this->allocations()
+            ->whereDate('from_date', '<', $toDate)
+            ->whereDate('to_date', '>', $fromDate)
+            ->whereHas('stay', fn (Builder $s) => $s->whereIn('status', self::ACTIVE_STAY_STATUSES))
+            ->orderByDesc('to_date')
+            ->first();
+    }
+
+    /**
+     * value => label, for <select> options.
+     */
+    public static function getStatusOptions(): array
+    {
+        return RoomStatus::options();
     }
 }

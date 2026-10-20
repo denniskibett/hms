@@ -2,196 +2,206 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoomStatus;
+use App\Helpers\SystemHelper;
 use App\Models\Room;
-use App\Models\RoomAllocation;
 use App\Models\RoomType;
-use App\Services\GuestService;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class RoomController extends Controller
 {
-    protected $guestService;
-    
-    public function __construct(GuestService $guestService)
+    public function index(Request $request): View
     {
-        $this->guestService = $guestService;
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::enum(RoomStatus::class)],
+            'floor' => ['nullable', 'integer'],
+            'wing' => ['nullable', 'string', 'max:50'],
+            'room_type_id' => ['nullable', 'integer'],
+            'search' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $rooms = Room::with(['roomType', 'currentStay.guest'])
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->withStatus($status))
+            ->when($filters['floor'] ?? null, fn ($q, $floor) => $q->byFloor($floor))
+            ->when($filters['wing'] ?? null, fn ($q, $wing) => $q->where('wing', 'like', "%{$wing}%"))
+            ->when($filters['room_type_id'] ?? null, fn ($q, $type) => $q->byRoomType($type))
+            ->when($filters['search'] ?? null, fn ($q, $search) => $q->where('room_number', 'like', "%{$search}%"))
+            ->orderBy('floor')
+            ->orderBy('room_number')
+            ->paginate(SystemHelper::paginationLimit())
+            ->withQueryString();
+
+        // Totals across all rooms, not just the current page
+        $statusCounts = Room::selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
+
+        $stats = [
+            'total' => $statusCounts->sum(),
+            'available' => $statusCounts[RoomStatus::Available->value] ?? 0,
+            'occupied' => $statusCounts[RoomStatus::Occupied->value] ?? 0,
+            'cleaning' => $statusCounts[RoomStatus::Cleaning->value] ?? 0,
+            'out_of_service' => ($statusCounts[RoomStatus::Maintenance->value] ?? 0) + ($statusCounts[RoomStatus::OutOfOrder->value] ?? 0),
+        ];
+
+        $roomTypes = RoomType::orderBy('name')->get(['id', 'name', 'base_rate', 'capacity', 'bed_type']);
+
+        return view('rooms.index', compact('rooms', 'roomTypes', 'stats', 'filters'));
     }
 
-    public function index(Request $request)
+    public function show(Room $room): View
     {
-        $query = Room::with(['roomType', 'currentStay']);
-        
-        // Apply filters
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-        
-        if ($request->has('floor')) {
-            $query->where('floor', $request->floor);
-        }
-        
-        if ($request->has('wing')) {
-            $query->where('wing', 'like', '%' . $request->wing . '%');
-        }
-        
-        $rooms = $query->orderBy('floor')->orderBy('room_number')->paginate(20);
-        $roomTypes = RoomType::orderBy('name')->get();
-        
-        return view('rooms.index', compact('rooms', 'roomTypes'));
-    }
-
-    public function show(Room $room)
-    {
-        // Load relationships without trying to access user through guest
         $room->load([
             'roomType',
-            'currentStay',
-            'allocations' => function($query) {
-                $query->with('stay')->latest()->take(10);
-            }
-        ]);
-        
-        $roomTypes = RoomType::orderBy('name')->get();
-        
+            'currentStay.guest',
+            'allocations' => fn ($q) => $q->with('stay.guest')->latest('from_date')->take(10),
+        ])->loadCount(['allocations', 'pendingTasks']);
+
+        $roomTypes = RoomType::orderBy('name')->get(['id', 'name', 'base_rate', 'capacity', 'bed_type']);
+
         return view('rooms.show', compact('room', 'roomTypes'));
     }
-    
-    public function checkAvailability(Request $request)
+
+    public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'arrival_date' => 'required|date',
-            'departure_date' => 'required|date|after:arrival_date',
-            'guest_id' => 'nullable|exists:users,id'
+        $room = Room::create($this->validated($request));
+
+        return response()->json([
+            'success' => true,
+            'message' => "Room {$room->room_number} created.",
+            'room_id' => $room->id,
+        ], 201);
+    }
+
+    public function update(Request $request, Room $room): JsonResponse
+    {
+        $room->update($this->validated($request, $room));
+
+        return response()->json([
+            'success' => true,
+            'message' => "Room {$room->room_number} updated.",
         ]);
-        
-        $arrivalDate = Carbon::parse($request->arrival_date);
-        $departureDate = Carbon::parse($request->departure_date);
-        
-        // Get all rooms
+    }
+
+    /**
+     * Quick status change (front desk / housekeeping).
+     */
+    public function updateStatus(Request $request, Room $room): JsonResponse
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(RoomStatus::class)],
+        ]);
+
+        $status = RoomStatus::from($data['status']);
+
+        // A room with a checked-in guest stays occupied until the guest checks out
+        if ($status !== RoomStatus::Occupied && $room->currentStay()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => "Room {$room->room_number} has a checked-in guest. Check the guest out first.",
+            ], 422);
+        }
+
+        $room->update(['status' => $status]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Room {$room->room_number} is now {$status->label()}.",
+        ]);
+    }
+
+    public function destroy(Room $room): JsonResponse
+    {
+        // Keep booking history intact: rooms that were ever allocated can't be deleted
+        if ($room->allocations()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => "Room {$room->room_number} has booking history and can't be deleted. Set it to Out of Order instead.",
+            ], 422);
+        }
+
+        $room->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Room {$room->room_number} deleted.",
+        ]);
+    }
+
+    /**
+     * Which rooms are free between two dates.
+     */
+    public function availability(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'arrival_date' => ['required', 'date'],
+            'departure_date' => ['required', 'date', 'after:arrival_date'],
+            'room_type_id' => ['nullable', 'integer'],
+        ]);
+
+        $arrival = Carbon::parse($data['arrival_date'])->startOfDay();
+        $departure = Carbon::parse($data['departure_date'])->startOfDay();
+
+        $availableIds = Room::availableBetween($arrival, $departure)->pluck('id')->flip();
+
         $rooms = Room::with('roomType')
-            ->where('status', 'available')
+            ->when($data['room_type_id'] ?? null, fn ($q, $type) => $q->byRoomType($type))
             ->orderBy('room_number')
-            ->get();
-            
-        $availableCount = 0;
-        
-        // Check availability for each room
-        $rooms = $rooms->map(function ($room) use ($arrivalDate, $departureDate, &$availableCount) {
-            $isAvailable = $this->guestService->isRoomAvailable($room->id, $arrivalDate, $departureDate);
-            
-            if ($isAvailable) {
-                $availableCount++;
-                $nextAvailableDate = null;
-            } else {
-                // Find next available date
-                $nextAllocation = RoomAllocation::where('room_id', $room->id)
-                    ->where('to_date', '>=', $arrivalDate)
-                    ->orderBy('to_date', 'asc')
-                    ->first();
-                    
-                $nextAvailableDate = $nextAllocation ? 
-                    Carbon::parse($nextAllocation->to_date)->addDay()->toDateString() : 
-                    $arrivalDate->toDateString();
-            }
-            
-            return [
-                'id' => $room->id,
-                'room_number' => $room->room_number,
-                'room_type' => [
-                    'id' => $room->roomType->id,
-                    'name' => $room->roomType->name ?? 'N/A',
-                    'base_rate' => $room->roomType->base_rate ?? 0,
-                    'capacity' => $room->roomType->capacity ?? 1,
-                    'bed_type' => $room->roomType->bed_type ?? 'double',
-                ],
-                'floor' => $room->floor,
-                'wing' => $room->wing,
-                'is_available' => $isAvailable,
-                'next_available_date' => $nextAvailableDate,
-            ];
-        });
-        
+            ->get()
+            ->map(function (Room $room) use ($availableIds, $arrival, $departure) {
+                $isAvailable = $availableIds->has($room->id);
+
+                return [
+                    'id' => $room->id,
+                    'room_number' => $room->room_number,
+                    'floor' => $room->floor,
+                    'wing' => $room->wing,
+                    'status' => $room->status->value,
+                    'status_label' => $room->status->label(),
+                    'room_type' => [
+                        'id' => $room->roomType?->id,
+                        'name' => $room->roomType?->name ?? 'N/A',
+                        'base_rate' => $room->roomType?->base_rate ?? 0,
+                        'capacity' => $room->roomType?->capacity ?? 1,
+                        'bed_type' => $room->roomType?->bed_type ?? 'double',
+                    ],
+                    'is_available' => $isAvailable,
+                    'next_available_date' => $isAvailable || $room->status->isOutOfService()
+                        ? null
+                        : $room->conflictingAllocation($arrival, $departure)?->to_date?->toDateString(),
+                ];
+            });
+
         return response()->json([
             'success' => true,
             'rooms' => $rooms,
-            'available_count' => $availableCount,
-            'arrival_date' => $arrivalDate->toDateString(),
-            'departure_date' => $departureDate->toDateString(),
-            'nights' => $arrivalDate->diffInDays($departureDate)
+            'available_count' => $availableIds->count(),
+            'arrival_date' => $arrival->toDateString(),
+            'departure_date' => $departure->toDateString(),
+            'nights' => (int) $arrival->diffInDays($departure),
         ]);
     }
-    
-    // Add these methods for AJAX operations
-    
-    public function update(Request $request, Room $room)
+
+    private function validated(Request $request, ?Room $room = null): array
     {
-        $request->validate([
-            'room_number' => 'required|unique:rooms,room_number,' . $room->id,
-            'room_type_id' => 'required|exists:room_types,id',
-            'floor' => 'required|integer|min:1',
-            'status' => 'required|in:available,occupied,cleaning,maintenance,out_of_order,reserved',
-            'adult_price' => 'nullable|numeric|min:0',
-            'child_price' => 'nullable|numeric|min:0',
+        $data = $request->validate([
+            'room_number' => ['required', 'string', 'max:20', Rule::unique('rooms', 'room_number')->ignore($room?->id)],
+            'room_type_id' => ['required', 'exists:room_types,id'],
+            'floor' => ['required', 'integer', 'min:0', 'max:200'],
+            'wing' => ['nullable', 'string', 'max:50'],
+            'status' => ['required', Rule::enum(RoomStatus::class)],
+            'adult_price' => ['nullable', 'numeric', 'min:0'],
+            'child_price' => ['nullable', 'numeric', 'min:0'],
+            'features' => ['nullable', 'array', 'max:30'],
+            'features.*' => ['string', 'max:50'],
         ]);
-        
-        $room->update([
-            'room_number' => $request->room_number,
-            'room_type_id' => $request->room_type_id,
-            'status' => $request->status,
-            'floor' => $request->floor,
-            'wing' => $request->wing,
-            'adult_price' => $request->adult_price,
-            'child_price' => $request->child_price,
-            'features' => $request->features ? json_decode($request->features, true) : [],
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Room updated successfully.'
-        ]);
-    }
-    
-    public function store(Request $request)
-    {
-        $request->validate([
-            'room_number' => 'required|unique:rooms,room_number',
-            'room_type_id' => 'required|exists:room_types,id',
-            'floor' => 'required|integer|min:1',
-            'status' => 'required|in:available,occupied,cleaning,maintenance,out_of_order,reserved',
-            'adult_price' => 'nullable|numeric|min:0',
-            'child_price' => 'nullable|numeric|min:0',
-        ]);
-        
-        $room = Room::create([
-            'room_number' => $request->room_number,
-            'room_type_id' => $request->room_type_id,
-            'status' => $request->status,
-            'floor' => $request->floor,
-            'wing' => $request->wing,
-            'adult_price' => $request->adult_price,
-            'child_price' => $request->child_price,
-            'features' => $request->features ? json_decode($request->features, true) : [],
-        ]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Room created successfully.',
-            'room_id' => $room->id
-        ]);
-    }
-    
-    public function updateStatus(Request $request, Room $room)
-    {
-        $request->validate([
-            'status' => 'required|in:available,occupied,cleaning,maintenance,out_of_order,reserved'
-        ]);
-        
-        $room->update(['status' => $request->status]);
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Room status updated successfully.'
-        ]);
+
+        $data['features'] = array_values(array_unique($data['features'] ?? []));
+        $data['adult_price'] ??= 0;
+        $data['child_price'] ??= 0;
+
+        return $data;
     }
 }

@@ -135,9 +135,7 @@
                                         </p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">
                                             Floor <span x-text="room.floor"></span>
-                                            <template x-if="room.wing">
-                                                • <span x-text="room.wing"></span> Wing
-                                            </template>
+                                            <span x-show="room.wing">• <span x-text="room.wing"></span> Wing</span>
                                         </p>
                                     </div>
                                     <div>
@@ -149,8 +147,8 @@
                                             <span x-show="!room.is_available && room.next_available_date">
                                                 Available from <span x-text="formatDisplayDate(room.next_available_date)"></span>
                                             </span>
-                                            <span x-show="!room.is_available && !room.next_available_date">
-                                                Not Available
+                                            <span x-show="!room.is_available && !room.next_available_date"
+                                                  x-text="['maintenance', 'out_of_order'].includes(room.status) ? room.status_label : 'Not Available'">
                                             </span>
                                         </span>
                                     </div>

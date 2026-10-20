@@ -46,46 +46,62 @@ module.exports = {
         "gray-dark": "#1a1a1a",
 
         /* ===============================
-        * BRAND (DYNAMIC – FROM SYSTEM)
+        * PRIMARY / SECONDARY (DYNAMIC – FROM SYSTEM SETTINGS)
+        * --color-primary-rgb / --color-secondary-rgb are set in layouts/app.blade.php.
+        * Opacity modifiers work: bg-primary/10, text-primary/80 …
+        * Numbered shades keep the old meaning (bg-primary-50 = 50% opacity).
         * =============================== */
-        brand: {
-          25: "color-mix(in srgb, var(--color-primary) 5%, white)",
-          50: "color-mix(in srgb, var(--color-primary) 10%, white)",
-          100: "color-mix(in srgb, var(--color-primary) 20%, white)",
-          200: "color-mix(in srgb, var(--color-primary) 40%, white)",
-          300: "color-mix(in srgb, var(--color-primary) 60%, white)",
-          400: "color-mix(in srgb, var(--color-primary) 80%, white)",
-          500: "var(--color-primary)",
-          600: "color-mix(in srgb, var(--color-primary) 90%, black)",
-          700: "color-mix(in srgb, var(--color-primary) 80%, black)",
-          800: "color-mix(in srgb, var(--color-primary) 65%, black)",
-          900: "color-mix(in srgb, var(--color-primary) 50%, black)",
-          950: "color-mix(in srgb, var(--color-primary) 35%, black)",
+        primary: {
+          DEFAULT: "rgb(var(--color-primary-rgb) / <alpha-value>)",
+          10: "rgb(var(--color-primary-rgb) / 0.1)",
+          20: "rgb(var(--color-primary-rgb) / 0.2)",
+          30: "rgb(var(--color-primary-rgb) / 0.3)",
+          40: "rgb(var(--color-primary-rgb) / 0.4)",
+          50: "rgb(var(--color-primary-rgb) / 0.5)",
+          60: "rgb(var(--color-primary-rgb) / 0.6)",
+          70: "rgb(var(--color-primary-rgb) / 0.7)",
+          80: "rgb(var(--color-primary-rgb) / 0.8)",
+          90: "rgb(var(--color-primary-rgb) / 0.9)",
+          light: "rgb(var(--color-primary-rgb) / 0.1)",
+          soft: "rgb(var(--color-primary-rgb) / 0.15)",
+          medium: "rgb(var(--color-primary-rgb) / 0.2)",
+        },
+        secondary: {
+          DEFAULT: "rgb(var(--color-secondary-rgb) / <alpha-value>)",
+          10: "rgb(var(--color-secondary-rgb) / 0.1)",
+          20: "rgb(var(--color-secondary-rgb) / 0.2)",
+          30: "rgb(var(--color-secondary-rgb) / 0.3)",
+          40: "rgb(var(--color-secondary-rgb) / 0.4)",
+          50: "rgb(var(--color-secondary-rgb) / 0.5)",
+          60: "rgb(var(--color-secondary-rgb) / 0.6)",
+          70: "rgb(var(--color-secondary-rgb) / 0.7)",
+          80: "rgb(var(--color-secondary-rgb) / 0.8)",
+          90: "rgb(var(--color-secondary-rgb) / 0.9)",
         },
 
         /* ===============================
-        * SECONDARY (DYNAMIC)
+        * STATUS COLOURS
         * =============================== */
-        secondary: {
-          500: "var(--color-secondary)",
+        warning: {
+          DEFAULT: "#F59E0B",
+          50: "#FFFBEB",
+          100: "#FEF3C7",
+          200: "#FDE68A",
+          300: "#FCD34D",
+          400: "#FBBF24",
+          500: "#F59E0B",
+          600: "#D97706",
+          700: "#B45309",
+          800: "#92400E",
+          900: "#78350F",
         },
-        success: {
-          50: "#d1fae5", // Light success color
-          100: "#a7f3d0",
-          200: "#6ee7b7",
-        },
-        error: {
-          50: "#fee2e2", // Light error color
-          100: "#fecaca",
-          200: "#fca5a5",
-        },
-        orange: {
-          50: "#fff7ed",
-          500: "#f97316", // Add more shades if needed
-        },
-        brand: {
-          50: "#f5faff",
-          500: "#1e40af",
+        info: {
+          DEFAULT: "#0BA5EC",
+          50: "#F0F9FF",
+          100: "#E0F2FE",
+          500: "#0BA5EC",
+          600: "#0086C9",
+          700: "#026AA2",
         },
         orange: {
           50: "#FFF7ED",
@@ -100,6 +116,7 @@ module.exports = {
           900: "#7C2D12",
         },
         success: {
+          DEFAULT: "#10B981",
           50: "#ecfdf5",
           100: "#d1fae5",
           200: "#a7f3d0",
@@ -112,12 +129,27 @@ module.exports = {
           900: "#064e3b",
         },
         error: {
+          DEFAULT: "#EF4444",
           50: "#fef2f2",
           100: "#fee2e2",
           200: "#fecaca",
           300: "#fca5a5",
           400: "#f87171",
           500: "#ef4444", // Define error-500
+          600: "#dc2626",
+          700: "#b91c1c",
+          800: "#991b1b",
+          900: "#7f1d1d",
+        },
+        // "danger" is used across the views as a synonym for "error"
+        danger: {
+          DEFAULT: "#EF4444",
+          50: "#fef2f2",
+          100: "#fee2e2",
+          200: "#fecaca",
+          300: "#fca5a5",
+          400: "#f87171",
+          500: "#ef4444",
           600: "#dc2626",
           700: "#b91c1c",
           800: "#991b1b",

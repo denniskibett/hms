@@ -79,9 +79,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('facilities', FacilityController::class);
     });
 
-    // Housekeeping also works with rooms (status changes)
+    // Rooms: front office + housekeeping can view and change status; managers manage
+    Route::middleware('role:manager,receptionist,housekeeping')->group(function () {
+        Route::get('rooms/availability', [RoomController::class, 'availability'])->name('rooms.availability');
+        Route::resource('rooms', RoomController::class)->only(['index', 'show']);
+        Route::patch('rooms/{room}/status', [RoomController::class, 'updateStatus'])->name('rooms.status');
+    });
     Route::resource('rooms', RoomController::class)
-        ->middleware('role:manager,receptionist,housekeeping');
+        ->only(['store', 'update', 'destroy'])
+        ->middleware('role:manager');
 
     /*
     |--------------------------------------------------------------------------

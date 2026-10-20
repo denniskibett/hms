@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Enums\RoomStatus;
 use App\Services\GuestService;
 use App\Services\FinanceService;
 use App\Services\OperationsService;
@@ -295,7 +296,7 @@ class DashboardController extends Controller
             ->whereDate('date', today())
             ->get();
         
-        $dirtyRooms = Room::where('status', 'dirty')
+        $dirtyRooms = Room::withStatus(RoomStatus::Cleaning)
             ->orderBy('room_number')
             ->limit(5)
             ->get();
@@ -607,7 +608,7 @@ class DashboardController extends Controller
                 ->where('status', 'checked_in')
                 ->count(),
             'available_rooms' => Room::where('status', 'available')->count(),
-            'dirty_rooms' => Room::where('status', 'dirty')->count(),
+            'dirty_rooms' => Room::withStatus(RoomStatus::Cleaning)->count(),
             'occupied_rooms' => Room::where('status', 'occupied')->count(),
             'today_reservations' => Stay::whereDate('arrival_date', $today)
                 ->where('status', 'booked')
@@ -627,7 +628,7 @@ class DashboardController extends Controller
                 ->where('status', 'completed')
                 ->whereDate('completed_at', $today)
                 ->count(),
-            'rooms_to_clean' => Room::where('status', 'dirty')->count(),
+            'rooms_to_clean' => Room::withStatus(RoomStatus::Cleaning)->count(),
             'rooms_cleaned_today' => Room::where('status', 'available')
                 ->whereDate('updated_at', $today)
                 ->count(),
@@ -822,12 +823,12 @@ class DashboardController extends Controller
                     'id' => $room->id,
                     'room_number' => $room->room_number,
                     'type' => $room->roomType->name ?? 'N/A',
-                    'status' => $room->status,
+                    'status' => $room->status->value,
                     'current_guest' => $currentAllocation ? $currentAllocation->stay->guest->name ?? 'N/A' : null,
                     'check_out_date' => $currentAllocation ? optional($currentAllocation->to_date)->format('M d') : null,
-                    'is_available' => $room->status === 'available',
-                    'needs_cleaning' => $room->status === 'dirty',
-                    'is_occupied' => $room->status === 'occupied',
+                    'is_available' => $room->status === RoomStatus::Available,
+                    'needs_cleaning' => $room->status === RoomStatus::Cleaning,
+                    'is_occupied' => $room->status === RoomStatus::Occupied,
                     'view_url' => route('rooms.show', $room)
                 ];
             });
@@ -1004,7 +1005,7 @@ public function getReceptionistData(Request $request)
             ->where('status', 'checked_in')
             ->count(),
         'available_rooms' => Room::where('status', 'available')->count(),
-        'dirty_rooms' => Room::where('status', 'dirty')->count(),
+        'dirty_rooms' => Room::withStatus(RoomStatus::Cleaning)->count(),
         'pending_checkins' => Stay::where('status', 'booked')
             ->whereDate('arrival_date', '<=', $today)
             ->whereDoesntHave('roomAllocations', function ($query) {

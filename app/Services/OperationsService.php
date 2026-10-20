@@ -129,7 +129,7 @@ class OperationsService
             // If it's a room cleaning task, update room status
             if ($task->room_id && $task->taskType->category === 'cleaning') {
                 $room = $task->room;
-                if ($room->status === 'cleaning') {
+                if ($room->status === \App\Enums\RoomStatus::Cleaning) {
                     $room->update(['status' => 'available']);
                 }
             }

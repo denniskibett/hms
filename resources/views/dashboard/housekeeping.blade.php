@@ -131,7 +131,7 @@
         <div class="bg-white rounded-lg border border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Dirty Rooms</h3>
-                <a href="{{ route('rooms.index', ['status' => 'dirty']) }}" class="text-sm text-primary hover:underline">View All</a>
+                <a href="{{ route('rooms.index', ['status' => 'cleaning']) }}" class="text-sm text-primary hover:underline">View All</a>
             </div>
             <div class="space-y-3">
                 @forelse($dirtyRooms as $room)
