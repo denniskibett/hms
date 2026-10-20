@@ -79,6 +79,29 @@ class User extends Authenticatable
     }
 
     /**
+     * Upcoming and in-house stays (guest dashboard).
+     */
+    public function currentStays()
+    {
+        return $this->stays()
+            ->active()
+            ->whereDate('departure_date', '>=', today())
+            ->with(['roomAllocations.room.roomType', 'invoices'])
+            ->orderBy('arrival_date');
+    }
+
+    /**
+     * Finished and cancelled stays (guest dashboard).
+     */
+    public function pastStays()
+    {
+        return $this->stays()
+            ->whereIn('status', ['checked_out', 'cancelled'])
+            ->with(['roomAllocations.room.roomType', 'invoices.payments'])
+            ->orderByDesc('arrival_date');
+    }
+
+    /**
      * Stays created by this user (for receptionists).
      */
     public function createdStays()

@@ -265,7 +265,7 @@ class KitchenService
     /**
      * Update order status.
      */
-    public function updateOrderStatus(KitchenOrder $order, string $status, string $notes = null): KitchenOrder
+    public function updateOrderStatus(KitchenOrder $order, string $status, ?string $notes = null): KitchenOrder
     {
         $oldStatus = $order->status;
         

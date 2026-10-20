@@ -595,7 +595,7 @@ class HRService
     /**
      * Approve leave request.
      */
-    public function approveLeave(LeaveRequest $leaveRequest, User $approver, string $notes = null): LeaveRequest
+    public function approveLeave(LeaveRequest $leaveRequest, User $approver, ?string $notes = null): LeaveRequest
     {
         $leaveRequest->update([
             'status' => 'approved',

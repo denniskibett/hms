@@ -8,7 +8,6 @@ use App\Models\Stay;
 use App\Models\Role;
 use App\Models\Room;
 use App\Models\RoomAllocation;
-use App\Services\GuestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,12 +18,6 @@ use App\Enums\StayStatus;
 
 class GuestController extends Controller
 {
-    protected $guestService;
-    
-    public function __construct(GuestService $guestService)
-    {
-        $this->guestService = $guestService;
-    }
 
     public function index(Request $request)
     {

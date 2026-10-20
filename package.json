@@ -8,7 +8,6 @@
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.2",
-        "@tailwindcss/vite": "^4.0.0",
         "alpinejs": "^3.4.2",
         "autoprefixer": "^10.4.2",
         "axios": "^1.8.2",
@@ -27,8 +26,6 @@
         "@fullcalendar/list": "^6.1.17",
         "@fullcalendar/timegrid": "^6.1.17",
         "apexcharts": "^4.7.0",
-        "dropzone": "^6.0.0-beta.2",
-        "flatpickr": "^4.6.13",
-        "jsvectormap": "^1.7.0"
+        "flatpickr": "^4.6.13"
     }
 }

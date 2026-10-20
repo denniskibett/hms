@@ -99,7 +99,7 @@ class OperationsService
     /**
      * Start task execution.
      */
-    public function startTask(Task $task, string $notes = null): Task
+    public function startTask(Task $task, ?string $notes = null): Task
     {
         $task->update([
             'status' => 'in_progress',
@@ -149,7 +149,7 @@ class OperationsService
     /**
      * Verify a completed task.
      */
-    public function verifyTask(Task $task, User $verifier, string $notes = null): Task
+    public function verifyTask(Task $task, User $verifier, ?string $notes = null): Task
     {
         $task->update([
             'status' => 'verified',
@@ -167,7 +167,7 @@ class OperationsService
     /**
      * Use inventory item in task.
      */
-    public function useInventoryInTask(Task $task, int $inventoryItemId, float $quantity, float $unitCost = null): TaskItem
+    public function useInventoryInTask(Task $task, int $inventoryItemId, float $quantity, ?float $unitCost = null): TaskItem
     {
         return DB::transaction(function () use ($task, $inventoryItemId, $quantity, $unitCost) {
             $inventoryItem = InventoryItem::findOrFail($inventoryItemId);
@@ -212,7 +212,7 @@ class OperationsService
     /**
      * Update task checklist item.
      */
-    public function updateChecklistItem(Task $task, int $itemIndex, bool $completed, string $notes = null): Task
+    public function updateChecklistItem(Task $task, int $itemIndex, bool $completed, ?string $notes = null): Task
     {
         $checklist = $task->checklist ?? [];
         
@@ -647,7 +647,7 @@ class OperationsService
     /**
      * Update facility status.
      */
-    public function updateFacilityStatus(Facility $facility, string $status, string $reason = null): Facility
+    public function updateFacilityStatus(Facility $facility, string $status, ?string $reason = null): Facility
     {
         $oldStatus = $facility->status;
         $facility->update(['status' => $status]);

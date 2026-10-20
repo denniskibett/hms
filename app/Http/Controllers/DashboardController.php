@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Enums\RoomStatus;
-use App\Services\GuestService;
 use App\Services\FinanceService;
 use App\Services\OperationsService;
 use App\Services\KitchenService;
@@ -27,7 +26,6 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     public function __construct(
-        private GuestService $guestService,
         private FinanceService $financeService,
         private OperationsService $operationsService,
         private KitchenService $kitchenService,
@@ -238,8 +236,8 @@ class DashboardController extends Controller
 
     private function guestDashboard(User $user, string $rolesDisplay)
     {
-        $currentStays = collect($this->guestService->getGuestCurrentStays($user));
-        $pastStays = collect($this->guestService->getGuestPastStays($user, 5));
+        $currentStays = $user->currentStays()->get();
+        $pastStays = $user->pastStays()->limit(5)->get();
         
         $pendingInvoices = Invoice::whereHas('stay', function ($query) use ($user) {
                 $query->where('guest_id', $user->id);
@@ -966,7 +964,7 @@ class DashboardController extends Controller
         
         // Guest specific data
         if ($user->hasRole('guest')) {
-            $data['my_stays'] = $this->guestService->getGuestCurrentStays($user);
+            $data['my_stays'] = $user->currentStays()->get();
             $data['my_invoices'] = $user->stays()
                 ->with('invoices')
                 ->whereHas('invoices', function ($q) {

@@ -317,7 +317,7 @@ class FacilityController extends Controller
     /**
      * Show booking form.
      */
-    public function showBookForm(Request $request, Facility $facility = null)
+    public function showBookForm(Request $request, ?Facility $facility = null)
     {
         $facilities = Facility::available()->get();
         $stays = Stay::whereIn('status', ['booked', 'checked_in'])->get();
@@ -744,7 +744,7 @@ class FacilityController extends Controller
     /**
      * Get facility calendar data.
      */
-    public function calendar(Request $request, Facility $facility = null)
+    public function calendar(Request $request, ?Facility $facility = null)
     {
         $query = FacilityAllocation::query();
         
