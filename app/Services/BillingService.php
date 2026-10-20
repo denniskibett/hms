@@ -213,6 +213,92 @@ class BillingService
         });
     }
 
+    /**
+     * Add an extra charge (laundry, minibar, damages…) to an invoice.
+     */
+    public function addCharge(Invoice $invoice, string $description, float $quantity, float $unitPrice, User $by): InvoiceItem
+    {
+        return DB::transaction(function () use ($invoice, $description, $quantity, $unitPrice, $by) {
+            $invoice = Invoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+
+            if ($invoice->status === 'cancelled') {
+                throw new BillingException("Invoice {$invoice->invoice_number} is cancelled.");
+            }
+
+            $item = InvoiceItem::create([
+                'invoice_id' => $invoice->id,
+                'source_type' => 'other',
+                'description' => $description,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+            ]);
+
+            $this->recalculate($invoice);
+            $this->core->log($by->id, 'invoice_charge_added', "Charge \"{$description}\" (" . round($quantity * $unitPrice, 2) . ") on {$invoice->invoice_number}", ['invoice_item_id' => $item->id]);
+
+            return $item;
+        });
+    }
+
+    /**
+     * Remove an extra charge. Room and service lines come from the booking,
+     * so they change by editing the booking instead.
+     */
+    public function removeCharge(InvoiceItem $item, User $by): Invoice
+    {
+        return DB::transaction(function () use ($item, $by) {
+            $invoice = Invoice::whereKey($item->invoice_id)->lockForUpdate()->firstOrFail();
+
+            if ($item->source_type !== 'other') {
+                throw new BillingException('Room and service lines follow the booking. Edit the booking to change them.');
+            }
+
+            $lineTotal = round((float) $item->quantity * (float) $item->unit_price, 2);
+            if (round((float) $invoice->total - $lineTotal, 2) < $this->paidTotal($invoice)) {
+                throw new BillingException('Removing this charge would leave the guest overpaid. Void a payment first.');
+            }
+
+            $item->delete();
+            $this->core->log($by->id, 'invoice_charge_removed', "Charge \"{$item->description}\" removed from {$invoice->invoice_number}", ['invoice_id' => $invoice->id]);
+
+            return $this->recalculate($invoice);
+        });
+    }
+
+    /**
+     * Set the invoice discount (an amount off the tax-inclusive total). 0 removes it.
+     */
+    public function setDiscount(Invoice $invoice, float $amount, ?string $reason, User $by): Invoice
+    {
+        return DB::transaction(function () use ($invoice, $amount, $reason, $by) {
+            $invoice = Invoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
+            $amount = round($amount, 2);
+
+            if ($invoice->status === 'cancelled') {
+                throw new BillingException("Invoice {$invoice->invoice_number} is cancelled.");
+            }
+
+            $gross = round((float) $invoice->items()->get()->sum(fn (InvoiceItem $i) => (float) $i->quantity * (float) $i->unit_price), 2);
+            if ($amount < 0 || $amount > $gross) {
+                throw new BillingException('The discount must be between 0 and the charges of ' . SystemHelper::currencySymbol() . ' ' . number_format($gross, 2) . '.');
+            }
+
+            $invoice->update(['discount_amount' => $amount]);
+            $updated = $this->recalculate($invoice);
+
+            // Throwing rolls the discount back
+            if ((float) $updated->total < $this->paidTotal($updated)) {
+                throw new BillingException('That discount would leave the guest overpaid. Void a payment first.');
+            }
+
+            $note = 'Discount ' . number_format($amount, 2) . ' set by ' . $by->name . ' on ' . now()->format('d M Y H:i') . ($reason ? ": {$reason}" : '');
+            $updated->update(['notes' => trim(($updated->notes ? $updated->notes . "\n" : '') . $note)]);
+            $this->core->log($by->id, 'invoice_discount', "{$invoice->invoice_number}: {$note}", ['invoice_id' => $invoice->id]);
+
+            return $updated->fresh(['items', 'payments']);
+        });
+    }
+
     private function paidTotal(Invoice $invoice): float
     {
         return round((float) $invoice->payments()->where('status', 'completed')->sum('amount'), 2);

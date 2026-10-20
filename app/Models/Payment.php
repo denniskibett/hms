@@ -9,6 +9,14 @@ class Payment extends Model
 {
     use HasFactory;
 
+    public const METHODS = [
+        'cash' => 'Cash',
+        'mobile_money' => 'M-Pesa / Mobile money',
+        'credit_card' => 'Card',
+        'bank_transfer' => 'Bank transfer',
+        'cheque' => 'Cheque',
+    ];
+
     protected $fillable = [
         'invoice_id',
         'payment_reference',
@@ -67,18 +75,14 @@ class Payment extends Model
         return 'PAY-' . date('Ymd') . '-' . strtoupper(uniqid());
     }
 
-    /**
-     * Get payment method options.
-     */
-    public static function getMethodOptions()
+    public static function getMethodOptions(): array
     {
-        return [
-            'cash' => 'Cash',
-            'credit_card' => 'Credit Card',
-            'mobile_money' => 'Mobile Money',
-            'bank_transfer' => 'Bank Transfer',
-            'cheque' => 'Cheque',
-        ];
+        return self::METHODS;
+    }
+
+    public function getMethodLabelAttribute(): string
+    {
+        return self::METHODS[$this->method] ?? ucfirst(str_replace("_", " ", (string) $this->method));
     }
 
     /**

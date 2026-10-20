@@ -13,7 +13,7 @@
     @include('partials.breadcrumb')
 </div>
 
-<div class="space-y-6" x-data="{ cancelOpen: false, payOpen: @js(old('amount') !== null) }">
+<div class="space-y-6" x-data="{ cancelOpen: false }">
     @if (session('receipt_url'))
         <div class="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 print:hidden">
             <span><i class="fas fa-receipt mr-1 text-primary"></i> Payment saved. Print the receipt for the guest?</span>

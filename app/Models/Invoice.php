@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InvoiceStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -104,20 +105,47 @@ class Invoice extends Model
     }
 
     /**
-     * Scope for unpaid invoices.
+     * Money still owed (not cancelled, not fully paid).
      */
     public function scopeUnpaid($query)
     {
-        return $query->whereIn('status', ['sent', 'partial']);
+        return $query->whereIn('status', ['sent', 'partial', 'overdue'])
+            ->whereColumn('paid_amount', '<', 'total');
     }
 
     /**
-     * Scope for overdue invoices.
+     * Unpaid and past the due date (the guest's departure date).
      */
     public function scopeOverdue($query)
     {
-        return $query->whereIn('status', ['sent', 'partial'])
-            ->where('due_date', '<', now());
+        return $query->unpaid()->whereDate('due_date', '<', today());
+    }
+
+    /**
+     * Matches the invoice number or the guest's name / phone.
+     */
+    public function scopeSearch($query, string $term)
+    {
+        return $query->where(fn ($q) => $q
+            ->where('invoice_number', 'like', "%{$term}%")
+            ->orWhereHas('stay.guest', fn ($g) => $g
+                ->where('name', 'like', "%{$term}%")
+                ->orWhere('phone', 'like', "%{$term}%")));
+    }
+
+    public function getBalanceAttribute(): float
+    {
+        return round((float) $this->total - (float) $this->paid_amount, 2);
+    }
+
+    /**
+     * Status for display: open invoices past their due date show as overdue.
+     */
+    public function getDisplayStatusAttribute(): InvoiceStatus
+    {
+        return in_array($this->status, ['sent', 'partial'], true) && $this->balance > 0 && $this->due_date?->isBefore(today())
+            ? InvoiceStatus::Overdue
+            : InvoiceStatus::from($this->status);
     }
 
     /**

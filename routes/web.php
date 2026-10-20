@@ -87,9 +87,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('stays/{stay}/invoice', [StayBillingController::class, 'invoice'])->name('stays.invoice');
         Route::get('stays/{stay}/payments/{payment}/receipt', [StayBillingController::class, 'receipt'])->name('stays.receipt');
     });
-    Route::post('stays/{stay}/payments/{payment}/void', [StayBillingController::class, 'voidPayment'])
-        ->middleware('role:manager,finance')
-        ->name('stays.payments.void');
+    Route::post('stays/{stay}/charges', [StayBillingController::class, 'storeCharge'])
+        ->middleware('role:manager,receptionist,finance')
+        ->name('stays.charges.store');
+    Route::middleware('role:manager,finance')->group(function () {
+        Route::post('stays/{stay}/payments/{payment}/void', [StayBillingController::class, 'voidPayment'])->name('stays.payments.void');
+        Route::delete('stays/{stay}/charges/{item}', [StayBillingController::class, 'destroyCharge'])->name('stays.charges.destroy');
+        Route::post('stays/{stay}/discount', [StayBillingController::class, 'updateDiscount'])->name('stays.discount');
+    });
 
     Route::middleware('role:manager,receptionist')->group(function () {
         Route::resource('room-types', RoomTypeController::class);
@@ -129,10 +134,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:manager,finance')->group(function () {
-        Route::resource('finance', FinanceController::class);
-        Route::post('invoices/export', [InvoiceController::class, 'export'])->name('invoices.export');
-        Route::resource('invoices', InvoiceController::class);
-        Route::resource('payments', PaymentController::class);
+        Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
+        Route::resource('invoices', InvoiceController::class)->only(['index', 'show']);
+        Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
 
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     });

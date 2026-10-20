@@ -539,7 +539,7 @@
                                                 View
                                             </a>
                                             <template x-if="stay.total_invoice > 0">
-                                                <a :href="'{{ route('payments.create') }}?stay_id=' + stay.id" 
+                                                <a :href="'{{ url('stays') }}/' + stay.id" 
                                                    class="rounded-lg bg-info px-3 py-1.5 text-theme-xs font-medium text-white hover:bg-info-600">
                                                     Pay
                                                 </a>

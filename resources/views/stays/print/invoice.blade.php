@@ -69,7 +69,7 @@
                 @foreach ($invoice->payments as $payment)
                     <tr class="border-b border-gray-100">
                         <td class="py-1">{{ $payment->received_at?->format('d M Y') }}</td>
-                        <td class="py-1">{{ \App\Http\Controllers\StayBillingController::METHODS[$payment->method] ?? $payment->method }}</td>
+                        <td class="py-1">{{ \App\Models\Payment::METHODS[$payment->method] ?? $payment->method }}</td>
                         <td class="py-1 text-gray-500">{{ $payment->payment_reference }}</td>
                         <td class="py-1 text-right">{{ $money($payment->amount) }}</td>
                     </tr>
