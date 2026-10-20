@@ -406,10 +406,11 @@ class SystemHelper
         return (float) self::get('billing.tourism_levy_percent', 2);
     }
 
-    // true: rates already include VAT and levy (taxes are extracted on the invoice)
+    // true (hotel's choice, 2026-10-20): rates already include VAT and levy;
+    // the invoice/receipt shows how much of the price is tax
     public static function pricesIncludeTax(): bool
     {
-        return (bool) self::get('billing.prices_include_tax', false);
+        return (bool) self::get('billing.prices_include_tax', true);
     }
 
     public static function twoFactorAuthEnabled()

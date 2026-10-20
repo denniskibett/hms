@@ -108,6 +108,7 @@ class StayController extends Controller
             'guest.guestProfile',
             'createdByUser',
             'roomAllocations.room.roomType',
+            'invoices.items',
             'invoices.payments',
             'services',
         ]);

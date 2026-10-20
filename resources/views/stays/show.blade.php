@@ -13,7 +13,14 @@
     @include('partials.breadcrumb')
 </div>
 
-<div class="space-y-6" x-data="{ cancelOpen: false }">
+<div class="space-y-6" x-data="{ cancelOpen: false, payOpen: @js(old('amount') !== null) }">
+    @if (session('receipt_url'))
+        <div class="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 print:hidden">
+            <span><i class="fas fa-receipt mr-1 text-primary"></i> Payment saved. Print the receipt for the guest?</span>
+            <a href="{{ session('receipt_url') }}" target="_blank" class="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90">Print receipt</a>
+        </div>
+    @endif
+
     <!-- Header -->
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
@@ -86,38 +93,8 @@
                 </div>
             </div>
 
-            <!-- Charges -->
-            <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
-                    <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Charges</h3>
-                </div>
-                <dl class="space-y-2 p-5 text-sm">
-                    <div class="flex justify-between"><dt class="text-gray-500 dark:text-gray-400">Room charges</dt><dd class="text-gray-800 dark:text-white/90">{{ $money($stay->room_charges) }}</dd></div>
-                    @foreach ($stay->services as $service)
-                        <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">{{ $service->name }} × {{ $service->pivot->quantity }}</dt>
-                            <dd class="text-gray-800 dark:text-white/90">{{ $money($service->pivot->quantity * $service->pivot->price) }}</dd>
-                        </div>
-                    @endforeach
-                    <div class="flex justify-between border-t border-gray-100 pt-2 font-medium dark:border-gray-800">
-                        <dt class="text-gray-800 dark:text-white/90">Total before tax</dt><dd class="text-gray-800 dark:text-white/90">{{ $money($stay->total_amount) }}</dd>
-                    </div>
-                    <div class="flex justify-between"><dt class="text-gray-500 dark:text-gray-400">Paid</dt><dd class="text-success-600 dark:text-success-500">{{ $money($stay->amount_paid) }}</dd></div>
-                </dl>
-
-                <div class="border-t border-gray-100 px-5 py-4 dark:border-gray-800">
-                    <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-400">Invoices</p>
-                    @forelse ($stay->invoices as $invoice)
-                        <a href="{{ route('invoices.show', $invoice) }}"
-                           class="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-white/[0.03]">
-                            <span class="font-medium text-gray-800 dark:text-white/90">{{ $invoice->invoice_number }}</span>
-                            <span class="text-gray-500 dark:text-gray-400">{{ ucfirst($invoice->status) }} • {{ $money($invoice->total) }}</span>
-                        </a>
-                    @empty
-                        <p class="text-sm text-gray-500 dark:text-gray-400">No invoice yet. Invoicing is being rebuilt next (VAT + Tourism Levy).</p>
-                    @endforelse
-                </div>
-            </div>
+            <!-- Folio: invoice, taxes, payments -->
+            @include('stays.partials.folio')
         </div>
 
         <!-- Right -->

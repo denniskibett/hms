@@ -13,6 +13,7 @@ class Payment extends Model
         'invoice_id',
         'payment_reference',
         'amount',
+        'status',
         'method',
         'payment_details',
         'received_by',

@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\DB;
  */
 class BookingService
 {
-    public function __construct(private CoreService $core)
+    public function __construct(private CoreService $core, private BillingService $billing)
     {
     }
 
@@ -114,6 +114,7 @@ class BookingService
             ]);
 
             $this->saveAllocations($stay, $lines, $arrival, $departure);
+            $this->billing->syncStayInvoice($stay);
 
             $this->core->log($by->id, 'stay_created', "Stay #{$stay->id} created", ['stay_id' => $stay->id]);
 
@@ -188,6 +189,7 @@ class BookingService
 
             $stay->roomAllocations()->delete();
             $this->saveAllocations($stay, $lines, $arrival, $departure);
+            $this->billing->syncStayInvoice($stay->fresh());
 
             $this->core->log($by->id, 'stay_updated', "Stay #{$stay->id} updated", ['stay_id' => $stay->id]);
 
@@ -259,6 +261,11 @@ class BookingService
             Room::whereKey($roomIds)->update(['status' => RoomStatus::Cleaning->value]);
             $this->createCleaningTasks($stay, $roomIds, $by);
 
+            // Early departure: bill only the nights used
+            if ($leavingEarly) {
+                $this->billing->syncStayInvoice($stay->fresh());
+            }
+
             $this->core->log($by->id, 'check_out', "Stay #{$stay->id} checked out" . ($leavingEarly ? ' early' : ''), ['stay_id' => $stay->id]);
 
             return $stay->fresh(['roomAllocations.room']);
@@ -270,6 +277,7 @@ class BookingService
         $this->assertTransition($stay, StayStatus::Cancelled);
 
         $stay->update(['status' => StayStatus::Cancelled->value]);
+        $this->billing->syncStayInvoice($stay);
 
         $this->core->log($by->id, 'stay_cancelled', "Stay #{$stay->id} cancelled" . ($reason ? ": {$reason}" : ''), ['stay_id' => $stay->id, 'reason' => $reason]);
 
@@ -308,6 +316,7 @@ class BookingService
                 'special_requests' => $data['special_requests'] ?? $stay->special_requests,
             ]);
             $stay->roomAllocations()->update(['to_date' => $departure->toDateString()]);
+            $this->billing->syncStayInvoice($stay->fresh());
 
             $this->core->log($by->id, 'stay_updated', "Stay #{$stay->id} departure changed to {$departure->toDateString()}", ['stay_id' => $stay->id]);
 

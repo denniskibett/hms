@@ -14,6 +14,11 @@ class Invoice extends Model
         'invoice_number',
         'subtotal',
         'tax_amount',
+        'tax_inclusive',
+        'vat_rate',
+        'vat_amount',
+        'levy_rate',
+        'levy_amount',
         'discount_amount',
         'total',
         'paid_amount',
@@ -26,6 +31,11 @@ class Invoice extends Model
     protected $casts = [
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
+        'tax_inclusive' => 'boolean',
+        'vat_rate' => 'decimal:2',
+        'vat_amount' => 'decimal:2',
+        'levy_rate' => 'decimal:2',
+        'levy_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'total' => 'decimal:2',
         'paid_amount' => 'decimal:2',
@@ -157,26 +167,5 @@ class Invoice extends Model
     /**
      * Record a payment.
      */
-    public function recordPayment($amount, $method, $receivedBy, $details = null)
-    {
-        $this->paid_amount += $amount;
-        
-        if ($this->paid_amount >= $this->total) {
-            $this->status = 'paid';
-        } elseif ($this->paid_amount > 0) {
-            $this->status = 'partial';
-        }
-        
-        $this->save();
-        
-        // Create payment record
-        return Payment::create([
-            'invoice_id' => $this->id,
-            'payment_reference' => Payment::generatePaymentReference(),
-            'amount' => $amount,
-            'method' => $method,
-            'payment_details' => $details,
-            'received_by' => $receivedBy,
-        ]);
-    }
+    // Payments are recorded through App\Services\BillingService::recordPayment()
 }

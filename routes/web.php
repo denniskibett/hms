@@ -9,6 +9,7 @@ use App\Http\Controllers\GuestController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RoomTypeController;
 use App\Http\Controllers\StayController;
+use App\Http\Controllers\StayBillingController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InvoiceController;
@@ -75,6 +76,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('stays/{stay}/check-in', [StayController::class, 'checkIn'])->name('stays.check-in');
         Route::post('stays/{stay}/check-out', [StayController::class, 'checkOut'])->name('stays.check-out');
         Route::post('stays/{stay}/cancel', [StayController::class, 'cancel'])->name('stays.cancel');
+    });
+
+    // Stay folio: front desk takes payments; finance too
+    Route::middleware('role:manager,receptionist,finance')->group(function () {
+        Route::post('stays/{stay}/payments', [StayBillingController::class, 'storePayment'])->name('stays.payments.store');
+        Route::get('stays/{stay}/invoice', [StayBillingController::class, 'invoice'])->name('stays.invoice');
+        Route::get('stays/{stay}/payments/{payment}/receipt', [StayBillingController::class, 'receipt'])->name('stays.receipt');
+    });
+    Route::post('stays/{stay}/payments/{payment}/void', [StayBillingController::class, 'voidPayment'])
+        ->middleware('role:manager,finance')
+        ->name('stays.payments.void');
+
+    Route::middleware('role:manager,receptionist')->group(function () {
         Route::resource('room-types', RoomTypeController::class);
         Route::resource('facilities', FacilityController::class);
     });
