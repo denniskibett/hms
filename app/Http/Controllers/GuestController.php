@@ -554,6 +554,8 @@ public function show(Guest $guest)
         return 0;
     });
 
+    $countries = $this->getCountriesList();
+
     return view('guests.show', [
         'guest'    => $guest,
         'stays'    => $stays,
@@ -561,6 +563,7 @@ public function show(Guest $guest)
         'allStays' => $allStays,
         'totalNights' => $totalNights,    
         'roomAllocations' => $roomAllocations, 
+        'countries' => $countries, // Add this line
     ]);
 }
     
