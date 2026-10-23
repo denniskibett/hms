@@ -14,19 +14,8 @@ class Department extends Model
         'code',
     ];
 
-    /**
-     * Staff members in this department.
-     */
     public function staff()
     {
         return $this->hasMany(StaffProfile::class);
-    }
-
-    /**
-     * Scope for active departments.
-     */
-    public function scopeByCode($query, $code)
-    {
-        return $query->where('code', $code);
     }
 }

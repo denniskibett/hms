@@ -539,7 +539,7 @@
           <!-- Menu Item Kitchen -->
 
           <!-- Menu Item HR -->
-          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'hr']))
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'hr', 'finance']))
           <li>
             <a
               href="#"
@@ -600,47 +600,38 @@
               >
                 <li>
                   <a
-                    href="{{ route('hr.index') }}"
+                    href="{{ route('hr.staff.index') }}"
                     class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                    :class="page === 'hr.staff.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
                     Staff
                   </a>
                 </li>
                 <li>
                   <a
-                    href="{{ route('hr.index') }}"
+                    href="{{ route('hr.rota.index') }}"
                     class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                    :class="page === 'hr.rota.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
-                    Schedule
+                    Rota
                   </a>
                 </li>
                 <li>
                   <a
-                    href="{{ route('hr.index') }}"
+                    href="{{ route('hr.payroll.index') }}"
                     class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                    :class="page === 'hr.payroll.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
                     Payroll
                   </a>
                 </li>
                 <li>
                   <a
-                    href="{{ route('hr.index') }}"
+                    href="{{ route('hr.leave.index') }}"
                     class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                    :class="page === 'hr.leave.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
                     Leave
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="{{ route('hr.index') }}"
-                    class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
-                  >
-                    Attendance
                   </a>
                 </li>
               </ul>

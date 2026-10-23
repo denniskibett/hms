@@ -1,270 +1,143 @@
 @extends('layouts.app')
 
+@php
+    $inputClass = 'h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30';
+    $money = fn ($value) => SystemHelper::currencySymbol() . ' ' . number_format((float) $value, 2);
+    $hasFilters = ($filters['search'] ?? null) || ($filters['department_id'] ?? null) || $filters['status'] !== 'current';
+@endphp
+
 @section('content')
-<div class="p-4 mx-auto max-w-screen-2xl md:p-6">
-    <!-- Header -->
-    <div class="mb-6">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Employee Management</h2>
-                <p class="text-gray-600 dark:text-gray-400">Manage employee records and information</p>
-            </div>
-            @can('create', App\Models\Employee::class)
-            <div class="flex items-center space-x-2">
-                <a href="{{ route('hr.create') }}" class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">
-                    <i class="fas fa-user-plus mr-1"></i> Add Employee
-                </a>
-                <a href="{{ route('hr.export') }}" class="px-4 py-2 bg-success text-white rounded hover:bg-success/90">
-                    <i class="fas fa-file-export mr-1"></i> Export
-                </a>
-                <button onclick="printTable()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
-                    <i class="fas fa-print mr-1"></i> Print
-                </button>
-            </div>
-            @endcan
-        </div>
+<div x-data="{ pageName: `Staff` }">
+    @include('partials.breadcrumb')
+</div>
+
+<div class="space-y-6" x-data="{ departmentsOpen: false }">
+    @include('hr.partials.header', [
+        'title' => 'Staff',
+        'subtitle' => 'Employees, their jobs, pay details and system access',
+        'actions' => '<button type="button" @click="departmentsOpen = true" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"><i class="fas fa-sitemap"></i> Departments</button>'
+            . '<button type="button" @click="$dispatch(\'open-staff-form\')" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-primary/90"><i class="fas fa-user-plus"></i> New Employee</button>',
+    ])
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        @include('partials.stat-card', ['label' => 'Employees', 'value' => $stats['active'], 'icon' => 'fa-users', 'tone' => 'primary'])
+        @include('partials.stat-card', ['label' => 'On Leave Today', 'value' => $stats['on_leave_today'], 'icon' => 'fa-umbrella-beach', 'tone' => 'info', 'href' => route('hr.leave.index', ['status' => 'approved'])])
+        @include('partials.stat-card', ['label' => 'Leave to Approve', 'value' => $stats['pending_leave'], 'icon' => 'fa-hourglass-half', 'tone' => 'warning', 'href' => route('hr.leave.index', ['status' => 'pending'])])
+        @include('partials.stat-card', ['label' => 'Monthly Basic Pay', 'value' => $money($stats['monthly_salaries']), 'icon' => 'fa-money-check-alt', 'tone' => 'success', 'href' => route('hr.payroll.index')])
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-primary/10 text-primary mr-4">
-                    <i class="fas fa-users text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Total Employees</p>
-                    <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ $totalEmployees ?? 0 }}</p>
-                </div>
-            </div>
+    <form method="GET" action="{{ route('hr.staff.index') }}"
+          class="grid grid-cols-1 gap-3 rounded-2xl border border-gray-100 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-gray-800 dark:bg-gray-900">
+        <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Name, phone, email, ID or job" class="{{ $inputClass }} lg:col-span-2">
+        <select name="department_id" class="{{ $inputClass }}" onchange="this.form.submit()">
+            <option value="">All departments</option>
+            @foreach ($departments as $department)
+                <option value="{{ $department->id }}" @selected((int) ($filters['department_id'] ?? 0) === $department->id)>{{ $department->name }}</option>
+            @endforeach
+        </select>
+        <div class="flex gap-2">
+            <select name="status" class="{{ $inputClass }}" onchange="this.form.submit()">
+                <option value="current" @selected($filters['status'] === 'current')>Current staff</option>
+                @foreach (\App\Models\StaffProfile::EMPLOYMENT_STATUSES as $value => $label)
+                    <option value="{{ $value }}" @selected($filters['status'] === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+            @if ($hasFilters)
+                <a href="{{ route('hr.staff.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300">Clear</a>
+            @endif
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-success/10 text-success mr-4">
-                    <i class="fas fa-user-check text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Active</p>
-                    <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ $activeEmployees ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-warning/10 text-warning mr-4">
-                    <i class="fas fa-user-clock text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">On Leave</p>
-                    <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ $onLeave ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-danger/10 text-danger mr-4">
-                    <i class="fas fa-user-slash text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Inactive</p>
-                    <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ $inactiveEmployees ?? 0}}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    </form>
 
-    <!-- Filters -->
-    <div class="bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-4 mb-6">
-        <form action="{{ route('hr.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
-                <input type="text" name="search" placeholder="Name, Email, Employee ID..." 
-                       value="{{ request('search') }}" class="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 dark:bg-gray-900">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department</label>
-                <select name="department" class="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 dark:bg-gray-900">
-                    <option value="">All Departments</option>
-                    @foreach($departments as $department)
-                    <option value="{{ $department->id }}" {{ request('department') == $department->id ? 'selected' : '' }}>
-                        {{ $department->name }}
-                    </option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position</label>
-                <select name="position" class="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 dark:bg-gray-900">
-                    <option value="">All Positions</option>
-                    @foreach($positions as $position)
-                    <option value="{{ $position }}" {{ request('position') == $position ? 'selected' : '' }}>
-                        {{ $position }}
-                    </option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                <select name="status" class="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 dark:bg-gray-900">
-                    <option value="">All Status</option>
-                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="on_leave" {{ request('status') == 'on_leave' ? 'selected' : '' }}>On Leave</option>
-                    <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                    <option value="terminated" {{ request('status') == 'terminated' ? 'selected' : '' }}>Terminated</option>
-                </select>
-            </div>
-            <div class="md:col-span-4 flex justify-end space-x-2">
-                <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">
-                    <i class="fas fa-filter mr-1"></i> Filter
-                </button>
-                <a href="{{ route('hr.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-                    Clear
-                </a>
-            </div>
-        </form>
-    </div>
-
-    <!-- Employees Table -->
-    <div class="bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 shadow-sm">
-        <div class="p-6">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700" id="employeesTable">
-                    <thead class="bg-gray-50 dark:bg-gray-900">
+    <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+        <div class="custom-scrollbar overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-900">
+                    <tr class="whitespace-nowrap border-b border-gray-100 text-gray-700 dark:border-gray-800 dark:text-gray-400">
+                        <th class="px-5 py-3 font-medium">Employee</th>
+                        <th class="px-5 py-3 font-medium">Job</th>
+                        <th class="px-5 py-3 font-medium">Contact</th>
+                        <th class="px-5 py-3 font-medium">Access</th>
+                        <th class="px-5 py-3 text-right font-medium">Basic pay</th>
+                        <th class="px-5 py-3 font-medium">Terms</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    @forelse ($staff as $member)
+                        @php $role = $member->user->roles->first(fn ($r) => $r->name !== 'guest'); @endphp
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                            <td class="px-5 py-3">
+                                <a href="{{ route('hr.staff.show', $member) }}" class="flex items-center gap-3">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">{{ Str::upper(Str::substr($member->user->name, 0, 1)) }}</span>
+                                    <span class="font-medium text-gray-800 hover:text-primary dark:text-white/90">{{ $member->user->name }}</span>
+                                </a>
+                            </td>
+                            <td class="px-5 py-3">
+                                <p class="text-gray-800 dark:text-white/90">{{ $member->job_title ?: '—' }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $member->department->name ?? 'No department' }}</p>
+                            </td>
+                            <td class="px-5 py-3">
+                                <p class="text-gray-800 dark:text-white/90">{{ $member->user->phone ?: '—' }}</p>
+                                @if ($member->user->email)<p class="text-xs text-gray-500 dark:text-gray-400">{{ $member->user->email }}</p>@endif
+                            </td>
+                            <td class="whitespace-nowrap px-5 py-3 text-gray-700 dark:text-gray-300">{{ $role ? Str::headline($role->name) : 'None' }}</td>
+                            <td class="whitespace-nowrap px-5 py-3 text-right text-gray-800 dark:text-white/90">{{ $money($member->salary) }}</td>
+                            <td class="whitespace-nowrap px-5 py-3">
+                                <span class="text-gray-700 dark:text-gray-300">{{ $member->status_label }}</span>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">since {{ $member->hire_date->format('M Y') }}</p>
+                            </td>
+                        </tr>
+                    @empty
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Employee</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Position</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Department</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contact</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Join Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @forelse($employees as $employee)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                EMP{{ str_pad($employee->id, 5, '0', STR_PAD_LEFT) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10">
-                                        @if($employee->profile_image)
-                                        <img class="h-10 w-10 rounded-full" src="{{ asset('storage/' . $employee->profile_image) }}" alt="{{ $employee->full_name }}">
-                                        @else
-                                        <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                            <span class="text-primary font-bold">{{ substr($employee->first_name, 0, 1) }}</span>
-                                        </div>
-                                        @endif
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                            {{ $employee->full_name }}
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $employee->employee_id }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900 dark:text-white">{{ $employee->position }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $employee->employment_type }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                    {{ $employee->department->name ?? 'N/A' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900 dark:text-white">{{ $employee->email }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $employee->phone }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span class="px-2 py-1 text-xs rounded-full 
-                                    @if($employee->status === 'active') bg-success/10 text-success 
-                                    @elseif($employee->status === 'on_leave') bg-warning/10 text-warning 
-                                    @elseif($employee->status === 'inactive') bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300
-                                    @else bg-danger/10 text-danger @endif">
-                                    {{ ucfirst(str_replace('_', ' ', $employee->status)) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $employee->hire_date?->format('D, ' . SystemHelper::dateFormat()) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex space-x-2">
-                                    @can('view', $employee)
-                                    <a href="{{ route('hr.show', $employee) }}" class="text-primary hover:text-primary/80" title="View">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    @endcan
-                                    
-                                    @can('update', $employee)
-                                    <a href="{{ route('hr.edit', $employee) }}" class="text-warning hover:text-warning/80" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    @endcan
-                                    
-                                    @can('delete', $employee)
-                                    <form action="{{ route('hr.destroy', $employee) }}" method="POST" class="inline" 
-                                          onsubmit="return confirm('Are you sure you want to delete this employee?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-danger hover:text-danger/80" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                    @endcan
-                                </div>
+                            <td colspan="6" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-users mb-3 text-4xl"></i>
+                                <p class="text-lg">{{ $hasFilters ? 'No staff match these filters' : 'No staff on record yet' }}</p>
+                                @unless ($hasFilters)
+                                    <button type="button" @click="$dispatch('open-staff-form')" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
+                                        <i class="fas fa-user-plus"></i> Add the first employee
+                                    </button>
+                                @endunless
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                                No employees found.
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            
-            
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if ($staff->hasPages())
+            <div class="border-t border-gray-100 px-5 py-4 dark:border-gray-800">{{ $staff->links() }}</div>
+        @endif
+    </div>
+
+    <!-- Departments -->
+    <div x-show="departmentsOpen" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5" @keydown.escape.window="departmentsOpen = false"
+         x-data="{
+            name: '', error: '',
+            async send(url, method, body = null) {
+                this.error = '';
+                const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: body ? JSON.stringify(body) : null });
+                const data = await r.json().catch(() => ({}));
+                if (r.ok && data.success !== false) return window.location.reload();
+                this.error = data.errors ? Object.values(data.errors)[0][0] : (data.message || 'Something went wrong.');
+            },
+         }">
+        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="departmentsOpen = false"></div>
+        <div class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+            <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Departments</h4>
+            <ul class="mt-4 divide-y divide-gray-100 text-sm dark:divide-gray-800">
+                @foreach ($departments as $department)
+                    <li class="flex items-center justify-between py-2">
+                        <span class="text-gray-800 dark:text-white/90">{{ $department->name }}</span>
+                        <button type="button" @click="confirm(@js('Delete ' . $department->name . '?')) && send(@js(route('hr.departments.destroy', $department)), 'DELETE')" class="text-gray-400 hover:text-error-500"><i class="fas fa-trash"></i></button>
+                    </li>
+                @endforeach
+            </ul>
+            <form @submit.prevent="send(@js(route('hr.departments.store')), 'POST', { name })" class="mt-4 flex gap-2">
+                <input type="text" x-model="name" required maxlength="100" placeholder="New department" class="{{ $inputClass }}">
+                <button type="submit" class="rounded-lg bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90">Add</button>
+            </form>
+            <p x-show="error" x-text="error" class="mt-2 text-sm text-error-600"></p>
         </div>
     </div>
 </div>
-@endsection
 
-@push('scripts')
-<script>
-function printTable() {
-    var printContents = document.getElementById('employeesTable').outerHTML;
-    var originalContents = document.body.innerHTML;
-    
-    document.body.innerHTML = `
-        <html>
-        <head>
-            <title>Employee List</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                table { width: 100%; border-collapse: collapse; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
-                .no-print { display: none; }
-            </style>
-        </head>
-        <body>
-            <h2>Employee List - {{ date('Y-m-d') }}</h2>
-            ${printContents}
-        </body>
-        </html>
-    `;
-    
-    window.print();
-    document.body.innerHTML = originalContents;
-    window.location.reload();
-}
-</script>
-@endpush
+@include('hr.partials.staff-modal')
+@endsection

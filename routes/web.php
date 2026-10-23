@@ -15,7 +15,10 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FinanceController;
-use App\Http\Controllers\HRController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\RotaController;
+use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\FacilityController;
@@ -205,9 +208,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | Human Resource
     |--------------------------------------------------------------------------
     */
-    Route::resource('hr', HRController::class)
-        ->parameters(['hr' => 'staff'])
-        ->middleware('role:manager,hr');
+    Route::prefix('hr')->name('hr.')->group(function () {
+        Route::middleware('role:manager,hr')->group(function () {
+            Route::redirect('/', '/hr/staff')->name('index');
+
+            Route::get('staff', [StaffController::class, 'index'])->name('staff.index');
+            Route::post('staff', [StaffController::class, 'store'])->name('staff.store');
+            Route::get('staff/{staff}', [StaffController::class, 'show'])->name('staff.show');
+            Route::put('staff/{staff}', [StaffController::class, 'update'])->name('staff.update');
+            Route::post('staff/{staff}/terminate', [StaffController::class, 'terminate'])->name('staff.terminate');
+            Route::post('departments', [StaffController::class, 'storeDepartment'])->name('departments.store');
+            Route::delete('departments/{department}', [StaffController::class, 'destroyDepartment'])->name('departments.destroy');
+
+            Route::get('rota', [RotaController::class, 'index'])->name('rota.index');
+            Route::post('rota/assign', [RotaController::class, 'assign'])->name('rota.assign');
+            Route::post('rota/copy-week', [RotaController::class, 'copyWeek'])->name('rota.copy-week');
+            Route::post('shifts', [RotaController::class, 'storeShift'])->name('shifts.store');
+            Route::put('shifts/{shift}', [RotaController::class, 'updateShift'])->name('shifts.update');
+            Route::delete('shifts/{shift}', [RotaController::class, 'destroyShift'])->name('shifts.destroy');
+
+            Route::get('leave', [LeaveController::class, 'index'])->name('leave.index');
+            Route::post('leave', [LeaveController::class, 'store'])->name('leave.store');
+            Route::post('leave/{leave}/decide', [LeaveController::class, 'decide'])->name('leave.decide');
+
+            Route::post('payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+            Route::put('payroll/{payroll}', [PayrollController::class, 'update'])->name('payroll.update');
+        });
+
+        // Finance sees payroll and pays it; who may approve / pay is checked per action
+        Route::middleware('role:manager,hr,finance')->group(function () {
+            Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
+            Route::post('payroll/status', [PayrollController::class, 'updateStatus'])->name('payroll.status');
+            Route::get('payroll/{payroll}/payslip', [PayrollController::class, 'payslip'])->name('payroll.payslip');
+        });
+    });
 
     /*
     |--------------------------------------------------------------------------

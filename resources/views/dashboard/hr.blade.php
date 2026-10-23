@@ -95,21 +95,21 @@
                             <div class="flex items-center justify-between">
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
                                     {{ $request->start_date->format('M d') }} - {{ $request->end_date->format('M d') }}
-                                    ({{ $request->duration }} days)
+                                    ({{ $request->days }} days)
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <form action="{{ route('hr.leave-requests.approve', $request) }}" method="POST" class="inline">
+                                    <form action="{{ route('hr.leave.decide', $request) }}" method="POST" class="inline">
                                         @csrf
+                                        <input type="hidden" name="status" value="approved">
                                         <button type="submit" class="px-3 py-1 text-sm bg-success text-white rounded hover:bg-success/90">
                                             Approve
                                         </button>
                                     </form>
-                                    <form action="{{ route('hr.leave-requests.reject', $request) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="px-3 py-1 text-sm bg-danger text-white rounded hover:bg-danger/90">
-                                            Reject
+                                    <a href="{{ route('hr.leave.index', ['status' => 'pending']) }}" class="inline">
+                                        <button type="button" class="px-3 py-1 text-sm bg-danger text-white rounded hover:bg-danger/90">
+                                            Reject…
                                         </button>
-                                    </form>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -161,7 +161,7 @@
         <div class="bg-white rounded-lg border border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] p-6">
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-2 gap-3">
-                <a href="{{ route('hr.staff.create') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
+                <a href="{{ route('hr.staff.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
                     <div class="p-2 rounded-full bg-primary/10 inline-block mb-2">
                         <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -177,7 +177,7 @@
                     </div>
                     <p class="font-medium text-gray-900 dark:text-white">Payroll</p>
                 </a>
-                <a href="{{ route('hr.attendance.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
+                <a href="{{ route('hr.rota.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
                     <div class="p-2 rounded-full bg-warning/10 inline-block mb-2">
                         <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

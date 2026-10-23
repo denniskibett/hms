@@ -413,6 +413,35 @@ class SystemHelper
         return (bool) self::get('billing.prices_include_tax', true);
     }
 
+    /**
+     * Payroll setting (payroll.<key>). Defaults are the Kenyan rates in force
+     * in 2025; confirm them with your accountant / KRA and override in settings.
+     */
+    public static function payroll(string $key): mixed
+    {
+        $defaults = [
+            // Monthly PAYE bands: [upper limit of band (null = no limit), rate %]
+            'paye_bands' => [[24000, 10], [32333, 25], [500000, 30], [800000, 32.5], [null, 35]],
+            'personal_relief' => 2400,
+            'nssf_rate' => 6,
+            'nssf_upper_limit' => 72000,
+            'shif_rate' => 2.75,
+            'shif_minimum' => 300,
+            'housing_levy_rate' => 1.5,
+            // Overtime: basic ÷ monthly hours × multiplier per hour
+            'monthly_hours' => 195,
+            'overtime_multiplier' => 1.5,
+        ];
+
+        return self::get("payroll.{$key}", $defaults[$key] ?? null);
+    }
+
+    // Employment Act: at least 21 working days of annual leave a year
+    public static function annualLeaveDays(): int
+    {
+        return (int) self::get('hr.annual_leave_days', 21);
+    }
+
     public static function twoFactorAuthEnabled()
     {
         $settings = System::settings()->settings ?? [];
