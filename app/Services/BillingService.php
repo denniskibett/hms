@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use App\Enums\FacilityBookingStatus;
+use App\Enums\KitchenOrderStatus;
 use App\Enums\StayStatus;
 use App\Exceptions\BillingException;
 use App\Helpers\SystemHelper;
 use App\Models\FacilityBooking;
-use App\Models\FacilityBookingItem;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\KitchenOrder;
 use App\Models\Payment;
 use App\Models\Stay;
 use App\Models\User;
@@ -19,9 +20,10 @@ use Illuminate\Support\Str;
 /**
  * Owns invoices and payments.
  *
- * - Each stay has one invoice, created at booking. Its room and service lines are
- *   rebuilt from the stay whenever the booking changes; other lines (restaurant,
- *   manual charges) are left alone.
+ * - Each stay has one invoice, created at booking. Its room, service and food
+ *   (room-charged restaurant orders) lines are rebuilt from the stay whenever it
+ *   changes; manual charges are left alone.
+ * - Walk-in restaurant orders have their own invoice, paid at the counter.
  * - Each event (facility booking) has its own invoice the same way: its facility
  *   lines are rebuilt from the event's items.
  * - Totals are always recalculated from lines and completed payments — never
@@ -32,7 +34,7 @@ use Illuminate\Support\Str;
  */
 class BillingService
 {
-    private const SYNCED_SOURCES = ['room', 'service'];
+    private const SYNCED_SOURCES = ['room', 'service', 'food'];
 
     public function __construct(private CoreService $core)
     {
@@ -92,6 +94,24 @@ class BillingService
                 ]);
             }
 
+            $orders = $stay->kitchenOrders()
+                ->with('items')
+                ->where('charge_to_room', true)
+                ->where('status', '!=', KitchenOrderStatus::Cancelled->value)
+                ->orderBy('id')
+                ->get();
+
+            foreach ($orders as $order) {
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'source_type' => 'food',
+                    'reference_id' => $order->id,
+                    'description' => "{$order->type_label} {$order->order_number}, " . $order->created_at->format('d M H:i'),
+                    'quantity' => 1,
+                    'unit_price' => $order->total,
+                ]);
+            }
+
             $invoice->update(['due_date' => $stay->departure_date]);
 
             return $this->recalculate($invoice);
@@ -139,6 +159,42 @@ class BillingService
             }
 
             return $invoice;
+        });
+    }
+
+    /**
+     * Create or refresh a walk-in order's invoice (orders charged to a room go on
+     * the stay's invoice instead). A cancelled order's unpaid invoice is cancelled.
+     */
+    public function syncKitchenOrderInvoice(KitchenOrder $order): ?Invoice
+    {
+        return DB::transaction(function () use ($order) {
+            $invoice = $order->invoices()->where('status', '!=', 'cancelled')->lockForUpdate()->oldest('id')->first();
+
+            if ($order->status === KitchenOrderStatus::Cancelled) {
+                if ($invoice && $this->paidTotal($invoice) <= 0) {
+                    $invoice->update(['status' => 'cancelled']);
+                }
+
+                return $invoice;
+            }
+
+            $invoice ??= $this->newInvoice(['kitchen_order_id' => $order->id], today());
+
+            $invoice->items()->where('source_type', 'food')->delete();
+
+            foreach ($order->items()->with('variant.menuItem')->get() as $item) {
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'source_type' => 'food',
+                    'reference_id' => $item->id,
+                    'description' => $item->variant?->full_name ?? 'Menu item',
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->price_at_order,
+                ]);
+            }
+
+            return $this->recalculate($invoice);
         });
     }
 
@@ -299,7 +355,7 @@ class BillingService
             $invoice = Invoice::whereKey($item->invoice_id)->lockForUpdate()->firstOrFail();
 
             if ($item->source_type !== 'other') {
-                throw new BillingException('Room, service and event lines follow the booking. Edit the booking to change them.');
+                throw new BillingException('Room, service, food and event lines follow their booking or order. Change it there instead.');
             }
 
             $lineTotal = round((float) $item->quantity * (float) $item->unit_price, 2);

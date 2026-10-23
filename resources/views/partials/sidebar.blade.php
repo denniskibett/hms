@@ -503,7 +503,7 @@
           <!-- Menu Item Inventory -->
 
           <!-- Menu Item Kitchen -->
-          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'kitchen']))
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'kitchen', 'receptionist']))
           <li>
             <a
               href="{{ route('kitchen.index') }}"
@@ -531,7 +531,7 @@
                 class="menu-item-text"
                 :class="sidebarToggle ? 'lg:hidden' : ''"
               >
-                Kitchen
+                Restaurant &amp; Kitchen
               </span>
             </a>
           </li>

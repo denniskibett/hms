@@ -51,7 +51,7 @@ class PaymentController extends Controller
 
         $payments = $query
             ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
-            ->with(['invoice.stay.guest', 'invoice.facilityBooking', 'receiver'])
+            ->with(['invoice.stay.guest', 'invoice.facilityBooking', 'invoice.kitchenOrder', 'receiver'])
             ->latest('received_at')
             ->paginate(SystemHelper::paginationLimit())
             ->withQueryString();

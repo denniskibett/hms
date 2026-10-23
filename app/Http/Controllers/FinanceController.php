@@ -44,12 +44,12 @@ class FinanceController extends Controller
             ->where(fn ($q) => $q
                 ->whereNull('stay_id')
                 ->orWhereHas('stay', fn ($q) => $q->where('status', '!=', StayStatus::CheckedIn->value)))
-            ->with(['stay.guest', 'facilityBooking'])
+            ->with(['stay.guest', 'facilityBooking', 'kitchenOrder'])
             ->orderBy('due_date')
             ->take(10)
             ->get();
 
-        $recentPayments = Payment::with(['invoice.stay.guest', 'invoice.facilityBooking', 'receiver'])
+        $recentPayments = Payment::with(['invoice.stay.guest', 'invoice.facilityBooking', 'invoice.kitchenOrder', 'receiver'])
             ->latest('received_at')
             ->take(8)
             ->get();

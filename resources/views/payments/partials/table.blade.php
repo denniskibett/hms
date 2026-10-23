@@ -1,7 +1,7 @@
 {{--
     Payment rows.
     @include('payments.partials.table', [
-        'payments' => $payments,   // collection or paginator; load invoice.stay.guest + invoice.facilityBooking + receiver
+        'payments' => $payments,   // collection or paginator; load invoice.stay.guest + invoice.facilityBooking + invoice.kitchenOrder + receiver
         'empty' => 'No payments',  // optional empty-state text
     ])
 --}}

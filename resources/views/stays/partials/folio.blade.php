@@ -1,18 +1,22 @@
 {{--
     Folio: invoice lines, tax breakdown, payments, and the dialogs to
     record a payment, add an extra charge or set a discount.
-    Expects $stay with invoices.items and invoices.payments loaded, or for an event:
+    Expects $stay with invoices.items and invoices.payments loaded, or another owner:
       @include('stays.partials.folio', ['folioOwner' => $event, 'folioRoutePrefix' => 'events'])
+      @include('stays.partials.folio', ['folioOwner' => $order, 'folioRoutePrefix' => 'kitchen.orders'])
     Used on stays.show / events.show (front desk) and invoices.show (finance).
 --}}
 @php
     $owner = $folioOwner ?? $stay;
     $routePrefix = $folioRoutePrefix ?? 'stays';
-    $isEvent = $owner instanceof \App\Models\FacilityBooking;
-    $ownerCancelled = $isEvent ? $owner->status === \App\Enums\FacilityBookingStatus::Cancelled : $owner->state === \App\Enums\StayStatus::Cancelled;
-    $chargeSuggestions = $isEvent
-        ? ['Extra tea break', 'Extra lunch', 'Projector hire', 'PA system', 'Decoration', 'Damages']
-        : ['Laundry', 'Minibar', 'Room service', 'Airport transfer', 'Extra bed', 'Late check-out', 'Damages'];
+    [$ownerLabel, $ownerCancelled, $chargeSuggestions] = match (true) {
+        $owner instanceof \App\Models\FacilityBooking => ['Event', $owner->status === \App\Enums\FacilityBookingStatus::Cancelled,
+            ['Extra tea break', 'Extra lunch', 'Projector hire', 'PA system', 'Decoration', 'Damages']],
+        $owner instanceof \App\Models\KitchenOrder => ['Order', $owner->status === \App\Enums\KitchenOrderStatus::Cancelled,
+            ['Packaging', 'Delivery', 'Corkage', 'Damages']],
+        default => ['Booking', $owner->state === \App\Enums\StayStatus::Cancelled,
+            ['Laundry', 'Minibar', 'Room service', 'Airport transfer', 'Extra bed', 'Late check-out', 'Damages']],
+    };
     $currency = SystemHelper::currencySymbol();
     $money = fn ($value) => $currency . ' ' . number_format((float) $value, 2);
     $invoice = $owner->invoices->where('status', '!=', 'cancelled')->sortBy('id')->first();
@@ -62,7 +66,7 @@
 
     @if (! $invoice)
         <p class="p-5 text-sm text-gray-500 dark:text-gray-400">
-            {{ $ownerCancelled ? ($isEvent ? 'Event' : 'Booking') . ' cancelled; no charges.' : 'No invoice yet.' }}
+            {{ $ownerCancelled ? $ownerLabel . ' cancelled; no charges.' : 'No invoice yet.' }}
         </p>
     @else
         <!-- Lines -->

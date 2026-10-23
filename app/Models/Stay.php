@@ -71,6 +71,11 @@ class Stay extends Model
         return $this->hasManyThrough(Payment::class, Invoice::class);
     }
 
+    public function kitchenOrders()
+    {
+        return $this->hasMany(KitchenOrder::class);
+    }
+
     public function facilityBookings()
     {
         return $this->hasMany(FacilityBooking::class);

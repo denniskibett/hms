@@ -13,6 +13,7 @@ class Invoice extends Model
     protected $fillable = [
         'stay_id',
         'facility_booking_id',
+        'kitchen_order_id',
         'invoice_number',
         'subtotal',
         'tax_amount',
@@ -63,6 +64,14 @@ class Invoice extends Model
     public function facilityBooking()
     {
         return $this->belongsTo(FacilityBooking::class);
+    }
+
+    /**
+     * Walk-in restaurant order this invoice is for.
+     */
+    public function kitchenOrder()
+    {
+        return $this->belongsTo(KitchenOrder::class);
     }
 
     /**
@@ -140,29 +149,42 @@ class Invoice extends Model
             ->orWhereHas('stay.guest', fn ($g) => $g
                 ->where('name', 'like', "%{$term}%")
                 ->orWhere('phone', 'like', "%{$term}%"))
-            ->orWhereHas('facilityBooking', fn ($b) => $b->search($term)));
+            ->orWhereHas('facilityBooking', fn ($b) => $b->search($term))
+            ->orWhereHas('kitchenOrder', fn ($o) => $o->where('order_number', 'like', "%{$term}%")->orWhere('customer_name', 'like', "%{$term}%")));
     }
 
     /**
-     * Who the invoice is billed to: the stay's guest or the event's client.
-     * Load stay.guest and facilityBooking first.
+     * Who the invoice is billed to: the stay's guest, the event's client or the
+     * restaurant customer. Load stay.guest, facilityBooking and kitchenOrder first.
      */
     public function getBilledToAttribute(): ?string
     {
-        return $this->facility_booking_id ? $this->facilityBooking?->client_name : $this->stay?->guest?->name;
+        return match (true) {
+            (bool) $this->facility_booking_id => $this->facilityBooking?->client_name,
+            (bool) $this->kitchen_order_id => $this->kitchenOrder?->customer_name ?: 'Walk-in customer',
+            default => $this->stay?->guest?->name,
+        };
     }
 
     public function getBilledToPhoneAttribute(): ?string
     {
-        return $this->facility_booking_id ? $this->facilityBooking?->contact_phone : $this->stay?->guest?->phone;
+        return match (true) {
+            (bool) $this->facility_booking_id => $this->facilityBooking?->contact_phone,
+            (bool) $this->kitchen_order_id => null,
+            default => $this->stay?->guest?->phone,
+        };
     }
 
     /**
-     * "Booking #12" or "EVT-00003".
+     * "Booking #12", "Event EVT-00003" or "Order KO-00007".
      */
     public function getSourceLabelAttribute(): string
     {
-        return $this->facility_booking_id ? 'Event ' . sprintf('EVT-%05d', $this->facility_booking_id) : 'Booking #' . $this->stay_id;
+        return match (true) {
+            (bool) $this->facility_booking_id => 'Event ' . sprintf('EVT-%05d', $this->facility_booking_id),
+            (bool) $this->kitchen_order_id => 'Order ' . ($this->kitchenOrder?->order_number ?? '#' . $this->kitchen_order_id),
+            default => 'Booking #' . $this->stay_id,
+        };
     }
 
     /**
@@ -172,6 +194,7 @@ class Invoice extends Model
     {
         return match (true) {
             (bool) $this->facility_booking_id => route('events.show', $this->facility_booking_id),
+            (bool) $this->kitchen_order_id => route('kitchen.orders.show', $this->kitchen_order_id),
             (bool) $this->stay_id => route('stays.show', $this->stay_id),
             default => null,
         };
@@ -181,6 +204,7 @@ class Invoice extends Model
     {
         return match (true) {
             (bool) $this->facility_booking_id => route('events.receipt', [$this->facility_booking_id, $payment]),
+            (bool) $this->kitchen_order_id => route('kitchen.orders.receipt', [$this->kitchen_order_id, $payment]),
             (bool) $this->stay_id => route('stays.receipt', [$this->stay_id, $payment]),
             default => null,
         };

@@ -80,14 +80,14 @@
                             <div class="flex items-center justify-between mb-2">
                                 <h4 class="font-medium text-gray-900 dark:text-white">Order #{{ $order->order_number }}</h4>
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
-                                    Room {{ $order->room->room_number ?? 'N/A' }}
+                                    {{ $order->serve_to }}
                                 </span>
                             </div>
                             <div class="mb-3">
                                 @foreach($order->items as $item)
                                 <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                    <span>{{ $item->quantity }}x {{ $item->menuItem->name }}</span>
-                                    <span class="font-medium">{{ $item->menuItem->price }}</span>
+                                    <span>{{ $item->quantity }}x {{ $item->variant?->full_name ?? 'Item' }}</span>
+                                    <span class="font-medium">{{ number_format($item->total, 2) }}</span>
                                 </div>
                                 @endforeach
                             </div>
@@ -98,7 +98,6 @@
                                 <div class="flex items-center space-x-2">
                                     <form action="{{ route('kitchen.orders.update-status', $order) }}" method="POST" class="inline">
                                         @csrf
-                                        @method('PATCH')
                                         <input type="hidden" name="status" value="preparing">
                                         <button type="submit" class="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90">
                                             Start Prep
@@ -138,15 +137,14 @@
                     <div>
                         <p class="font-medium text-gray-900 dark:text-white">Order #{{ $order->order_number }}</p>
                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Room {{ $order->room->room_number ?? 'N/A' }} • {{ $order->items->count() }} items
+                            {{ $order->serve_to }} • {{ $order->items->count() }} items
                         </p>
                     </div>
                     <form action="{{ route('kitchen.orders.update-status', $order) }}" method="POST" class="inline">
                         @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="status" value="completed">
+                        <input type="hidden" name="status" value="ready">
                         <button type="submit" class="px-3 py-1 text-sm bg-success text-white rounded hover:bg-success/90">
-                            Complete
+                            Ready
                         </button>
                     </form>
                 </div>
@@ -200,7 +198,7 @@
                     </div>
                     <p class="font-medium text-gray-900 dark:text-white">Inventory</p>
                 </a>
-                <a href="{{ route('inventory.purchase-orders.create') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
+                <a href="{{ route('inventory.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
                     <div class="p-2 rounded-full bg-warning/10 inline-block mb-2">
                         <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -208,7 +206,7 @@
                     </div>
                     <p class="font-medium text-gray-900 dark:text-white">Order Supplies</p>
                 </a>
-                <a href="{{ route('kitchen.orders.create') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
+                <a href="{{ route('kitchen.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
                     <div class="p-2 rounded-full bg-info/10 inline-block mb-2">
                         <svg class="w-6 h-6 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

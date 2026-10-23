@@ -2,9 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * A dish or drink. Its prices live on its variants (portions / sizes);
+ * a dish with one price has a single "Regular" variant.
+ */
 class MenuItem extends Model
 {
     use HasFactory;
@@ -21,56 +26,58 @@ class MenuItem extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Category of this menu item.
-     */
     public function category()
     {
         return $this->belongsTo(MenuCategory::class);
     }
 
-    /**
-     * Variants of this menu item.
-     */
     public function variants()
     {
         return $this->hasMany(MenuItemVariant::class);
     }
 
-    /**
-     * Active variants.
-     */
     public function activeVariants()
     {
         return $this->variants()->where('is_active', true);
     }
 
-    /**
-     * Scope for active items.
-     */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
 
     /**
-     * Get price range for this item.
+     * "KES 450.00" or "KES 450.00 – 800.00". Load variants first.
      */
-    public function getPriceRangeAttribute()
+    public function getPriceRangeAttribute(): ?string
     {
-        $prices = $this->activeVariants->pluck('price')->toArray();
-        
-        if (empty($prices)) {
+        $prices = $this->variants->where('is_active', true)->pluck('price')->map(fn ($p) => (float) $p);
+        if ($prices->isEmpty()) {
             return null;
         }
-        
-        $min = min($prices);
-        $max = max($prices);
-        
-        if ($min == $max) {
-            return 'KSH ' . number_format($min, 2);
-        }
-        
-        return 'KSH ' . number_format($min, 2) . ' - ' . number_format($max, 2);
+
+        $currency = \App\Helpers\SystemHelper::currencySymbol();
+
+        return $prices->min() === $prices->max()
+            ? $currency . ' ' . number_format($prices->min(), 2)
+            : $currency . ' ' . number_format($prices->min(), 2) . ' – ' . number_format($prices->max(), 2);
+    }
+
+    public function formData(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'category_id' => $this->category_id,
+            'description' => $this->description ?? '',
+            'is_active' => $this->is_active,
+            'variants' => $this->variants->map(fn (MenuItemVariant $v) => [
+                'id' => $v->id,
+                'name' => $v->name,
+                'price' => (float) $v->price,
+                'preparation_time' => $v->preparation_time,
+                'is_active' => $v->is_active,
+            ])->values()->all(),
+        ];
     }
 }

@@ -33,7 +33,7 @@
         @if ($frontOffice && $invoice->source_url)
             <a href="{{ $invoice->source_url }}"
                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03]">
-                <i class="fas fa-calendar-check"></i> Open {{ $event ? 'Event' : 'Booking' }}
+                <i class="fas fa-calendar-check"></i> Open {{ $event ? 'Event' : ($order ? 'Order' : 'Booking') }}
             </a>
         @endif
     </div>
@@ -61,7 +61,11 @@
                     </table>
                 </div>
             @else
-                @include('stays.partials.folio', $event ? ['folioOwner' => $event, 'folioRoutePrefix' => 'events'] : [])
+                @include('stays.partials.folio', match (true) {
+                    (bool) $event => ['folioOwner' => $event, 'folioRoutePrefix' => 'events'],
+                    (bool) $order => ['folioOwner' => $order, 'folioRoutePrefix' => 'kitchen.orders'],
+                    default => [],
+                })
             @endif
         </div>
 
@@ -70,6 +74,18 @@
             @if ($event)
                 @include('events.partials.client-card', ['event' => $event])
                 @include('events.partials.details-card', ['event' => $event])
+            @elseif ($order)
+                <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+                    <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Order {{ $order->order_number }}</h3>
+                    </div>
+                    <dl class="space-y-3 p-5 text-sm">
+                        <div><dt class="text-gray-500 dark:text-gray-400">Status</dt><dd class="mt-1">@include('partials.status-badge', ['status' => $order->status])</dd></div>
+                        <div><dt class="text-gray-500 dark:text-gray-400">Customer</dt><dd class="text-gray-800 dark:text-white/90">{{ $order->customer_name ?: 'Walk-in customer' }}</dd></div>
+                        <div><dt class="text-gray-500 dark:text-gray-400">Type</dt><dd class="text-gray-800 dark:text-white/90">{{ $order->type_label }}{{ $order->table_number ? ' · Table ' . $order->table_number : '' }}</dd></div>
+                        <div><dt class="text-gray-500 dark:text-gray-400">Placed</dt><dd class="text-gray-800 dark:text-white/90">{{ $order->created_at->format('d M Y, H:i') }}</dd></div>
+                    </dl>
+                </div>
             @else
                 <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">

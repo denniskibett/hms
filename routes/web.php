@@ -23,6 +23,8 @@ use App\Http\Controllers\FacilityPackageController;
 use App\Http\Controllers\FacilityBookingController;
 use App\Http\Controllers\FacilityBookingBillingController;
 use App\Http\Controllers\KitchenController;
+use App\Http\Controllers\KitchenOrderBillingController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\FrontController;
 
 /*
@@ -148,8 +150,39 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('tasks', TaskController::class)
         ->middleware('role:manager,receptionist,housekeeping,kitchen,procurement,hr,finance');
 
-    Route::resource('kitchen', KitchenController::class)
-        ->middleware('role:manager,kitchen');
+    // Restaurant & room service: kitchen and front desk take orders; kitchen and managers run the menu
+    Route::prefix('kitchen')->name('kitchen.')->group(function () {
+        Route::middleware('role:manager,kitchen,receptionist')->group(function () {
+            Route::get('/', [KitchenController::class, 'index'])->name('index');
+            Route::get('orders', [KitchenController::class, 'orders'])->name('orders.index');
+            Route::post('orders', [KitchenController::class, 'store'])->name('orders.store');
+            Route::get('orders/{order}', [KitchenController::class, 'show'])->name('orders.show');
+            Route::post('orders/{order}/status', [KitchenController::class, 'updateStatus'])->name('orders.update-status');
+        });
+
+        Route::middleware('role:manager,kitchen')->prefix('menu')->name('menu.')->group(function () {
+            Route::get('/', [MenuController::class, 'index'])->name('index');
+            Route::post('categories', [MenuController::class, 'storeCategory'])->name('categories.store');
+            Route::put('categories/{category}', [MenuController::class, 'updateCategory'])->name('categories.update');
+            Route::delete('categories/{category}', [MenuController::class, 'destroyCategory'])->name('categories.destroy');
+            Route::post('items', [MenuController::class, 'storeItem'])->name('items.store');
+            Route::put('items/{item}', [MenuController::class, 'updateItem'])->name('items.update');
+            Route::delete('items/{item}', [MenuController::class, 'destroyItem'])->name('items.destroy');
+        });
+
+        // Walk-in order folio: same split as the stay folio
+        Route::middleware('role:manager,kitchen,receptionist,finance')->group(function () {
+            Route::post('orders/{order}/payments', [KitchenOrderBillingController::class, 'storePayment'])->name('orders.payments.store');
+            Route::post('orders/{order}/charges', [KitchenOrderBillingController::class, 'storeCharge'])->name('orders.charges.store');
+            Route::get('orders/{order}/invoice', [KitchenOrderBillingController::class, 'invoice'])->name('orders.invoice');
+            Route::get('orders/{order}/payments/{payment}/receipt', [KitchenOrderBillingController::class, 'receipt'])->name('orders.receipt');
+        });
+        Route::middleware('role:manager,finance')->group(function () {
+            Route::post('orders/{order}/payments/{payment}/void', [KitchenOrderBillingController::class, 'voidPayment'])->name('orders.payments.void');
+            Route::delete('orders/{order}/charges/{item}', [KitchenOrderBillingController::class, 'destroyCharge'])->name('orders.charges.destroy');
+            Route::post('orders/{order}/discount', [KitchenOrderBillingController::class, 'updateDiscount'])->name('orders.discount');
+        });
+    });
 
     Route::resource('inventory', InventoryController::class)
         ->middleware('role:manager,procurement,kitchen');
