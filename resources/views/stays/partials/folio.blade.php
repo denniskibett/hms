@@ -1,13 +1,21 @@
 {{--
-    Stay folio: invoice lines, tax breakdown, payments, and the dialogs to
+    Folio: invoice lines, tax breakdown, payments, and the dialogs to
     record a payment, add an extra charge or set a discount.
-    Expects $stay with invoices.items and invoices.payments loaded.
-    Used on stays.show (front desk) and invoices.show (finance).
+    Expects $stay with invoices.items and invoices.payments loaded, or for an event:
+      @include('stays.partials.folio', ['folioOwner' => $event, 'folioRoutePrefix' => 'events'])
+    Used on stays.show / events.show (front desk) and invoices.show (finance).
 --}}
 @php
+    $owner = $folioOwner ?? $stay;
+    $routePrefix = $folioRoutePrefix ?? 'stays';
+    $isEvent = $owner instanceof \App\Models\FacilityBooking;
+    $ownerCancelled = $isEvent ? $owner->status === \App\Enums\FacilityBookingStatus::Cancelled : $owner->state === \App\Enums\StayStatus::Cancelled;
+    $chargeSuggestions = $isEvent
+        ? ['Extra tea break', 'Extra lunch', 'Projector hire', 'PA system', 'Decoration', 'Damages']
+        : ['Laundry', 'Minibar', 'Room service', 'Airport transfer', 'Extra bed', 'Late check-out', 'Damages'];
     $currency = SystemHelper::currencySymbol();
     $money = fn ($value) => $currency . ' ' . number_format((float) $value, 2);
-    $invoice = $stay->invoices->where('status', '!=', 'cancelled')->sortBy('id')->first();
+    $invoice = $owner->invoices->where('status', '!=', 'cancelled')->sortBy('id')->first();
     $methods = \App\Models\Payment::METHODS;
     $canManageMoney = auth()->user()->hasAnyRole(['admin', 'manager', 'finance']);
     $balance = $invoice ? round((float) $invoice->total - (float) $invoice->paid_amount, 2) : 0;
@@ -31,7 +39,7 @@
         </div>
         @if ($invoice)
             <div class="flex flex-wrap gap-2 print:hidden">
-                <a href="{{ route('stays.invoice', $stay) }}" target="_blank" class="{{ $secondaryButton }}">
+                <a href="{{ route("{$routePrefix}.invoice", $owner) }}" target="_blank" class="{{ $secondaryButton }}">
                     <i class="fas fa-print"></i> Invoice
                 </a>
                 <button type="button" @click="dialog = 'charge'" class="{{ $secondaryButton }}">
@@ -54,7 +62,7 @@
 
     @if (! $invoice)
         <p class="p-5 text-sm text-gray-500 dark:text-gray-400">
-            {{ $stay->state === \App\Enums\StayStatus::Cancelled ? 'Booking cancelled; no charges.' : 'No invoice yet.' }}
+            {{ $ownerCancelled ? ($isEvent ? 'Event' : 'Booking') . ' cancelled; no charges.' : 'No invoice yet.' }}
         </p>
     @else
         <!-- Lines -->
@@ -72,7 +80,7 @@
                         <td class="whitespace-nowrap px-5 py-2 text-right text-gray-800 dark:text-white/90">
                             {{ $money((float) $item->quantity * (float) $item->unit_price) }}
                             @if ($canManageMoney && $item->source_type === 'other')
-                                <form method="POST" action="{{ route('stays.charges.destroy', [$stay, $item]) }}" class="inline print:hidden"
+                                <form method="POST" action="{{ route("{$routePrefix}.charges.destroy", [$owner, $item]) }}" class="inline print:hidden"
                                       onsubmit="return confirm(@js("Remove the charge \"{$item->description}\"?"))">
                                     @csrf
                                     @method('DELETE')
@@ -120,13 +128,13 @@
                     </div>
                     @if ($payment->status === 'completed')
                         <div class="flex items-center gap-2 print:hidden">
-                            <a href="{{ route('stays.receipt', [$stay, $payment]) }}" target="_blank" class="text-xs text-primary hover:underline">Receipt</a>
+                            <a href="{{ route("{$routePrefix}.receipt", [$owner, $payment]) }}" target="_blank" class="text-xs text-primary hover:underline">Receipt</a>
                             @if ($canManageMoney)
                                 <button type="button" @click="voidOpen = !voidOpen" class="text-xs text-error-500 hover:underline">Void</button>
                             @endif
                         </div>
                         @if ($canManageMoney)
-                            <form x-show="voidOpen" x-cloak method="POST" action="{{ route('stays.payments.void', [$stay, $payment]) }}" class="flex w-full gap-2">
+                            <form x-show="voidOpen" x-cloak method="POST" action="{{ route("{$routePrefix}.payments.void", [$owner, $payment]) }}" class="flex w-full gap-2">
                                 @csrf
                                 <input type="text" name="reason" required maxlength="255" placeholder="Why is this payment being voided?" class="{{ $inputClass }} h-9">
                                 <button type="submit" class="shrink-0 rounded-lg bg-error-500 px-3 text-xs font-medium text-white hover:bg-error-600">Void payment</button>
@@ -151,7 +159,7 @@
             <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="dialog = null"></div>
 
             @if ($balance > 0)
-                <form x-show="dialog === 'pay'" method="POST" action="{{ route('stays.payments.store', $stay) }}" x-data="{ method: @js(old('method', 'cash')) }"
+                <form x-show="dialog === 'pay'" method="POST" action="{{ route("{$routePrefix}.payments.store", $owner) }}" x-data="{ method: @js(old('method', 'cash')) }"
                       class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
                     @csrf
                     <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Record payment</h4>
@@ -190,12 +198,12 @@
                 </form>
             @endif
 
-            <form x-show="dialog === 'charge'" method="POST" action="{{ route('stays.charges.store', $stay) }}"
+            <form x-show="dialog === 'charge'" method="POST" action="{{ route("{$routePrefix}.charges.store", $owner) }}"
                   x-data="{ qty: @js((float) old('quantity', 1)), price: @js(old('unit_price', '')) }"
                   class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
                 @csrf
                 <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Add charge</h4>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Extras such as laundry, minibar or damages. Prices include tax.</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Extras such as {{ Str::lower(implode(', ', array_slice($chargeSuggestions, 0, 2))) }} or damages. Prices include tax.</p>
 
                 <div class="mt-4 space-y-4">
                     <div>
@@ -203,7 +211,7 @@
                         <input type="text" name="description" required maxlength="255" value="{{ old('description') }}"
                                list="folio-charge-suggestions" placeholder="e.g. Laundry" class="{{ $inputClass }}">
                         <datalist id="folio-charge-suggestions">
-                            @foreach (['Laundry', 'Minibar', 'Room service', 'Airport transfer', 'Extra bed', 'Late check-out', 'Damages'] as $suggestion)
+                            @foreach ($chargeSuggestions as $suggestion)
                                 <option value="{{ $suggestion }}">
                             @endforeach
                         </datalist>
@@ -230,7 +238,7 @@
             </form>
 
             @if ($canManageMoney)
-                <form x-show="dialog === 'discount'" method="POST" action="{{ route('stays.discount', $stay) }}"
+                <form x-show="dialog === 'discount'" method="POST" action="{{ route("{$routePrefix}.discount", $owner) }}"
                       class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
                     @csrf
                     <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Discount</h4>

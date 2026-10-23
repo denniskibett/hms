@@ -124,6 +124,25 @@
                 </dl>
             </div>
 
+            @if ($stay->facilityBookings->isNotEmpty())
+                <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+                    <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Events</h3>
+                    </div>
+                    <ul class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+                        @foreach ($stay->facilityBookings as $event)
+                            <li class="flex items-center justify-between gap-2 px-5 py-3">
+                                <a href="{{ route('events.show', $event) }}" class="text-gray-800 hover:text-primary dark:text-white/90">
+                                    {{ $event->title }}
+                                    <span class="block text-xs text-gray-500 dark:text-gray-400">{{ $event->start_date->format('d M') }} · {{ $event->pax }} pax</span>
+                                </a>
+                                @include('partials.status-badge', ['status' => $event->status])
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <!-- Stay details -->
             <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">

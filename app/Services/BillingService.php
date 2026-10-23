@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\FacilityBookingStatus;
 use App\Enums\StayStatus;
 use App\Exceptions\BillingException;
 use App\Helpers\SystemHelper;
+use App\Models\FacilityBooking;
+use App\Models\FacilityBookingItem;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
@@ -18,7 +21,9 @@ use Illuminate\Support\Str;
  *
  * - Each stay has one invoice, created at booking. Its room and service lines are
  *   rebuilt from the stay whenever the booking changes; other lines (restaurant,
- *   facilities, manual charges) are left alone.
+ *   manual charges) are left alone.
+ * - Each event (facility booking) has its own invoice the same way: its facility
+ *   lines are rebuilt from the event's items.
  * - Totals are always recalculated from lines and completed payments — never
  *   adjusted incrementally — so they can't drift.
  * - Taxes (VAT + Tourism Levy) use the rates stored on the invoice when it was
@@ -50,7 +55,7 @@ class BillingService
                 return $invoice;
             }
 
-            $invoice ??= $this->newInvoice($stay);
+            $invoice ??= $this->newInvoice(['stay_id' => $stay->id], $stay->departure_date);
 
             $invoice->items()->whereIn('source_type', self::SYNCED_SOURCES)->delete();
 
@@ -90,6 +95,50 @@ class BillingService
             $invoice->update(['due_date' => $stay->departure_date]);
 
             return $this->recalculate($invoice);
+        });
+    }
+
+    /**
+     * Create or refresh the invoice for an event. A cancelled event's unpaid
+     * invoice is cancelled with it. Refuses changes that would leave the client
+     * overpaid (the caller's transaction rolls back).
+     */
+    public function syncFacilityBookingInvoice(FacilityBooking $booking): ?Invoice
+    {
+        return DB::transaction(function () use ($booking) {
+            $invoice = $booking->invoices()->where('status', '!=', 'cancelled')->lockForUpdate()->oldest('id')->first();
+
+            if ($booking->status === FacilityBookingStatus::Cancelled) {
+                if ($invoice && $this->paidTotal($invoice) <= 0) {
+                    $invoice->update(['status' => 'cancelled']);
+                }
+
+                return $invoice;
+            }
+
+            $invoice ??= $this->newInvoice(['facility_booking_id' => $booking->id], $booking->end_date);
+
+            $invoice->items()->where('source_type', 'facility')->delete();
+
+            foreach ($booking->items()->get() as $item) {
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'source_type' => 'facility',
+                    'reference_id' => $item->id,
+                    'description' => "{$item->description} ({$item->quantity_label})",
+                    'quantity' => round((float) $item->quantity * $item->days, 2),
+                    'unit_price' => $item->unit_price,
+                ]);
+            }
+
+            $invoice->update(['due_date' => $booking->end_date]);
+            $invoice = $this->recalculate($invoice);
+
+            if ((float) $invoice->total < $this->paidTotal($invoice)) {
+                throw new BillingException('This change would leave the client overpaid. Void a payment first.');
+            }
+
+            return $invoice;
         });
     }
 
@@ -250,7 +299,7 @@ class BillingService
             $invoice = Invoice::whereKey($item->invoice_id)->lockForUpdate()->firstOrFail();
 
             if ($item->source_type !== 'other') {
-                throw new BillingException('Room and service lines follow the booking. Edit the booking to change them.');
+                throw new BillingException('Room, service and event lines follow the booking. Edit the booking to change them.');
             }
 
             $lineTotal = round((float) $item->quantity * (float) $item->unit_price, 2);
@@ -304,14 +353,16 @@ class BillingService
         return round((float) $invoice->payments()->where('status', 'completed')->sum('amount'), 2);
     }
 
-    private function newInvoice(Stay $stay): Invoice
+    /**
+     * @param  array  $owner  ['stay_id' => …] or ['facility_booking_id' => …]
+     */
+    private function newInvoice(array $owner, $dueDate): Invoice
     {
-        $invoice = Invoice::create([
-            'stay_id' => $stay->id,
+        $invoice = Invoice::create($owner + [
             'invoice_number' => 'TMP-' . Str::uuid(),
             'status' => 'sent',
             'issue_date' => today(),
-            'due_date' => $stay->departure_date,
+            'due_date' => $dueDate,
             'tax_inclusive' => SystemHelper::pricesIncludeTax(),
             'vat_rate' => SystemHelper::vatPercent(),
             'levy_rate' => SystemHelper::tourismLevyPercent(),

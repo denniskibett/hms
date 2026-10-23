@@ -71,6 +71,11 @@ class Stay extends Model
         return $this->hasManyThrough(Payment::class, Invoice::class);
     }
 
+    public function facilityBookings()
+    {
+        return $this->hasMany(FacilityBooking::class);
+    }
+
     public function services()
     {
         return $this->belongsToMany(Service::class, 'stay_service')

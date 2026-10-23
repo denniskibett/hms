@@ -731,7 +731,6 @@ class DashboardController extends Controller
         $stays = Stay::with([
                 'guest',
                 'roomAllocations.room.roomType',
-                'facilityAllocations.facility',
                 'invoices'
             ])
             ->whereIn('status', ['booked', 'checked_in', 'checked_out'])
@@ -758,13 +757,6 @@ class DashboardController extends Controller
                             'allocation_id' => $allocation->id
                         ];
                     })->toArray(),
-                    'facilities' => $stay->facilityAllocations->map(function ($allocation) {
-                        return [
-                            'name' => $allocation->facility->name ?? 'N/A',
-                            'start_time' => optional($allocation->start_time)->format('h:i A') ?? 'N/A',
-                            'end_time' => optional($allocation->end_time)->format('h:i A') ?? 'N/A'
-                        ];
-                    })->toArray(),
                     'total_invoice' => $stay->invoices->whereIn('status', ['sent', 'partial'])->sum('total'),
                     'check_in_url' => route('guest.check-in', $stay),
                     'check_out_url' => route('guest.check-out', $stay),
@@ -780,36 +772,20 @@ class DashboardController extends Controller
     
     private function getAvailableFacilities()
     {
-        $facilities = Facility::with(['currentAllocations.stay.guest'])
-            ->where('status', 'available')
+        return Facility::available()
+            ->orderBy('name')
             ->get()
-            ->map(function ($facility) {
-                $currentAllocations = $facility->currentAllocations;
-                
-                return [
-                    'id' => $facility->id,
-                    'name' => $facility->name,
-                    'type' => $facility->type,
-                    'capacity' => $facility->capacity,
-                    'base_rate' => $facility->base_rate,
-                    'status' => $facility->status,
-                    'is_available' => $currentAllocations->isEmpty() && $facility->status === 'available',
-                    'current_bookings' => $currentAllocations->map(function ($allocation) {
-                        return [
-                            'guest_name' => $allocation->stay->guest->name ?? 'N/A',
-                            'start_time' => optional($allocation->start_time)->format('h:i A'),
-                            'end_time' => optional($allocation->end_time)->format('h:i A'),
-                            'status' => $allocation->status
-                        ];
-                    })->toArray(),
-                    'book_url' => route('facilities.book', $facility),
-                    'view_url' => route('facilities.show', $facility)
-                ];
-            });
-        
-        return $facilities;
+            ->map(fn (Facility $facility) => [
+                'id' => $facility->id,
+                'name' => $facility->name,
+                'capacity' => $facility->capacity,
+                'base_rate' => $facility->base_rate,
+                'status' => $facility->status,
+                'is_available' => ! $facility->conflictingBooking(today(), today()),
+                'view_url' => route('facilities.show', $facility),
+            ]);
     }
-    
+
     private function getRoomsForDashboard()
     {
         $rooms = Room::with(['roomType', 'currentAllocation.stay.guest'])

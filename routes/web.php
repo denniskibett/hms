@@ -19,6 +19,9 @@ use App\Http\Controllers\HRController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\FacilityController;
+use App\Http\Controllers\FacilityPackageController;
+use App\Http\Controllers\FacilityBookingController;
+use App\Http\Controllers\FacilityBookingBillingController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\FrontController;
 
@@ -98,7 +101,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('role:manager,receptionist')->group(function () {
         Route::resource('room-types', RoomTypeController::class);
-        Route::resource('facilities', FacilityController::class);
+    });
+
+    // Conference & events: front office books, managers set up venues and packages
+    Route::middleware('role:manager,receptionist')->group(function () {
+        Route::resource('facilities', FacilityController::class)->only(['index', 'show']);
+        Route::resource('events', FacilityBookingController::class)->only(['index', 'show', 'store', 'update']);
+        Route::post('events/{event}/status', [FacilityBookingController::class, 'updateStatus'])->name('events.status');
+    });
+    Route::middleware('role:manager')->group(function () {
+        Route::resource('facilities', FacilityController::class)->only(['store', 'update', 'destroy']);
+        Route::resource('facility-packages', FacilityPackageController::class)->only(['store', 'update', 'destroy']);
+    });
+
+    // Event folio: same split as the stay folio
+    Route::middleware('role:manager,receptionist,finance')->group(function () {
+        Route::post('events/{event}/payments', [FacilityBookingBillingController::class, 'storePayment'])->name('events.payments.store');
+        Route::post('events/{event}/charges', [FacilityBookingBillingController::class, 'storeCharge'])->name('events.charges.store');
+        Route::get('events/{event}/invoice', [FacilityBookingBillingController::class, 'invoice'])->name('events.invoice');
+        Route::get('events/{event}/payments/{payment}/receipt', [FacilityBookingBillingController::class, 'receipt'])->name('events.receipt');
+    });
+    Route::middleware('role:manager,finance')->group(function () {
+        Route::post('events/{event}/payments/{payment}/void', [FacilityBookingBillingController::class, 'voidPayment'])->name('events.payments.void');
+        Route::delete('events/{event}/charges/{item}', [FacilityBookingBillingController::class, 'destroyCharge'])->name('events.charges.destroy');
+        Route::post('events/{event}/discount', [FacilityBookingBillingController::class, 'updateDiscount'])->name('events.discount');
     });
 
     // Rooms: front office + housekeeping can view and change status; managers manage

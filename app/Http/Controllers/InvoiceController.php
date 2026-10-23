@@ -43,7 +43,7 @@ class InvoiceController extends Controller
             'overdue' => (float) (clone $query)->overdue()->sum('due_amount'),
         ];
 
-        $invoices = $query->with('stay.guest')
+        $invoices = $query->with(['stay.guest', 'facilityBooking'])
             ->latest('issue_date')
             ->latest('id')
             ->paginate(SystemHelper::paginationLimit())
@@ -55,8 +55,9 @@ class InvoiceController extends Controller
     public function show(Invoice $invoice): View
     {
         $invoice->load(['items', 'payments.receiver']);
-        $stay = $invoice->stay->load(['guest.guestProfile', 'roomAllocations.room', 'invoices.items', 'invoices.payments']);
+        $stay = $invoice->stay?->load(['guest.guestProfile', 'roomAllocations.room', 'invoices.items', 'invoices.payments']);
+        $event = $invoice->facilityBooking?->load(['facility', 'invoices.items', 'invoices.payments']);
 
-        return view('invoices.show', compact('invoice', 'stay'));
+        return view('invoices.show', compact('invoice', 'stay', 'event'));
     }
 }

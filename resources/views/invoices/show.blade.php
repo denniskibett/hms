@@ -5,7 +5,7 @@
     $currency = SystemHelper::currencySymbol();
     $money = fn ($value) => $currency . ' ' . number_format((float) $value, 2);
     $dateFormat = 'D, ' . SystemHelper::dateFormat();
-    $guest = $stay->guest;
+    $guest = $stay?->guest;
     $profile = $guest?->guestProfile;
     $cancelled = $invoice->status === 'cancelled';
 @endphp
@@ -30,10 +30,10 @@
                 Issued {{ $invoice->issue_date?->format($dateFormat) }} · Due {{ $invoice->due_date?->format($dateFormat) }}
             </p>
         </div>
-        @if ($frontOffice)
-            <a href="{{ route('stays.show', $stay) }}"
+        @if ($frontOffice && $invoice->source_url)
+            <a href="{{ $invoice->source_url }}"
                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03]">
-                <i class="fas fa-calendar-check"></i> Open Booking
+                <i class="fas fa-calendar-check"></i> Open {{ $event ? 'Event' : 'Booking' }}
             </a>
         @endif
     </div>
@@ -61,47 +61,54 @@
                     </table>
                 </div>
             @else
-                @include('stays.partials.folio')
+                @include('stays.partials.folio', $event ? ['folioOwner' => $event, 'folioRoutePrefix' => 'events'] : [])
             @endif
         </div>
 
-        <!-- Guest & booking -->
+        <!-- Guest & booking, or client & event -->
         <div class="space-y-6">
-            <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
-                    <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Guest</h3>
-                    @if ($frontOffice && $profile)
-                        <a href="{{ route('guests.show', $profile) }}" class="text-sm text-primary hover:underline">Profile</a>
-                    @endif
+            @if ($event)
+                @include('events.partials.client-card', ['event' => $event])
+                @include('events.partials.details-card', ['event' => $event])
+            @else
+                <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+                    <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Guest</h3>
+                        @if ($frontOffice && $profile)
+                            <a href="{{ route('guests.show', $profile) }}" class="text-sm text-primary hover:underline">Profile</a>
+                        @endif
+                    </div>
+                    <dl class="space-y-3 p-5 text-sm">
+                        <div><dt class="text-gray-500 dark:text-gray-400">Name</dt><dd class="font-medium text-gray-800 dark:text-white/90">{{ $guest->name ?? '—' }}</dd></div>
+                        @if ($guest?->phone)
+                            <div><dt class="text-gray-500 dark:text-gray-400">Phone</dt><dd><a href="tel:{{ $guest->phone }}" class="text-gray-800 hover:text-primary dark:text-white/90">{{ $guest->phone }}</a></dd></div>
+                        @endif
+                        @if ($guest?->email)
+                            <div><dt class="text-gray-500 dark:text-gray-400">Email</dt><dd><a href="mailto:{{ $guest->email }}" class="break-all text-gray-800 hover:text-primary dark:text-white/90">{{ $guest->email }}</a></dd></div>
+                        @endif
+                    </dl>
                 </div>
-                <dl class="space-y-3 p-5 text-sm">
-                    <div><dt class="text-gray-500 dark:text-gray-400">Name</dt><dd class="font-medium text-gray-800 dark:text-white/90">{{ $guest->name ?? '—' }}</dd></div>
-                    @if ($guest?->phone)
-                        <div><dt class="text-gray-500 dark:text-gray-400">Phone</dt><dd><a href="tel:{{ $guest->phone }}" class="text-gray-800 hover:text-primary dark:text-white/90">{{ $guest->phone }}</a></dd></div>
-                    @endif
-                    @if ($guest?->email)
-                        <div><dt class="text-gray-500 dark:text-gray-400">Email</dt><dd><a href="mailto:{{ $guest->email }}" class="break-all text-gray-800 hover:text-primary dark:text-white/90">{{ $guest->email }}</a></dd></div>
-                    @endif
-                </dl>
-            </div>
 
-            <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
-                <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
-                    <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Booking #{{ $stay->id }}</h3>
-                </div>
-                <dl class="space-y-3 p-5 text-sm">
-                    <div><dt class="text-gray-500 dark:text-gray-400">Status</dt><dd class="mt-1">@include('partials.status-badge', ['status' => $stay->state])</dd></div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Dates</dt>
-                        <dd class="text-gray-800 dark:text-white/90">{{ $stay->arrival_date->format($dateFormat) }} → {{ $stay->departure_date->format($dateFormat) }}</dd>
-                        <dd class="text-xs text-gray-500 dark:text-gray-400">{{ $stay->nights }} {{ Str::plural('night', $stay->nights) }} · {{ $stay->meal_plan->value }}</dd>
+                @if ($stay)
+                    <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+                        <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+                            <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Booking #{{ $stay->id }}</h3>
+                        </div>
+                        <dl class="space-y-3 p-5 text-sm">
+                            <div><dt class="text-gray-500 dark:text-gray-400">Status</dt><dd class="mt-1">@include('partials.status-badge', ['status' => $stay->state])</dd></div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">Dates</dt>
+                                <dd class="text-gray-800 dark:text-white/90">{{ $stay->arrival_date->format($dateFormat) }} → {{ $stay->departure_date->format($dateFormat) }}</dd>
+                                <dd class="text-xs text-gray-500 dark:text-gray-400">{{ $stay->nights }} {{ Str::plural('night', $stay->nights) }} · {{ $stay->meal_plan->value }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500 dark:text-gray-400">Rooms</dt>
+                                <dd class="text-gray-800 dark:text-white/90">{{ $stay->roomAllocations->map(fn ($a) => $a->room?->room_number)->filter()->implode(', ') ?: '—' }}</dd>
+                            </div>
+                        </dl>
                     </div>
-                    <div>
-                        <dt class="text-gray-500 dark:text-gray-400">Rooms</dt>
-                        <dd class="text-gray-800 dark:text-white/90">{{ $stay->roomAllocations->map(fn ($a) => $a->room?->room_number)->filter()->implode(', ') ?: '—' }}</dd>
-                    </div>
-                </dl>
-            </div>
+                @endif
+            @endif
         </div>
     </div>
 </div>

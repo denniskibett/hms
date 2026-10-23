@@ -12,6 +12,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'stay_id',
+        'facility_booking_id',
         'invoice_number',
         'subtotal',
         'tax_amount',
@@ -54,6 +55,14 @@ class Invoice extends Model
     public function stay()
     {
         return $this->belongsTo(Stay::class);
+    }
+
+    /**
+     * Event this invoice is for (invoices have a stay or an event).
+     */
+    public function facilityBooking()
+    {
+        return $this->belongsTo(FacilityBooking::class);
     }
 
     /**
@@ -130,7 +139,51 @@ class Invoice extends Model
             ->where('invoice_number', 'like', "%{$term}%")
             ->orWhereHas('stay.guest', fn ($g) => $g
                 ->where('name', 'like', "%{$term}%")
-                ->orWhere('phone', 'like', "%{$term}%")));
+                ->orWhere('phone', 'like', "%{$term}%"))
+            ->orWhereHas('facilityBooking', fn ($b) => $b->search($term)));
+    }
+
+    /**
+     * Who the invoice is billed to: the stay's guest or the event's client.
+     * Load stay.guest and facilityBooking first.
+     */
+    public function getBilledToAttribute(): ?string
+    {
+        return $this->facility_booking_id ? $this->facilityBooking?->client_name : $this->stay?->guest?->name;
+    }
+
+    public function getBilledToPhoneAttribute(): ?string
+    {
+        return $this->facility_booking_id ? $this->facilityBooking?->contact_phone : $this->stay?->guest?->phone;
+    }
+
+    /**
+     * "Booking #12" or "EVT-00003".
+     */
+    public function getSourceLabelAttribute(): string
+    {
+        return $this->facility_booking_id ? 'Event ' . sprintf('EVT-%05d', $this->facility_booking_id) : 'Booking #' . $this->stay_id;
+    }
+
+    /**
+     * The page where the folio for this invoice is worked.
+     */
+    public function getSourceUrlAttribute(): ?string
+    {
+        return match (true) {
+            (bool) $this->facility_booking_id => route('events.show', $this->facility_booking_id),
+            (bool) $this->stay_id => route('stays.show', $this->stay_id),
+            default => null,
+        };
+    }
+
+    public function receiptUrl(Payment $payment): ?string
+    {
+        return match (true) {
+            (bool) $this->facility_booking_id => route('events.receipt', [$this->facility_booking_id, $payment]),
+            (bool) $this->stay_id => route('stays.receipt', [$this->stay_id, $payment]),
+            default => null,
+        };
     }
 
     public function getBalanceAttribute(): float

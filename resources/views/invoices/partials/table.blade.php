@@ -1,7 +1,7 @@
 {{--
     Invoice rows.
     @include('invoices.partials.table', [
-        'invoices' => $invoices,   // collection or paginator; load stay.guest
+        'invoices' => $invoices,   // collection or paginator; load stay.guest + facilityBooking
         'empty' => 'No invoices',  // optional empty-state text
     ])
 --}}
@@ -29,11 +29,11 @@
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                     <td class="whitespace-nowrap px-5 py-3">
                         <a href="{{ route('invoices.show', $invoice) }}" class="font-medium text-gray-800 hover:text-primary dark:text-white/90">{{ $invoice->invoice_number }}</a>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Booking #{{ $invoice->stay_id }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $invoice->source_label }}</p>
                     </td>
                     <td class="px-5 py-3">
-                        <p class="font-medium text-gray-800 dark:text-white/90">{{ $invoice->stay?->guest?->name ?? '—' }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $invoice->stay?->guest?->phone }}</p>
+                        <p class="font-medium text-gray-800 dark:text-white/90">{{ $invoice->billed_to ?? '—' }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $invoice->billed_to_phone }}</p>
                     </td>
                     <td class="whitespace-nowrap px-5 py-3">
                         <p class="text-gray-800 dark:text-white/90">{{ $invoice->issue_date?->format($dateFormat) }}</p>

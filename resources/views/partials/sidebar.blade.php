@@ -208,6 +208,15 @@
                     All Stays
                   </a>
                 </li>
+                <li>
+                  <a
+                    href="{{ route('events.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'events.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Conferences &amp; Events
+                  </a>
+                </li>
               </ul>
             </div>
             <!-- Dropdown Menu End -->

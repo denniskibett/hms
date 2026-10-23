@@ -2,12 +2,27 @@
 
 namespace App\Models;
 
+use App\Enums\FacilityBookingStatus;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * A venue that can be booked for events: conference hall, boardroom, garden.
+ * base_rate is the venue hire per day (0 when hire is included in the packages).
+ */
 class Facility extends Model
 {
     use HasFactory;
+
+    public const STATUSES = [
+        'available' => 'Available',
+        'maintenance' => 'Maintenance',
+        'unavailable' => 'Unavailable',
+    ];
+
+    public const AMENITIES = ['Wi-Fi', 'Air conditioning', 'Projector', 'Screen', 'PA system', 'Microphones', 'Flip chart', 'Whiteboard', 'Stage', 'Parking'];
 
     protected $fillable = [
         'name',
@@ -24,74 +39,65 @@ class Facility extends Model
         'base_rate' => 'decimal:2',
     ];
 
-    /**
-     * Packages for this facility.
-     */
     public function packages()
     {
         return $this->hasMany(FacilityPackage::class);
     }
 
-    /**
-     * Allocations for this facility.
-     */
-    public function allocations()
+    public function bookings()
     {
-        return $this->hasMany(FacilityAllocation::class);
+        return $this->hasMany(FacilityBooking::class);
     }
 
-    /**
-     * Active packages.
-     */
-    public function activePackages()
+    public function tasks()
     {
-        return $this->packages()->where('is_active', true);
+        return $this->hasMany(Task::class);
     }
 
-    /**
-     * Current allocations.
-     */
-    public function currentAllocations()
-    {
-        return $this->allocations()
-            ->where('start_time', '<=', now())
-            ->where('end_time', '>=', now())
-            ->whereIn('status', ['confirmed', 'in_use']);
-    }
-
-    /**
-     * Scope for available facilities.
-     */
-    public function scopeAvailable($query)
+    public function scopeAvailable(Builder $query): Builder
     {
         return $query->where('status', 'available');
     }
 
     /**
-     * Scope by minimum capacity.
+     * The first booking that holds this venue over the given dates and times.
+     * Two bookings on the same day only clash when both have times that overlap,
+     * or when either has no times (whole day).
      */
-    public function scopeByMinCapacity($query, $capacity)
+    public function conflictingBooking(CarbonInterface $from, CarbonInterface $to, ?string $startTime = null, ?string $endTime = null, ?int $ignoreId = null): ?FacilityBooking
     {
-        return $query->where('capacity', '>=', $capacity);
+        return $this->bookings()
+            ->whereIn('status', array_map(fn ($s) => $s->value, array_filter(FacilityBookingStatus::cases(), fn ($s) => $s->holdsVenue())))
+            ->when($ignoreId, fn ($q) => $q->whereKeyNot($ignoreId))
+            ->whereDate('start_date', '<=', $to)
+            ->whereDate('end_date', '>=', $from)
+            ->when($startTime && $endTime, fn ($q) => $q->where(fn ($q) => $q
+                ->whereNull('start_time')
+                ->orWhereNull('end_time')
+                ->orWhere(fn ($q) => $q->where('start_time', '<', $endTime)->where('end_time', '>', $startTime))))
+            ->orderBy('start_date')
+            ->first();
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUSES[$this->status] ?? ucfirst((string) $this->status);
     }
 
     /**
-     * Check if facility is available for time slot.
+     * Fields for the add / edit modal.
      */
-    public function isAvailableForTimeSlot($startTime, $endTime)
+    public function formData(): array
     {
-        $conflictingAllocation = $this->allocations()
-            ->where(function ($query) use ($startTime, $endTime) {
-                $query->whereBetween('start_time', [$startTime, $endTime])
-                    ->orWhereBetween('end_time', [$startTime, $endTime])
-                    ->orWhere(function ($q) use ($startTime, $endTime) {
-                        $q->where('start_time', '<=', $startTime)
-                            ->where('end_time', '>=', $endTime);
-                    });
-            })
-            ->whereIn('status', ['booked', 'confirmed', 'in_use'])
-            ->exists();
-        
-        return !$conflictingAllocation && $this->status === 'available';
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'code' => $this->code,
+            'capacity' => $this->capacity,
+            'base_rate' => (float) $this->base_rate,
+            'description' => $this->description ?? '',
+            'amenities' => $this->amenities ?? [],
+            'status' => $this->status,
+        ];
     }
 }

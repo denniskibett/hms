@@ -41,13 +41,15 @@ class FinanceController extends Controller
 
         // Guests who have left (or were due to) without settling
         $overdue = Invoice::overdue()
-            ->whereHas('stay', fn ($q) => $q->where('status', '!=', StayStatus::CheckedIn->value))
-            ->with('stay.guest')
+            ->where(fn ($q) => $q
+                ->whereNull('stay_id')
+                ->orWhereHas('stay', fn ($q) => $q->where('status', '!=', StayStatus::CheckedIn->value)))
+            ->with(['stay.guest', 'facilityBooking'])
             ->orderBy('due_date')
             ->take(10)
             ->get();
 
-        $recentPayments = Payment::with(['invoice.stay.guest', 'receiver'])
+        $recentPayments = Payment::with(['invoice.stay.guest', 'invoice.facilityBooking', 'receiver'])
             ->latest('received_at')
             ->take(8)
             ->get();

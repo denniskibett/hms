@@ -1,7 +1,7 @@
 {{--
     Payment rows.
     @include('payments.partials.table', [
-        'payments' => $payments,   // collection or paginator; load invoice.stay.guest + receiver
+        'payments' => $payments,   // collection or paginator; load invoice.stay.guest + invoice.facilityBooking + receiver
         'empty' => 'No payments',  // optional empty-state text
     ])
 --}}
@@ -35,7 +35,7 @@
                         @endif
                     </td>
                     <td class="px-5 py-3">
-                        <p class="font-medium text-gray-800 dark:text-white/90">{{ $payment->invoice?->stay?->guest?->name ?? '—' }}</p>
+                        <p class="font-medium text-gray-800 dark:text-white/90">{{ $payment->invoice?->billed_to ?? '—' }}</p>
                         @if ($payment->invoice)
                             <a href="{{ route('invoices.show', $payment->invoice) }}" class="text-xs text-primary hover:underline">{{ $payment->invoice->invoice_number }}</a>
                         @endif
@@ -44,8 +44,8 @@
                     <td class="whitespace-nowrap px-5 py-3 text-right font-medium text-gray-800 dark:text-white/90 {{ $voided ? 'line-through' : '' }}">{{ $money($payment->amount) }}</td>
                     <td class="whitespace-nowrap px-5 py-3 text-gray-700 dark:text-gray-300">{{ $payment->receiver?->name ?? '—' }}</td>
                     <td class="whitespace-nowrap px-5 py-3 text-right print:hidden">
-                        @if (! $voided && $payment->invoice?->stay_id)
-                            <a href="{{ route('stays.receipt', [$payment->invoice->stay_id, $payment]) }}" target="_blank" class="text-xs text-primary hover:underline">Receipt</a>
+                        @if (! $voided && $payment->invoice?->receiptUrl($payment))
+                            <a href="{{ $payment->invoice->receiptUrl($payment) }}" target="_blank" class="text-xs text-primary hover:underline">Receipt</a>
                         @endif
                     </td>
                 </tr>
