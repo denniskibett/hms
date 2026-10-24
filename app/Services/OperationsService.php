@@ -52,40 +52,14 @@ class OperationsService
      */
     public function updateInventoryStock(InventoryItem $item, string $operation, float $quantity, string $reason, array $details = []): InventoryTransaction
     {
-        return DB::transaction(function () use ($item, $operation, $quantity, $reason, $details) {
-            $oldQuantity = $item->quantity;
-            
-            if ($operation === 'add') {
-                $item->quantity += $quantity;
-            } elseif ($operation === 'subtract') {
-                if ($item->quantity < $quantity) {
-                    throw new \Exception("Cannot subtract {$quantity}. Available: {$item->quantity}");
-                }
-                $item->quantity -= $quantity;
-            } elseif ($operation === 'set') {
-                $item->quantity = $quantity;
-            }
-            
-            $item->save();
-            
-            // Record transaction
-            $transaction = InventoryTransaction::create([
-                'inventory_item_id' => $item->id,
-                'type' => $operation === 'add' ? 'in' : 'out',
-                'quantity' => $quantity,
-                'unit_cost' => $item->unit_cost,
-                'total_value' => $quantity * $item->unit_cost,
-                'reference_type' => $details['reference_type'] ?? 'manual',
-                'reference_id' => $details['reference_id'] ?? null,
-                'notes' => $reason,
-                'created_by' => auth()->id(),
-            ]);
-            
-            $this->coreService->log(auth()->id(), 'inventory_updated', 
-                "Inventory {$item->name}: {$oldQuantity} → {$item->quantity} ({$reason})");
-            
-            return $transaction;
-        });
+        // Kept for older callers; stock always moves through InventoryItem::move()
+        [$type, $change] = match ($operation) {
+            'add' => ['in', $quantity],
+            'subtract' => ['out', -$quantity],
+            default => ['adjustment', $quantity - (float) $item->quantity],
+        };
+
+        return $item->move($type, $change, auth()->user(), $details + ['notes' => $reason]);
     }
     
     /**

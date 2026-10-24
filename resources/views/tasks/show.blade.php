@@ -100,6 +100,39 @@
                 </div>
             @endif
 
+            <!-- Stock used -->
+            <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Items used</h3>
+                    @if ($task->items->isNotEmpty())
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Cost {{ SystemHelper::currencySymbol() }} {{ number_format($task->items->sum(fn ($i) => $i->total_cost), 2) }}</span>
+                    @endif
+                </div>
+                <ul class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+                    @forelse ($task->items as $line)
+                        <li class="flex justify-between px-5 py-2.5">
+                            <span class="text-gray-800 dark:text-white/90">{{ $line->inventoryItem->name ?? 'Item' }}</span>
+                            <span class="text-gray-600 dark:text-gray-400">{{ $line->inventoryItem?->qty($line->quantity_used) }}</span>
+                        </li>
+                    @empty
+                        <li class="px-5 py-3 text-gray-500 dark:text-gray-400">Nothing recorded.</li>
+                    @endforelse
+                </ul>
+                @if (($status->isOpen() || $status === TaskStatus::Completed) && $stock->isNotEmpty())
+                    <form method="POST" action="{{ route('tasks.items.store', $task) }}" class="flex flex-wrap gap-2 border-t border-gray-100 p-4 dark:border-gray-800">
+                        @csrf
+                        <select name="inventory_item_id" required class="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+                            <option value="">Item from the store…</option>
+                            @foreach ($stock as $stockItem)
+                                <option value="{{ $stockItem->id }}" @selected((int) old('inventory_item_id') === $stockItem->id)>{{ $stockItem->name }} ({{ $stockItem->qty() }} left)</option>
+                            @endforeach
+                        </select>
+                        <input type="number" name="quantity" required min="0.01" step="0.01" value="{{ old('quantity', 1) }}" class="h-10 w-24 rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 dark:border-gray-700 dark:text-white/90">
+                        <button type="submit" class="rounded-lg bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90">Use</button>
+                    </form>
+                @endif
+            </div>
+
             <!-- Comments -->
             <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">

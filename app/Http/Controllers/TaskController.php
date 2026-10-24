@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\RoomStatus;
 use App\Enums\TaskStatus;
+use App\Exceptions\StockException;
 use App\Helpers\SystemHelper;
 use App\Models\Department;
+use App\Models\InventoryItem;
 use App\Models\Room;
 use App\Models\Task;
 use App\Models\TaskType;
@@ -72,9 +74,10 @@ class TaskController extends Controller
     {
         $this->authorizeView($request->user(), $task);
 
-        $task->load(['taskType', 'assignee', 'department', 'room.roomType', 'stay.guest', 'creator', 'verifier', 'comments.user']);
+        $task->load(['taskType', 'assignee', 'department', 'room.roomType', 'stay.guest', 'creator', 'verifier', 'comments.user', 'items.inventoryItem']);
+        $stock = InventoryItem::active()->where('quantity', '>', 0)->orderBy('name')->get(['id', 'name', 'unit_of_measure', 'quantity']);
 
-        return view('tasks.show', array_merge(compact('task'), $this->formOptions()));
+        return view('tasks.show', array_merge(compact('task', 'stock'), $this->formOptions()));
     }
 
     public function store(Request $request): JsonResponse
@@ -211,6 +214,48 @@ class TaskController extends Controller
         $task->comments()->create(['user_id' => $request->user()->id, 'content' => $data['content']]);
 
         return back()->with('success', 'Comment added.');
+    }
+
+    /**
+     * Record stock used on the task; it comes out of the store.
+     */
+    public function useItem(Request $request, Task $task): RedirectResponse
+    {
+        $this->authorizeView($request->user(), $task);
+        if (! $task->status->isOpen() && $task->status !== TaskStatus::Completed) {
+            return back()->with('error', 'This task is closed.');
+        }
+
+        $data = $request->validate([
+            'inventory_item_id' => ['required', Rule::exists('inventory_items', 'id')->where('status', true)],
+            'quantity' => ['required', 'numeric', 'min:0.01', 'max:99999'],
+        ]);
+        $item = InventoryItem::find($data['inventory_item_id']);
+
+        try {
+            DB::transaction(function () use ($task, $item, $data, $request) {
+                $item->move('out', -(float) $data['quantity'], $request->user(), [
+                    'reference_type' => 'task',
+                    'reference_id' => $task->id,
+                    'department_id' => $task->department_id,
+                    'notes' => $task->title,
+                ]);
+
+                $line = $task->items()->firstOrNew(['inventory_item_id' => $item->id]);
+                $previous = (float) $line->quantity_used;
+                $quantity = $previous + (float) $data['quantity'];
+                // Keep a blended cost if the item was used before at another cost
+                $line->unit_cost_at_time = $quantity > 0
+                    ? round(($previous * (float) $line->unit_cost_at_time + (float) $data['quantity'] * (float) $item->unit_cost) / $quantity, 2)
+                    : $item->unit_cost;
+                $line->quantity_used = $quantity;
+                $line->save();
+            });
+        } catch (StockException $e) {
+            throw ValidationException::withMessages(['quantity' => $e->getMessage()]);
+        }
+
+        return back()->with('success', "{$item->qty((float) $data['quantity'])} of {$item->name} recorded.");
     }
 
     /**

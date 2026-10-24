@@ -2,261 +2,179 @@
 
 namespace App\Models;
 
+use App\Exceptions\StockException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
+/**
+ * Something the hotel keeps in stock. `quantity` is the running balance and
+ * only changes through move(), which records an InventoryTransaction.
+ * `unit_cost` is the weighted average cost of what is on hand.
+ */
 class InventoryItem extends Model
 {
     use HasFactory;
 
+    public const TYPES = [
+        'cleaning' => 'Cleaning',
+        'amenity' => 'Guest amenities',
+        'linen' => 'Linen',
+        'food' => 'Food',
+        'beverage' => 'Beverages',
+        'kitchen' => 'Kitchen supplies',
+        'maintenance' => 'Maintenance',
+        'office' => 'Office',
+        'other' => 'Other',
+    ];
+
+    public const UNITS = ['pcs', 'kg', 'g', 'litre', 'ml', 'bottle', 'packet', 'box', 'roll', 'crate', 'bag', 'tray', 'set', 'pair'];
+
     protected $fillable = [
         'name',
         'sku',
+        'barcode',
+        'item_type',
+        'category',
+        'description',
         'unit_of_measure',
-        'quantity',
         'reorder_level',
-        'unit_cost',
         'primary_supplier_id',
-        'item_type', // 'cleaning', 'kitchen', 'office', 'maintenance', 'other'
-        'category', // 'consumable', 'non_consumable'
-        'minimum_stock',
-        'maximum_stock',
         'location',
-        'is_active',
+        'status',
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
         'reorder_level' => 'decimal:2',
         'unit_cost' => 'decimal:2',
-        'minimum_stock' => 'decimal:2',
-        'maximum_stock' => 'decimal:2',
-        'is_active' => 'boolean',
+        'status' => 'boolean',
     ];
 
-    protected $appends = [
-        'stock_status',
-        'needs_reorder',
-        'stock_value',
-    ];
-
-    // ==================== RELATIONSHIPS ====================
-
-    /**
-     * Primary supplier for this item.
-     */
     public function primarySupplier()
     {
         return $this->belongsTo(Supplier::class, 'primary_supplier_id');
     }
 
-    /**
-     * Supplier prices for this item.
-     */
-    public function supplierPrices()
+    public function transactions()
     {
-        return $this->hasMany(SupplierPrice::class);
+        return $this->hasMany(InventoryTransaction::class);
     }
 
-    /**
-     * Purchase order items for this item.
-     */
     public function purchaseOrderItems()
     {
         return $this->hasMany(PurchaseOrderItem::class);
     }
 
-    /**
-     * Task items usage (for cleaning items).
-     */
     public function taskItems()
     {
         return $this->hasMany(TaskItem::class);
     }
 
-    /**
-     * Kitchen order items usage (for kitchen items).
-     */
-    public function kitchenOrderItems()
+    public function scopeActive(Builder $query): Builder
     {
-        return $this->hasMany(KitchenOrderItem::class, 'inventory_item_id');
+        return $query->where('status', true);
     }
 
-    // ==================== SCOPES ====================
-
-    /**
-     * Scope for cleaning items.
-     */
-    public function scopeCleaningItems($query)
-    {
-        return $query->where('item_type', 'cleaning');
-    }
-
-    /**
-     * Scope for kitchen items.
-     */
-    public function scopeKitchenItems($query)
-    {
-        return $query->where('item_type', 'kitchen');
-    }
-
-    /**
-     * Scope for active items.
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope for low stock items.
-     */
-    public function scopeLowStock($query)
+    public function scopeLowStock(Builder $query): Builder
     {
         return $query->whereColumn('quantity', '<=', 'reorder_level');
     }
 
-    /**
-     * Scope for out of stock items.
-     */
-    public function scopeOutOfStock($query)
+    public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $query->where('quantity', '<=', 0);
+        return $query->where(fn ($q) => $q
+            ->where('name', 'like', "%{$term}%")
+            ->orWhere('sku', 'like', "%{$term}%")
+            ->orWhere('barcode', $term));
+    }
+
+    public function getIsLowAttribute(): bool
+    {
+        return (float) $this->quantity <= (float) $this->reorder_level;
+    }
+
+    public function getStockValueAttribute(): float
+    {
+        return round((float) $this->quantity * (float) $this->unit_cost, 2);
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return self::TYPES[$this->item_type] ?? ucfirst((string) $this->item_type);
     }
 
     /**
-     * Scope by item type.
+     * "12 kg", "3.5 litre"
      */
-    public function scopeByType($query, $type)
+    public function qty(float|string|null $amount = null): string
     {
-        return $query->where('item_type', $type);
-    }
+        $amount ??= $this->quantity;
 
-    // ==================== ATTRIBUTES ====================
-
-    /**
-     * Get stock status.
-     */
-    public function getStockStatusAttribute()
-    {
-        if ($this->quantity <= 0) {
-            return 'out_of_stock';
-        } elseif ($this->quantity <= $this->reorder_level) {
-            return 'low_stock';
-        } elseif ($this->quantity >= $this->maximum_stock) {
-            return 'over_stock';
-        } else {
-            return 'in_stock';
-        }
+        return rtrim(rtrim(number_format((float) $amount, 2), '0'), '.') . ' ' . $this->unit_of_measure;
     }
 
     /**
-     * Check if needs reorder.
+     * Change stock and record why. Positive quantity adds, negative takes away.
+     * Stock-in at a cost updates the average cost. Refuses to go below zero.
+     *
+     * @param  array{unit_cost?: float, reference_type?: string, reference_id?: int, department_id?: int, notes?: string}  $details
      */
-    public function getNeedsReorderAttribute()
+    public function move(string $type, float $quantity, User $by, array $details = []): InventoryTransaction
     {
-        return $this->quantity <= $this->reorder_level;
+        return DB::transaction(function () use ($type, $quantity, $by, $details) {
+            $item = self::whereKey($this->id)->lockForUpdate()->firstOrFail();
+            $quantity = round($quantity, 2);
+            $balance = round((float) $item->quantity + $quantity, 2);
+
+            if ($quantity == 0) {
+                throw new StockException('The quantity can\'t be zero.');
+            }
+            if ($balance < 0) {
+                throw new StockException("Only {$item->qty()} of {$item->name} in stock.");
+            }
+
+            $unitCost = (float) $item->unit_cost;
+            if ($quantity > 0 && isset($details['unit_cost']) && $type === 'in') {
+                // Weighted average cost of what is on hand after receiving
+                $incoming = (float) $details['unit_cost'];
+                $unitCost = $balance > 0
+                    ? round(((float) $item->quantity * (float) $item->unit_cost + $quantity * $incoming) / $balance, 2)
+                    : $incoming;
+            }
+
+            $item->forceFill(['quantity' => $balance, 'unit_cost' => $unitCost])->save();
+            $this->setRawAttributes($item->getAttributes(), true);
+
+            return $item->transactions()->create([
+                'type' => $type,
+                'quantity' => $quantity,
+                'balance_after' => $balance,
+                'unit_cost' => $details['unit_cost'] ?? $unitCost,
+                'total_value' => round(abs($quantity) * ($details['unit_cost'] ?? $unitCost), 2),
+                'reference_type' => $details['reference_type'] ?? 'manual',
+                'reference_id' => $details['reference_id'] ?? null,
+                'department_id' => $details['department_id'] ?? null,
+                'notes' => $details['notes'] ?? null,
+                'created_by' => $by->id,
+            ]);
+        });
     }
 
-    /**
-     * Calculate stock value.
-     */
-    public function getStockValueAttribute()
-    {
-        return $this->quantity * $this->unit_cost;
-    }
-
-    /**
-     * Get item type options.
-     */
-    public static function getItemTypeOptions()
+    public function formData(): array
     {
         return [
-            'cleaning' => 'Cleaning Supplies',
-            'kitchen' => 'Kitchen Items',
-            'office' => 'Office Supplies',
-            'maintenance' => 'Maintenance Items',
-            'food' => 'Food Items',
-            'beverage' => 'Beverages',
-            'linen' => 'Linens',
-            'amenity' => 'Guest Amenities',
-            'other' => 'Other',
+            'id' => $this->id,
+            'name' => $this->name,
+            'sku' => $this->sku,
+            'barcode' => $this->barcode ?? '',
+            'item_type' => $this->item_type,
+            'unit_of_measure' => $this->unit_of_measure,
+            'reorder_level' => (float) $this->reorder_level,
+            'location' => $this->location ?? '',
+            'description' => $this->description ?? '',
+            'status' => $this->status,
         ];
-    }
-
-    /**
-     * Get category options.
-     */
-    public static function getCategoryOptions()
-    {
-        return [
-            'consumable' => 'Consumable',
-            'non_consumable' => 'Non-Consumable',
-        ];
-    }
-
-    // ==================== METHODS ====================
-
-    /**
-     * Update quantity (add or subtract).
-     */
-    public function updateQuantity($quantity, $operation = 'add', $reason = '')
-    {
-        $oldQuantity = $this->quantity;
-        
-        if ($operation === 'add') {
-            $this->quantity += $quantity;
-        } elseif ($operation === 'subtract') {
-            $this->quantity -= $quantity;
-        }
-        
-        $this->save();
-        
-        // Record inventory transaction
-        InventoryTransaction::create([
-            'inventory_item_id' => $this->id,
-            'type' => $operation === 'add' ? 'in' : 'out',
-            'quantity' => $quantity,
-            'unit_cost' => $this->unit_cost,
-            'total_value' => $quantity * $this->unit_cost,
-            'reference_type' => 'manual',
-            'reference_id' => null,
-            'notes' => $reason ?: ($operation === 'add' ? 'Stock added' : 'Stock used'),
-            'created_by' => auth()->id(),
-        ]);
-        
-        return $this;
-    }
-
-    /**
-     * Get current supplier price.
-     */
-    public function currentSupplierPrice($supplierId = null)
-    {
-        $query = $this->supplierPrices()
-            ->where('effective_from', '<=', now())
-            ->where(function ($q) {
-                $q->whereNull('effective_to')
-                    ->orWhere('effective_to', '>=', now());
-            })
-            ->orderBy('effective_from', 'desc');
-        
-        if ($supplierId) {
-            $query->where('supplier_id', $supplierId);
-        }
-        
-        return $query->first();
-    }
-
-    /**
-     * Get stock usage in last period.
-     */
-    public function getUsageLastPeriod($days = 30)
-    {
-        return $this->taskItems()
-            ->whereHas('task', function ($q) use ($days) {
-                $q->where('completed_at', '>=', now()->subDays($days));
-            })
-            ->sum('quantity_used');
     }
 }

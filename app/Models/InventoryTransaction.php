@@ -2,142 +2,74 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * One stock movement. quantity is signed (+ in, - out); balance_after is the
+ * item's stock straight after it.
+ */
 class InventoryTransaction extends Model
 {
-    use HasFactory;
+    public const TYPES = [
+        'in' => 'Received',
+        'out' => 'Issued / used',
+        'adjustment' => 'Stock count',
+        'damage' => 'Damaged',
+        'expired' => 'Expired',
+    ];
 
     protected $fillable = [
         'inventory_item_id',
-        'type', // 'in', 'out', 'adjustment', 'transfer', 'damage', 'expired'
+        'type',
         'quantity',
+        'balance_after',
         'unit_cost',
         'total_value',
-        'reference_type', // 'purchase_order', 'task', 'manual', 'adjustment'
+        'reference_type',
         'reference_id',
+        'department_id',
         'notes',
         'created_by',
-        'location_from',
-        'location_to',
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
+        'balance_after' => 'decimal:2',
         'unit_cost' => 'decimal:2',
         'total_value' => 'decimal:2',
     ];
 
-    // ==================== RELATIONSHIPS ====================
-
-    /**
-     * Inventory item for this transaction.
-     */
-    public function inventoryItem()
+    public function item()
     {
-        return $this->belongsTo(InventoryItem::class);
+        return $this->belongsTo(InventoryItem::class, 'inventory_item_id');
     }
 
-    /**
-     * User who created this transaction.
-     */
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // ==================== SCOPES ====================
-
-    /**
-     * Scope for incoming transactions.
-     */
-    public function scopeIncoming($query)
+    public function getTypeLabelAttribute(): string
     {
-        return $query->where('type', 'in');
+        return self::TYPES[$this->type] ?? $this->type;
     }
 
     /**
-     * Scope for outgoing transactions.
+     * Where the movement came from, as a link when there is a page for it.
+     *
+     * @return array{0: string, 1: ?string} [label, url]
      */
-    public function scopeOutgoing($query)
+    public function source(): array
     {
-        return $query->where('type', 'out');
-    }
-
-    /**
-     * Scope for today's transactions.
-     */
-    public function scopeToday($query)
-    {
-        return $query->whereDate('created_at', today());
-    }
-
-    /**
-     * Scope by reference type.
-     */
-    public function scopeByReference($query, $type, $id = null)
-    {
-        $query = $query->where('reference_type', $type);
-        
-        if ($id) {
-            $query->where('reference_id', $id);
-        }
-        
-        return $query;
-    }
-
-    // ==================== ATTRIBUTES ====================
-
-    /**
-     * Get transaction type options.
-     */
-    public static function getTypeOptions()
-    {
-        return [
-            'in' => 'Stock In',
-            'out' => 'Stock Out',
-            'adjustment' => 'Adjustment',
-            'transfer' => 'Transfer',
-            'damage' => 'Damage',
-            'expired' => 'Expired',
-            'return' => 'Return',
-        ];
-    }
-
-    /**
-     * Get reference type options.
-     */
-    public static function getReferenceTypeOptions()
-    {
-        return [
-            'purchase_order' => 'Purchase Order',
-            'task' => 'Task',
-            'manual' => 'Manual Entry',
-            'adjustment' => 'Stock Adjustment',
-            'transfer' => 'Location Transfer',
-            'return' => 'Supplier Return',
-        ];
-    }
-
-    /**
-     * Get reference model instance.
-     */
-    public function getReferenceAttribute()
-    {
-        if (!$this->reference_type || !$this->reference_id) {
-            return null;
-        }
-        
-        $models = [
-            'purchase_order' => PurchaseOrder::class,
-            'task' => Task::class,
-        ];
-        
-        if (isset($models[$this->reference_type])) {
-            return $models[$this->reference_type]::find($this->reference_id);
-        }
-        
-        return null;
+        return match ($this->reference_type) {
+            'task' => ['Task #' . $this->reference_id, route('tasks.show', $this->reference_id)],
+            'purchase_order' => ['Purchase order #' . $this->reference_id, null],
+            default => ['Manual', null],
+        };
     }
 }

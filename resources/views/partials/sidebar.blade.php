@@ -441,15 +441,7 @@
                     Payments
                   </a>
                 </li>
-                <li>
-                  <a
-                    href="{{ route('inventory.index') }}"
-                    class="menu-dropdown-item group"
-                    :class="page === 'expenses.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
-                  >
-                    Expenses
-                  </a>
-                </li>
+                
                 <li>
                   <a
                     href="{{ route('reports.index') }}"
@@ -467,7 +459,7 @@
           <!-- Menu Item Finance -->
 
           <!-- Menu Item Inventory -->
-          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'procurement', 'kitchen']))
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'procurement', 'kitchen', 'housekeeping']))
           <li>
             <a
               href="{{ route('inventory.index') }}"

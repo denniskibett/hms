@@ -159,6 +159,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
         Route::post('tasks/{task}/checklist', [TaskController::class, 'toggleChecklist'])->name('tasks.checklist');
         Route::post('tasks/{task}/comments', [TaskController::class, 'comment'])->name('tasks.comments.store');
+        Route::post('tasks/{task}/items', [TaskController::class, 'useItem'])->name('tasks.items.store');
     });
     Route::middleware('role:manager')->group(function () {
         Route::post('task-types', [TaskController::class, 'storeType'])->name('task-types.store');
@@ -199,8 +200,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    Route::resource('inventory', InventoryController::class)
-        ->middleware('role:manager,procurement,kitchen');
+    // Store: what each role may do is checked in the controller
+    Route::middleware('role:manager,procurement,kitchen,housekeeping')->group(function () {
+        Route::get('inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
+        Route::resource('inventory', InventoryController::class)->only(['index', 'show', 'store', 'update']);
+        Route::post('inventory/{inventory}/move', [InventoryController::class, 'move'])->name('inventory.move');
+    });
 
     /*
     |--------------------------------------------------------------------------
