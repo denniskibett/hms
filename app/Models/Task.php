@@ -2,13 +2,28 @@
 
 namespace App\Models;
 
+use App\Enums\RoomStatus;
+use App\Enums\TaskStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A job for staff: cleaning a room, fixing a tap, a kitchen deep clean.
+ * Cleaning and maintenance tasks on a room move the room's status along:
+ * finishing the last one puts the room back in service.
+ */
 class Task extends Model
 {
     use HasFactory, SoftDeletes;
+
+    public const PRIORITIES = [
+        'low' => 'Low',
+        'medium' => 'Normal',
+        'high' => 'High',
+        'urgent' => 'Urgent',
+    ];
 
     protected $fillable = [
         'task_type_id',
@@ -18,6 +33,7 @@ class Task extends Model
         'department_id',
         'shift_id',
         'room_id',
+        'blocks_room',
         'stay_id',
         'facility_id',
         'status',
@@ -38,14 +54,12 @@ class Task extends Model
         'checklist',
         'notes',
         'verification_notes',
-        'is_recurring',
-        'recurrence_pattern',
-        'recurrence_interval',
-        'recurrence_end_date',
         'parent_task_id',
     ];
 
     protected $casts = [
+        'status' => TaskStatus::class,
+        'blocks_room' => 'boolean',
         'due_date' => 'datetime',
         'scheduled_start' => 'datetime',
         'scheduled_end' => 'datetime',
@@ -56,430 +70,196 @@ class Task extends Model
         'estimated_cost' => 'decimal:2',
         'actual_cost' => 'decimal:2',
         'checklist' => 'array',
-        'is_recurring' => 'boolean',
-        'recurrence_end_date' => 'date',
     ];
 
-    protected $appends = [
-        'is_overdue',
-        'progress_percentage',
-        'checklist_progress',
-        'total_items_cost',
-    ];
-
-    // ==================== RELATIONSHIPS ====================
-
-    /**
-     * Task type.
-     */
-    public function taskType()
+    protected static function booted(): void
     {
-        return $this->belongsTo(TaskType::class);
+        static::creating(function (Task $task) {
+            $task->status ??= $task->assigned_to ? TaskStatus::Assigned : TaskStatus::Pending;
+            if ($task->assigned_to && ! $task->assigned_at) {
+                $task->assigned_at = now();
+            }
+
+            // Start from the type's checklist and time
+            $type = $task->taskType;
+            if ($type) {
+                $task->checklist ??= array_map(fn ($item) => ['item' => $item, 'completed' => false], $type->checklist_items) ?: null;
+                $task->estimated_minutes ??= $type->default_estimated_minutes;
+                $task->department_id ??= $type->department_id;
+            }
+        });
     }
 
-    /**
-     * Assigned staff member.
-     */
-    public function assignedStaff()
+    // ---- Relationships -----------------------------------------------------
+
+    public function taskType()
+    {
+        return $this->belongsTo(TaskType::class)->withTrashed();
+    }
+
+    public function assignee()
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    /**
-     * Department responsible.
-     */
     public function department()
     {
         return $this->belongsTo(Department::class);
     }
 
-    /**
-     * Shift for the task.
-     */
-    public function shift()
-    {
-        return $this->belongsTo(Shift::class);
-    }
-
-    /**
-     * Room for the task.
-     */
     public function room()
     {
         return $this->belongsTo(Room::class);
     }
 
-    /**
-     * Stay related to task.
-     */
     public function stay()
     {
         return $this->belongsTo(Stay::class);
     }
 
-    /**
-     * Facility for task.
-     */
     public function facility()
     {
         return $this->belongsTo(Facility::class);
     }
 
-    /**
-     * User who created the task.
-     */
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * User who verified the task.
-     */
     public function verifier()
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
 
-    /**
-     * Parent task for recurring tasks.
-     */
-    public function parentTask()
-    {
-        return $this->belongsTo(Task::class, 'parent_task_id');
-    }
-
-    /**
-     * Child tasks for recurring tasks.
-     */
-    public function childTasks()
-    {
-        return $this->hasMany(Task::class, 'parent_task_id');
-    }
-
-    /**
-     * Items used in this task.
-     */
     public function items()
     {
         return $this->hasMany(TaskItem::class);
     }
 
-    /**
-     * Comments on this task.
-     */
     public function comments()
     {
-        return $this->hasMany(TaskComment::class);
+        return $this->hasMany(TaskComment::class)->oldest();
     }
 
+    // ---- Scopes ------------------------------------------------------------
 
-    // ==================== SCOPES ====================
-
-    /**
-     * Scope for housekeeping tasks.
-     */
-    public function scopeHousekeeping($query)
+    public function scopeOpen(Builder $query): Builder
     {
-        return $query->whereHas('taskType', function ($q) {
-            $q->where('category', 'cleaning');
-        });
+        return $query->whereIn('status', TaskStatus::openValues());
     }
 
-    /**
-     * Scope for kitchen tasks.
-     */
-    public function scopeKitchen($query)
+    public function scopeOverdue(Builder $query): Builder
     {
-        return $query->whereHas('taskType', function ($q) {
-            $q->where('category', 'kitchen');
-        });
+        return $query->open()->where('due_date', '<', now());
+    }
+
+    public function scopeCategory(Builder $query, string $category): Builder
+    {
+        return $query->whereHas('taskType', fn ($q) => $q->where('category', $category));
     }
 
     /**
-     * Scope for maintenance tasks.
+     * Tasks a user can see: everything for supervisors, otherwise their own,
+     * their department's and those they created.
      */
-    public function scopeMaintenance($query)
+    public function scopeVisibleTo(Builder $query, User $user): Builder
     {
-        return $query->whereHas('taskType', function ($q) {
-            $q->where('category', 'maintenance');
-        });
-    }
-
-    /**
-     * Scope by status.
-     */
-    public function scopeByStatus($query, $status)
-    {
-        return $query->where('status', $status);
-    }
-
-    /**
-     * Scope for pending tasks.
-     */
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
-    /**
-     * Scope for assigned tasks.
-     */
-    public function scopeAssigned($query)
-    {
-        return $query->where('status', 'assigned');
-    }
-
-    /**
-     * Scope for in-progress tasks.
-     */
-    public function scopeInProgress($query)
-    {
-        return $query->where('status', 'in_progress');
-    }
-
-    /**
-     * Scope for completed tasks.
-     */
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', 'completed');
-    }
-
-
-    public function scopeOverdue($query)
-    {
-        return $query->where('due_date', '<', now())
-            ->whereNotIn('status', ['completed', 'verified', 'cancelled']);
-    }
-
-    public function scopeToday($query)
-    {
-        return $query->whereDate('due_date', today());
-    }
-
-    public function scopeByAssignedTo($query, $userId)
-    {
-        return $query->where('assigned_to', $userId);
-    }
-
-    public function assignedTo()
-    {
-        return $this->belongsTo(User::class, 'assigned_to');
-    }
-
-    public function scopeByRoom($query, $roomId)
-    {
-        return $query->where('room_id', $roomId);
-    }
-
-    /**
-     * Scope by department.
-     */
-    public function scopeByDepartment($query, $departmentId)
-    {
-        return $query->where('department_id', $departmentId);
-    }
-
-    // ==================== ATTRIBUTES ====================
-
-    /**
-     * Check if task is overdue.
-     */
-    public function getIsOverdueAttribute()
-    {
-        return $this->due_date < now() && !in_array($this->status, ['completed', 'verified', 'cancelled']);
-    }
-
-    /**
-     * Calculate progress percentage.
-     */
-    public function getProgressPercentageAttribute()
-    {
-        $statusProgress = [
-            'pending' => 0,
-            'assigned' => 25,
-            'in_progress' => 50,
-            'completed' => 75,
-            'verified' => 100,
-            'cancelled' => 0,
-            'on_hold' => 10,
-        ];
-        
-        return $statusProgress[$this->status] ?? 0;
-    }
-
-    /**
-     * Calculate checklist progress.
-     */
-    public function getChecklistProgressAttribute()
-    {
-        $checklist = $this->checklist ?? [];
-        
-        if (empty($checklist)) {
-            return null;
+        if ($user->hasAnyRole(['admin', 'manager', 'receptionist', 'housekeeping'])) {
+            return $query;
         }
-        
-        $completed = 0;
-        foreach ($checklist as $item) {
-            if (isset($item['completed']) && $item['completed']) {
-                $completed++;
-            }
+
+        $departmentId = $user->staffProfile?->department_id;
+
+        return $query->where(fn ($q) => $q
+            ->where('assigned_to', $user->id)
+            ->orWhere('created_by', $user->id)
+            ->when($departmentId, fn ($q) => $q->orWhere('department_id', $departmentId)));
+    }
+
+    public function scopeSearch(Builder $query, string $term): Builder
+    {
+        return $query->where(fn ($q) => $q
+            ->where('title', 'like', "%{$term}%")
+            ->orWhere('description', 'like', "%{$term}%")
+            ->orWhereHas('room', fn ($r) => $r->where('room_number', $term)));
+    }
+
+    // ---- Helpers -----------------------------------------------------------
+
+    public function getIsOverdueAttribute(): bool
+    {
+        return $this->status->isOpen() && $this->due_date?->isPast();
+    }
+
+    public function getPriorityLabelAttribute(): string
+    {
+        return self::PRIORITIES[$this->priority] ?? ucfirst((string) $this->priority);
+    }
+
+    public function getPriorityClassesAttribute(): string
+    {
+        return match ($this->priority) {
+            'urgent' => 'text-error-600 dark:text-error-400',
+            'high' => 'text-warning-600 dark:text-warning-400',
+            'low' => 'text-gray-400',
+            default => 'text-gray-600 dark:text-gray-300',
+        };
+    }
+
+    /**
+     * [done, total] checklist items.
+     */
+    public function getChecklistCountsAttribute(): array
+    {
+        $items = collect($this->checklist ?? []);
+
+        return [$items->where('completed', true)->count(), $items->count()];
+    }
+
+    public function isCleaning(): bool
+    {
+        return $this->taskType?->category === 'cleaning';
+    }
+
+    /**
+     * After a task closes, put its room back in service when nothing is left
+     * holding it: no open cleaning job for a room being cleaned, no open
+     * blocking job for a room under maintenance.
+     */
+    public function releaseRoom(): void
+    {
+        $room = $this->room;
+        if (! $room || $room->currentStay()->exists()) {
+            return;
         }
-        
+
+        $open = fn () => Task::where('room_id', $room->id)->whereKeyNot($this->id)->open();
+
+        $release = match ($room->status) {
+            RoomStatus::Cleaning => $this->isCleaning() && ! $open()->category('cleaning')->exists(),
+            RoomStatus::Maintenance => $this->blocks_room && ! $open()->where('blocks_room', true)->exists(),
+            default => false,
+        };
+
+        if ($release) {
+            $room->update(['status' => RoomStatus::Available]);
+        }
+    }
+
+    public function formData(): array
+    {
         return [
-            'total' => count($checklist),
-            'completed' => $completed,
-            'percentage' => count($checklist) > 0 ? ($completed / count($checklist)) * 100 : 0,
+            'id' => $this->id,
+            'task_type_id' => $this->task_type_id,
+            'title' => $this->title,
+            'description' => $this->description ?? '',
+            'assigned_to' => $this->assigned_to ?? '',
+            'room_id' => $this->room_id ?? '',
+            'blocks_room' => $this->blocks_room,
+            'priority' => $this->priority,
+            'due_date' => $this->due_date?->format('Y-m-d\TH:i'),
+            'estimated_minutes' => $this->estimated_minutes,
         ];
-    }
-
-    /**
-     * Calculate total cost of items used.
-     */
-    public function getTotalItemsCostAttribute()
-    {
-        return $this->items->sum(function ($item) {
-            return $item->quantity_used * $item->unit_cost_at_time;
-        });
-    }
-
-    /**
-     * Calculate total task cost.
-     */
-    public function getTotalCostAttribute()
-    {
-        return $this->actual_cost ?? ($this->total_items_cost + $this->estimated_cost);
-    }
-
-    /**
-     * Calculate time remaining.
-     */
-    public function getTimeRemainingAttribute()
-    {
-        if (in_array($this->status, ['completed', 'verified'])) {
-            return 'Completed';
-        }
-        
-        $remaining = $this->due_date->diffForHumans();
-        
-        if ($this->is_overdue) {
-            return 'Overdue by ' . $this->due_date->diffInDays(now()) . ' days';
-        }
-        
-        return $remaining;
-    }
-
-    // ==================== METHODS ====================
-
-    /**
-     * Assign task to staff.
-     */
-    public function assignTo($userId, $departmentId = null, $shiftId = null)
-    {
-        $this->assigned_to = $userId;
-        $this->department_id = $departmentId;
-        $this->shift_id = $shiftId;
-        $this->status = 'assigned';
-        $this->assigned_at = now();
-        $this->save();
-        
-        return $this;
-    }
-
-    /**
-     * Start task.
-     */
-    public function start()
-    {
-        $this->status = 'in_progress';
-        $this->started_at = now();
-        $this->save();
-        
-        return $this;
-    }
-
-    /**
-     * Complete task.
-     */
-    public function complete($actualMinutes = null, $notes = null)
-    {
-        $this->status = 'completed';
-        $this->completed_at = now();
-        $this->actual_minutes = $actualMinutes ?: $this->estimated_minutes;
-        $this->notes = $notes ?: ($this->notes ?? 'Task completed');
-        $this->save();
-        
-        return $this;
-    }
-
-    /**
-     * Verify task.
-     */
-    public function verify($verifiedBy, $notes = null)
-    {
-        $this->status = 'verified';
-        $this->verified_by = $verifiedBy;
-        $this->verified_at = now();
-        $this->verification_notes = $notes ?: ($this->verification_notes ?? 'Task verified');
-        $this->save();
-        
-        return $this;
-    }
-
-    /**
-     * Use inventory item in task.
-     */
-    public function useItem($inventoryItemId, $quantity, $unitCost = null)
-    {
-        $item = InventoryItem::findOrFail($inventoryItemId);
-        
-        if ($item->quantity < $quantity) {
-            throw new \Exception("Insufficient stock for {$item->name}. Available: {$item->quantity}, Requested: {$quantity}");
-        }
-        
-        $taskItem = TaskItem::create([
-            'task_id' => $this->id,
-            'inventory_item_id' => $inventoryItemId,
-            'quantity_used' => $quantity,
-            'unit_cost_at_time' => $unitCost ?? $item->unit_cost,
-        ]);
-        
-        // Update inventory
-        $item->updateQuantity($quantity, 'subtract', "Used in task #{$this->id}");
-        
-        return $taskItem;
-    }
-
-    /**
-     * Add comment to task.
-     */
-    public function addComment($content, $userId = null)
-    {
-        return TaskComment::create([
-            'task_id' => $this->id,
-            'user_id' => $userId ?? auth()->id(),
-            'content' => $content,
-        ]);
-    }
-
-    /**
-     * Update checklist item.
-     */
-    public function updateChecklistItem($itemIndex, $completed, $notes = null)
-    {
-        $checklist = $this->checklist ?? [];
-        
-        if (isset($checklist[$itemIndex])) {
-            $checklist[$itemIndex]['completed'] = $completed;
-            $checklist[$itemIndex]['completed_at'] = $completed ? now() : null;
-            $checklist[$itemIndex]['completed_by'] = $completed ? auth()->id() : null;
-            $checklist[$itemIndex]['notes'] = $notes ?? $checklist[$itemIndex]['notes'] ?? null;
-            
-            $this->checklist = $checklist;
-            $this->save();
-        }
-        
-        return $this;
     }
 }

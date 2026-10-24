@@ -743,7 +743,7 @@
         <div class="space-y-3" id="tasks-list">
             @forelse($tasks as $task)
             <div 
-                x-data="{checked: {{ $task->status === 'completed' ? 'true' : 'false' }} }"
+                x-data="{checked: {{ $task->status?->value === 'completed' ? 'true' : 'false' }} }"
                 data-task-id="{{ $task->id }}"
                 data-task-status="{{ $task->status }}"
                 data-due-date="{{ $task->due_date ? $task->due_date->toISOString() : '' }}"

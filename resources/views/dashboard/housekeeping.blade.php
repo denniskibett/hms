@@ -70,7 +70,7 @@
         <div class="bg-white rounded-lg border border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] p-6">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">My Tasks</h3>
-                <a href="{{ route('tasks.my-tasks') }}" class="text-sm text-primary hover:underline">View All</a>
+                <a href="{{ route('tasks.index', ['view' => 'mine']) }}" class="text-sm text-primary hover:underline">View All</a>
             </div>
             <div class="space-y-4">
                 @forelse($tasks as $task)
@@ -103,10 +103,10 @@
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full {{ 
-                                        $task->status === 'completed' ? 'bg-success/10 text-success' : 
-                                        ($task->status === 'in_progress' ? 'bg-primary/10 text-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300')
+                                        $task->status->value === 'completed' ? 'bg-success/10 text-success' : 
+                                        ($task->status->value === 'in_progress' ? 'bg-primary/10 text-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300')
                                     }}">
-                                        {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                                        {{ $task->status->label() }}
                                     </span>
                                     <a href="{{ route('tasks.show', $task) }}" class="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90">
                                         View

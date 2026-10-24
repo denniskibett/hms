@@ -150,8 +150,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | Operations
     |--------------------------------------------------------------------------
     */
-    Route::resource('tasks', TaskController::class)
-        ->middleware('role:manager,receptionist,housekeeping,kitchen,procurement,hr,finance');
+    // Tasks: every staff role; what each person sees is narrowed in the controller
+    Route::middleware('role:manager,receptionist,housekeeping,kitchen,procurement,hr,finance')->group(function () {
+        Route::post('tasks/daily-cleaning', [TaskController::class, 'generateDailyCleaning'])
+            ->middleware('role:manager,receptionist,housekeeping')
+            ->name('tasks.daily-cleaning');
+        Route::resource('tasks', TaskController::class)->only(['index', 'show', 'store', 'update']);
+        Route::post('tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
+        Route::post('tasks/{task}/checklist', [TaskController::class, 'toggleChecklist'])->name('tasks.checklist');
+        Route::post('tasks/{task}/comments', [TaskController::class, 'comment'])->name('tasks.comments.store');
+    });
+    Route::middleware('role:manager')->group(function () {
+        Route::post('task-types', [TaskController::class, 'storeType'])->name('task-types.store');
+        Route::put('task-types/{taskType}', [TaskController::class, 'updateType'])->name('task-types.update');
+    });
 
     // Restaurant & room service: kitchen and front desk take orders; kitchen and managers run the menu
     Route::prefix('kitchen')->name('kitchen.')->group(function () {

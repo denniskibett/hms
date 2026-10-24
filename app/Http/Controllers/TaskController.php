@@ -2,336 +2,352 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Requests\StoreTaskRequest;
-use App\Models\User;
+use App\Enums\RoomStatus;
+use App\Enums\TaskStatus;
+use App\Helpers\SystemHelper;
+use App\Models\Department;
+use App\Models\Room;
 use App\Models\Task;
 use App\Models\TaskType;
-use App\Services\OperationsService;
+use App\Models\User;
 use App\Services\CoreService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
+/**
+ * Jobs for staff: room cleaning, maintenance, kitchen and other work.
+ */
 class TaskController extends Controller
 {
-    public function __construct(
-        private OperationsService $operationsService,
-        private CoreService $coreService
-    ) {}
-    
-    public function index(Request $request)
+    public function __construct(private CoreService $core)
     {
-        // $this->authorize('viewAny', Task::class);
-        
-        $tasks = $this->operationsService->getTasks($request->all());
-        $taskTypes = TaskType::all();
-        $departments = \App\Models\Department::all();
-        $users = User::all();
-        $stats = $this->operationsService->getTaskStats();
-        
-        return view('tasks.index', compact('tasks', 'taskTypes', 'departments', 'users', 'stats'));
-    }
-    
-    public function create()
-    {
-        $this->authorize('create', Task::class);
-        
-        $taskTypes = TaskType::all();
-        $departments = \App\Models\Department::all();
-        $rooms = \App\Models\Room::all();
-        $staff = \App\Models\User::whereHas('roles', function ($q) {
-            $q->where('name', '!=', 'guest');
-        })->get();
-        
-        return view('tasks.create', compact('taskTypes', 'departments', 'rooms', 'staff'));
-    }
-    
-    public function store(StoreTaskRequest $request)
-    {
-        $this->authorize('create', Task::class);
-        
-        try {
-            $task = $this->operationsService->createTask($request->validated());
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Task created successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error creating task: ' . $e->getMessage());
-        }
-    }
-    
-
-    public function show(Task $task)
-    {
-        // $this->authorize('view', $task);
-        
-        $task->load([
-            'taskType',
-            'assignedStaff',
-            'room',
-            'stay.guest',
-            'department',
-            'items.inventoryItem',
-            'comments.user',
-        ]);
-        
-        return view('tasks.show', compact('task'));
-    }
-    
-    public function edit(Task $task)
-    {
-        $this->authorize('update', $task);
-        
-        $taskTypes = TaskType::all();
-        $departments = \App\Models\Department::all();
-        $rooms = \App\Models\Room::all();
-        $staff = \App\Models\User::whereHas('roles', function ($q) {
-            $q->where('name', '!=', 'guest');
-        })->get();
-        
-        return view('tasks.edit', compact('task', 'taskTypes', 'departments', 'rooms', 'staff'));
-    }
-    
-    public function update(Request $request, Task $task)
-    {
-        $this->authorize('update', $task);
-        
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'task_type_id' => 'required|exists:task_types,id',
-            'priority' => 'required|in:low,medium,high,urgent',
-            'due_date' => 'required|date',
-            'estimated_minutes' => 'nullable|integer|min:0',
-            'notes' => 'nullable|string',
-        ]);
-        
-        try {
-            $task->update($validated);
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Task updated successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error updating task: ' . $e->getMessage());
-        }
-    }
-    
-    public function destroy(Task $task)
-    {
-        $this->authorize('delete', $task);
-        
-        try {
-            $task->delete();
-            
-            return redirect()->route('tasks.index')
-                ->with('success', 'Task deleted successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error deleting task: ' . $e->getMessage());
-        }
-    }
-    
-    public function assign(Task $task, Request $request)
-    {
-        $this->authorize('assign', $task);
-        
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
-        
-        try {
-            $task = $this->operationsService->assignTask($task, $request->input('user_id'));
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Task assigned successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error assigning task: ' . $e->getMessage());
-        }
-    }
-    
-
-    public function start(Task $task, Request $request)
-    {
-        $this->authorize('update', $task);
-        
-        try {
-            $task = $this->operationsService->startTask($task, $request->input('notes'));
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Task started successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error starting task: ' . $e->getMessage());
-        }
-    }
-    
-    public function complete(Task $task, Request $request)
-    {
-        $this->authorize('complete', $task);
-        
-        $request->validate([
-            'actual_minutes' => 'nullable|integer|min:0',
-            'notes' => 'nullable|string',
-        ]);
-        
-        try {
-            $task = $this->operationsService->completeTask($task, $request->all());
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Task completed successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error completing task: ' . $e->getMessage());
-        }
     }
 
-    public function verify(Task $task, Request $request)
-    {
-        $this->authorize('verify', $task);
-        
-        $request->validate([
-            'notes' => 'nullable|string',
-        ]);
-        
-        try {
-            $task = $this->operationsService->verifyTask($task, $request->user(), $request->input('notes'));
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Task verified successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error verifying task: ' . $e->getMessage());
-        }
-    }
-
-    public function useInventory(Task $task, Request $request)
-    {
-        $this->authorize('update', $task);
-        
-        $request->validate([
-            'inventory_item_id' => 'required|exists:inventory_items,id',
-            'quantity' => 'required|numeric|min:0.01',
-            'unit_cost' => 'nullable|numeric|min:0',
-        ]);
-        
-        try {
-            $taskItem = $this->operationsService->useInventoryInTask(
-                $task,
-                $request->input('inventory_item_id'),
-                $request->input('quantity'),
-                $request->input('unit_cost')
-            );
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Inventory item used successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error using inventory item: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Add comment to task.
-     */
-    public function addComment(Task $task, Request $request)
-    {
-        $this->authorize('comment', $task);
-        
-        $request->validate([
-            'content' => 'required|string',
-        ]);
-        
-        try {
-            $comment = $task->addComment($request->input('content'));
-            
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'comment' => $comment,
-                ]);
-            }
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Comment added successfully.');
-        } catch (\Exception $e) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error adding comment',
-                ], 422);
-            }
-            
-            return redirect()->back()
-                ->with('error', 'Error adding comment: ' . $e->getMessage());
-        }
-    }
-    
-    public function updateChecklist(Task $task, Request $request)
-    {
-        $this->authorize('update', $task);
-        
-        $request->validate([
-            'item_index' => 'required|integer|min:0',
-            'completed' => 'required|boolean',
-            'notes' => 'nullable|string',
-        ]);
-        
-        try {
-            $task = $this->operationsService->updateChecklistItem(
-                $task,
-                $request->input('item_index'),
-                $request->input('completed'),
-                $request->input('notes')
-            );
-            
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'task' => $task,
-                ]);
-            }
-            
-            return redirect()->route('tasks.show', $task)
-                ->with('success', 'Checklist updated successfully.');
-        } catch (\Exception $e) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error updating checklist',
-                ], 422);
-            }
-            
-            return redirect()->back()
-                ->with('error', 'Error updating checklist: ' . $e->getMessage());
-        }
-    }
-
-    public function myTasks(Request $request)
+    public function index(Request $request): View
     {
         $user = $request->user();
-        
-        $tasks = $this->operationsService->getTasks([
-            'assigned_to' => $user->id,
-            'status' => $request->input('status', ['pending', 'assigned', 'in_progress']),
-            'per_page' => 20,
+        $filters = $request->validate([
+            'view' => ['nullable', Rule::in(['open', 'mine', 'overdue', 'done', 'all'])],
+            'category' => ['nullable', Rule::in(array_keys(TaskType::CATEGORIES))],
+            'assigned_to' => ['nullable', 'integer'],
+            'room_id' => ['nullable', 'integer'],
+            'search' => ['nullable', 'string', 'max:100'],
         ]);
-        
-        return view('tasks.my-tasks', compact('tasks', 'user'));
+        $filters['view'] ??= 'open';
+
+        $tasks = Task::with(['taskType', 'assignee:id,name', 'room:id,room_number,status'])
+            ->visibleTo($user)
+            ->when($filters['view'] === 'open', fn ($q) => $q->open())
+            ->when($filters['view'] === 'mine', fn ($q) => $q->open()->where('assigned_to', $user->id))
+            ->when($filters['view'] === 'overdue', fn ($q) => $q->overdue())
+            ->when($filters['view'] === 'done', fn ($q) => $q->whereIn('status', [TaskStatus::Completed->value, TaskStatus::Verified->value]))
+            ->when($filters['category'] ?? null, fn ($q, $c) => $q->category($c))
+            ->when($filters['assigned_to'] ?? null, fn ($q, $id) => $q->where('assigned_to', $id))
+            ->when($filters['room_id'] ?? null, fn ($q, $id) => $q->where('room_id', $id))
+            ->when($filters['search'] ?? null, fn ($q, $term) => $q->search($term))
+            ->when(in_array($filters['view'], ['done', 'all'], true),
+                fn ($q) => $q->latest('updated_at'),
+                fn ($q) => $q->orderByRaw("FIELD(priority, 'urgent', 'high', 'medium', 'low')")->orderBy('due_date'))
+            ->paginate(SystemHelper::paginationLimit())
+            ->withQueryString();
+
+        $visible = fn () => Task::visibleTo($user);
+        $stats = [
+            'open' => $visible()->open()->count(),
+            'mine' => $visible()->open()->where('assigned_to', $user->id)->count(),
+            'overdue' => $visible()->overdue()->count(),
+            'done_today' => $visible()->whereIn('status', [TaskStatus::Completed->value, TaskStatus::Verified->value])->whereDate('completed_at', today())->count(),
+        ];
+
+        return view('tasks.index', array_merge(compact('tasks', 'stats', 'filters'), $this->formOptions()));
     }
-    
-    public function overdue()
+
+    public function show(Request $request, Task $task): View
     {
-        $this->authorize('viewAny', Task::class);
-        
-        $tasks = Task::with(['taskType', 'assignedStaff', 'room'])
-            ->where('due_date', '<', now())
-            ->whereNotIn('status', ['completed', 'verified', 'cancelled'])
-            ->orderBy('due_date')
-            ->paginate(20);
-        
-        return view('tasks.overdue', compact('tasks'));
+        $this->authorizeView($request->user(), $task);
+
+        $task->load(['taskType', 'assignee', 'department', 'room.roomType', 'stay.guest', 'creator', 'verifier', 'comments.user']);
+
+        return view('tasks.show', array_merge(compact('task'), $this->formOptions()));
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $data = $this->validated($request);
+
+        $task = DB::transaction(function () use ($data, $request) {
+            $task = Task::create($data + ['created_by' => $request->user()->id]);
+            $this->blockRoom($task);
+
+            return $task;
+        });
+
+        $this->core->log($request->user()->id, 'task_created', "Task #{$task->id} \"{$task->title}\" created", ['task_id' => $task->id]);
+
+        return response()->json(['success' => true, 'message' => 'Task created.', 'url' => route('tasks.show', $task)], 201);
+    }
+
+    public function update(Request $request, Task $task): JsonResponse
+    {
+        $this->authorizeView($request->user(), $task);
+        if (! $task->status->isOpen()) {
+            return response()->json(['success' => false, 'message' => 'Finished tasks can\'t be edited.'], 422);
+        }
+
+        $data = $this->validated($request, $task);
+
+        DB::transaction(function () use ($task, $data) {
+            $reassigned = $data['assigned_to'] != $task->assigned_to;
+            $task->fill($data);
+
+            if ($reassigned) {
+                $task->assigned_at = $task->assigned_to ? now() : null;
+                if (in_array($task->status, [TaskStatus::Pending, TaskStatus::Assigned], true)) {
+                    $task->status = $task->assigned_to ? TaskStatus::Assigned : TaskStatus::Pending;
+                }
+            }
+
+            $task->save();
+            $this->blockRoom($task);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Task updated.']);
+    }
+
+    /**
+     * Start, finish, put on hold, cancel, check (verify) or reopen.
+     */
+    public function updateStatus(Request $request, Task $task): RedirectResponse
+    {
+        $user = $request->user();
+        $this->authorizeView($user, $task);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(TaskStatus::class)],
+            'note' => ['nullable', 'string', 'max:1000', Rule::requiredIf(fn () => in_array($request->input('status'), ['cancelled', 'on_hold'], true))],
+        ], [
+            'note.required' => 'Say why.',
+        ]);
+        $status = TaskStatus::from($data['status']);
+
+        if (! $task->status->canTransitionTo($status)) {
+            return back()->with('error', "This task is {$task->status->label()} and can't be marked {$status->label()}.");
+        }
+        if ($status === TaskStatus::Verified && ! $user->hasAnyRole(['admin', 'manager'])) {
+            return back()->with('error', 'Only a manager can check off finished work.');
+        }
+        if ($status === TaskStatus::Cancelled && ! $user->hasAnyRole(['admin', 'manager']) && $task->created_by !== $user->id) {
+            return back()->with('error', 'Only a manager or the person who created the task can cancel it.');
+        }
+
+        DB::transaction(function () use ($task, $status, $data, $user) {
+            $changes = ['status' => $status];
+
+            match ($status) {
+                TaskStatus::InProgress => $changes += [
+                    'started_at' => $task->started_at ?? now(),
+                    // Whoever starts an unassigned job takes it
+                    'assigned_to' => $task->assigned_to ?? $user->id,
+                    'assigned_at' => $task->assigned_at ?? now(),
+                    'completed_at' => null,
+                ],
+                TaskStatus::Completed => $changes += [
+                    'completed_at' => now(),
+                    'assigned_to' => $task->assigned_to ?? $user->id,
+                    'actual_minutes' => $task->started_at ? (int) $task->started_at->diffInMinutes(now()) : $task->actual_minutes,
+                ],
+                TaskStatus::Verified => $changes += ['verified_by' => $user->id, 'verified_at' => now(), 'verification_notes' => $data['note'] ?? null],
+                default => null,
+            };
+
+            $task->update($changes);
+
+            if (! empty($data['note']) && $status !== TaskStatus::Verified) {
+                $task->comments()->create(['user_id' => $user->id, 'content' => "{$status->label()}: {$data['note']}"]);
+            }
+
+            if (in_array($status, [TaskStatus::Completed, TaskStatus::Cancelled], true)) {
+                $task->releaseRoom();
+            }
+        });
+
+        $this->core->log($user->id, 'task_status', "Task #{$task->id} marked {$status->label()}", ['task_id' => $task->id]);
+
+        return back()->with('success', "Task marked {$status->label()}.");
+    }
+
+    /**
+     * Tick or untick a checklist item.
+     */
+    public function toggleChecklist(Request $request, Task $task): JsonResponse
+    {
+        $this->authorizeView($request->user(), $task);
+
+        $data = $request->validate([
+            'index' => ['required', 'integer', 'min:0'],
+            'completed' => ['required', 'boolean'],
+        ]);
+
+        $checklist = $task->checklist ?? [];
+        abort_unless(isset($checklist[$data['index']]) && $task->status->isOpen(), 422);
+
+        $checklist[$data['index']]['completed'] = $data['completed'];
+        $task->update(['checklist' => $checklist]);
+
+        return response()->json(['success' => true, 'counts' => $task->checklist_counts]);
+    }
+
+    public function comment(Request $request, Task $task): RedirectResponse
+    {
+        $this->authorizeView($request->user(), $task);
+
+        $data = $request->validate(['content' => ['required', 'string', 'max:2000']]);
+        $task->comments()->create(['user_id' => $request->user()->id, 'content' => $data['content']]);
+
+        return back()->with('success', 'Comment added.');
+    }
+
+    /**
+     * One daily-clean task for every occupied room that doesn't have an open cleaning task today.
+     */
+    public function generateDailyCleaning(Request $request): RedirectResponse
+    {
+        $type = TaskType::where('code', 'DAILY_CLEAN')->first();
+        if (! $type) {
+            return back()->with('error', 'There is no task type with code DAILY_CLEAN.');
+        }
+
+        $rooms = Room::where('status', RoomStatus::Occupied->value)
+            ->whereDoesntHave('housekeepingTasks', fn ($q) => $q->open()->category('cleaning')->whereDate('due_date', today()))
+            ->with('currentStay')
+            ->get();
+
+        DB::transaction(function () use ($rooms, $type, $request) {
+            foreach ($rooms as $room) {
+                Task::create([
+                    'task_type_id' => $type->id,
+                    'title' => "Daily cleaning – Room {$room->room_number}",
+                    'room_id' => $room->id,
+                    'stay_id' => $room->currentStay?->id,
+                    'priority' => 'medium',
+                    'due_date' => today()->setTime(14, 0),
+                    'created_by' => $request->user()->id,
+                ]);
+            }
+        });
+
+        return back()->with('success', $rooms->count() . ' daily cleaning ' . Str::plural('task', $rooms->count()) . ' created.');
+    }
+
+    // ---- Task types (managers) ---------------------------------------------
+
+    public function storeType(Request $request): JsonResponse
+    {
+        $data = $this->validatedType($request);
+        $data['code'] = $this->uniqueCode($data['name']);
+        $type = TaskType::create($data);
+
+        return response()->json(['success' => true, 'message' => "{$type->name} added."], 201);
+    }
+
+    public function updateType(Request $request, TaskType $taskType): JsonResponse
+    {
+        $taskType->update($this->validatedType($request, $taskType));
+
+        return response()->json(['success' => true, 'message' => "{$taskType->name} updated."]);
+    }
+
+    private function validatedType(Request $request, ?TaskType $type = null): array
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:100', Rule::unique('task_types', 'name')->ignore($type?->id)->whereNull('deleted_at')],
+            'category' => ['required', Rule::in(array_keys(TaskType::CATEGORIES))],
+            'department_id' => ['nullable', 'exists:departments,id'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'checklist' => ['nullable', 'string', 'max:3000'],
+            'default_estimated_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            'requires_room' => ['boolean'],
+            'is_active' => ['boolean'],
+        ]);
+
+        $items = collect(preg_split('/\r?\n/', $data['checklist'] ?? ''))->map(fn ($l) => trim($l))->filter()->values();
+        unset($data['checklist']);
+        $data['default_checklist'] = $items->map(fn ($item) => ['item' => $item, 'completed' => false])->all() ?: null;
+
+        return $data;
+    }
+
+    private function uniqueCode(string $name): string
+    {
+        $code = Str::upper(Str::limit(Str::slug($name, '_'), 40, ''));
+        $candidate = $code;
+        for ($i = 2; TaskType::withTrashed()->where('code', $candidate)->exists(); $i++) {
+            $candidate = "{$code}_{$i}";
+        }
+
+        return $candidate;
+    }
+
+    // ---- Helpers -----------------------------------------------------------
+
+    private function authorizeView(User $user, Task $task): void
+    {
+        abort_unless(Task::visibleTo($user)->whereKey($task->id)->exists(), 403);
+    }
+
+    /**
+     * A maintenance task that takes its room out of service.
+     */
+    private function blockRoom(Task $task): void
+    {
+        $room = $task->room;
+        if ($task->blocks_room && $room && $room->status === RoomStatus::Available) {
+            $room->update(['status' => RoomStatus::Maintenance]);
+        }
+    }
+
+    private function formOptions(): array
+    {
+        return [
+            'taskTypes' => TaskType::active()->orderBy('category')->orderBy('name')->get(),
+            'staff' => User::where('status', 'active')
+                ->whereHas('roles', fn ($q) => $q->whereNotIn('name', ['guest']))
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'rooms' => Room::orderBy('room_number')->get(['id', 'room_number', 'status']),
+            'departments' => Department::orderBy('name')->get(['id', 'name']),
+        ];
+    }
+
+    private function validated(Request $request, ?Task $task = null): array
+    {
+        $data = $request->validate([
+            'task_type_id' => ['required', Rule::exists('task_types', 'id')->whereNull('deleted_at')],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'assigned_to' => ['nullable', 'exists:users,id'],
+            'room_id' => ['nullable', 'exists:rooms,id'],
+            'blocks_room' => ['boolean'],
+            'priority' => ['required', Rule::in(array_keys(Task::PRIORITIES))],
+            'due_date' => ['required', 'date'],
+            'estimated_minutes' => ['nullable', 'integer', 'min:1', 'max:10000'],
+        ]);
+
+        $type = TaskType::find($data['task_type_id']);
+        if ($type->requires_room && empty($data['room_id'])) {
+            throw ValidationException::withMessages(['room_id' => "{$type->name} needs a room."]);
+        }
+
+        $data['assigned_to'] ??= null;
+        $data['room_id'] ??= null;
+        $data['blocks_room'] = ! empty($data['room_id']) && ($data['blocks_room'] ?? false);
+
+        return $data;
     }
 }

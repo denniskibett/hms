@@ -2,13 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A kind of job (Check-out Cleaning, Room Maintenance…) with its default
+ * checklist and time. Codes CHECKOUT_CLEAN and DAILY_CLEAN are used by the system.
+ */
 class TaskType extends Model
 {
     use HasFactory, SoftDeletes;
+
+    public const CATEGORIES = [
+        'cleaning' => 'Cleaning',
+        'maintenance' => 'Maintenance',
+        'kitchen' => 'Kitchen',
+        'reception' => 'Front office',
+        'admin' => 'Admin',
+        'hr' => 'HR',
+        'other' => 'Other',
+    ];
 
     protected $fillable = [
         'name',
@@ -30,104 +45,46 @@ class TaskType extends Model
         'requires_inventory' => 'boolean',
         'is_active' => 'boolean',
         'default_estimated_cost' => 'decimal:2',
+        'default_estimated_minutes' => 'integer',
     ];
 
-    /**
-     * Department for this task type.
-     */
     public function department()
     {
         return $this->belongsTo(Department::class);
     }
 
-    /**
-     * Tasks of this type.
-     */
     public function tasks()
     {
         return $this->hasMany(Task::class);
     }
 
-    /**
-     * Scope for active task types.
-     */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
 
     /**
-     * Scope by category.
+     * Checklist item names.
+     *
+     * @return array<string>
      */
-    public function scopeByCategory($query, $category)
+    public function getChecklistItemsAttribute(): array
     {
-        return $query->where('category', $category);
+        return collect($this->default_checklist ?? [])->map(fn ($i) => is_array($i) ? ($i['item'] ?? '') : (string) $i)->filter()->values()->all();
     }
 
-    /**
-     * Scope for housekeeping task types.
-     */
-    public function scopeHousekeeping($query)
-    {
-        return $query->where('category', 'cleaning');
-    }
-
-    /**
-     * Scope for kitchen task types.
-     */
-    public function scopeKitchen($query)
-    {
-        return $query->where('category', 'kitchen');
-    }
-
-    /**
-     * Scope for maintenance task types.
-     */
-    public function scopeMaintenance($query)
-    {
-        return $query->where('category', 'maintenance');
-    }
-
-    /**
-     * Get category options.
-     */
-    public static function getCategoryOptions()
+    public function formData(): array
     {
         return [
-            'cleaning' => 'Housekeeping/Cleaning',
-            'maintenance' => 'Maintenance',
-            'kitchen' => 'Kitchen',
-            'reception' => 'Reception/Front Desk',
-            'admin' => 'Administrative',
-            'hr' => 'Human Resources',
-            'other' => 'Other',
+            'id' => $this->id,
+            'name' => $this->name,
+            'category' => $this->category,
+            'department_id' => $this->department_id ?? '',
+            'description' => $this->description ?? '',
+            'checklist' => implode("\n", $this->checklist_items),
+            'default_estimated_minutes' => $this->default_estimated_minutes,
+            'requires_room' => $this->requires_room,
+            'is_active' => $this->is_active,
         ];
-    }
-
-    /**
-     * Get default checklist items.
-     */
-    public function getChecklistItemsAttribute()
-    {
-        return $this->default_checklist ?? [];
-    }
-
-    /**
-     * Create a new task of this type.
-     */
-    public function createTask($data)
-    {
-        $defaults = [
-            'title' => $this->name,
-            'description' => $this->description,
-            'estimated_minutes' => $this->default_estimated_minutes,
-            'estimated_cost' => $this->default_estimated_cost,
-            'checklist' => $this->default_checklist,
-            'department_id' => $this->department_id,
-        ];
-        
-        $taskData = array_merge($defaults, $data, ['task_type_id' => $this->id]);
-        
-        return Task::create($taskData);
     }
 }
