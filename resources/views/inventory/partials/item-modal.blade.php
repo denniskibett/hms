@@ -12,7 +12,7 @@
         'update' => route('inventory.update', ':id'),
         'destroy' => '',
         'blank' => ['id' => null, 'name' => '', 'sku' => '', 'barcode' => '', 'item_type' => 'cleaning', 'unit_of_measure' => 'pcs', 'reorder_level' => 0,
-                    'location' => '', 'description' => '', 'status' => true, 'opening_quantity' => '', 'opening_unit_cost' => ''],
+                    'location' => '', 'primary_supplier_id' => '', 'description' => '', 'status' => true, 'opening_quantity' => '', 'opening_unit_cost' => ''],
      ]))"
      @open-item-form.window="open($event.detail)" @keydown.escape.window="close()">
     <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5">
@@ -50,6 +50,15 @@
                 <div>
                     <label class="{{ $labelClass }}">Kept in</label>
                     <input type="text" x-model="form.location" maxlength="100" class="{{ $inputClass }}" placeholder="e.g. Main store, Kitchen store">
+                </div>
+                <div>
+                    <label class="{{ $labelClass }}">Usual supplier</label>
+                    <select x-model="form.primary_supplier_id" class="{{ $inputClass }}">
+                        <option value="">—</option>
+                        @foreach ($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label class="{{ $labelClass }}">Code (SKU)</label>

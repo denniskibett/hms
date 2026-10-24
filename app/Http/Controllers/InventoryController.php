@@ -185,6 +185,7 @@ class InventoryController extends Controller
     {
         return [
             'departments' => Department::orderBy('name')->get(['id', 'name']),
+            'suppliers' => \App\Models\Supplier::active()->orderBy('name')->get(['id', 'name']),
             'canManage' => auth()->user()->hasAnyRole(['admin', 'manager', 'procurement']),
             'canReceive' => auth()->user()->hasAnyRole(self::MOVE_ROLES['in']),
         ];
@@ -215,11 +216,13 @@ class InventoryController extends Controller
             'unit_of_measure' => ['required', 'string', 'max:20'],
             'reorder_level' => ['required', 'numeric', 'min:0', 'max:9999999'],
             'location' => ['nullable', 'string', 'max:100'],
+            'primary_supplier_id' => ['nullable', 'exists:suppliers,id'],
             'description' => ['nullable', 'string', 'max:1000'],
             'status' => ['boolean'],
         ]);
 
         $data['status'] ??= true;
+        $data['primary_supplier_id'] ??= null;
         $data['category'] = in_array($data['item_type'], ['linen', 'maintenance', 'office'], true) ? 'non_consumable' : 'consumable';
 
         return $data;

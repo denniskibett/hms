@@ -173,6 +173,7 @@ class InventoryItem extends Model
             'unit_of_measure' => $this->unit_of_measure,
             'reorder_level' => (float) $this->reorder_level,
             'location' => $this->location ?? '',
+            'primary_supplier_id' => $this->primary_supplier_id ?? '',
             'description' => $this->description ?? '',
             'status' => $this->status,
         ];

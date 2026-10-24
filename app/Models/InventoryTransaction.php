@@ -68,7 +68,7 @@ class InventoryTransaction extends Model
     {
         return match ($this->reference_type) {
             'task' => ['Task #' . $this->reference_id, route('tasks.show', $this->reference_id)],
-            'purchase_order' => ['Purchase order #' . $this->reference_id, null],
+            'purchase_order' => ['Purchase order #' . $this->reference_id, route('purchase-orders.show', $this->reference_id)],
             default => ['Manual', null],
         };
     }

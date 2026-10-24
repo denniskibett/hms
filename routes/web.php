@@ -12,6 +12,8 @@ use App\Http\Controllers\StayController;
 use App\Http\Controllers\StayBillingController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FinanceController;
@@ -199,6 +201,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('orders/{order}/discount', [KitchenOrderBillingController::class, 'updateDiscount'])->name('orders.discount');
         });
     });
+
+    // Procurement: buyers draft and receive; a manager approves (checked in the controller); finance can look
+    Route::middleware('role:manager,procurement,kitchen,finance')->group(function () {
+        Route::resource('purchase-orders', PurchaseOrderController::class)->only(['index', 'show']);
+        Route::resource('suppliers', SupplierController::class)->only(['index', 'show']);
+    });
+    Route::middleware('role:manager,procurement,kitchen')->group(function () {
+        Route::post('purchase-orders/reorder', [PurchaseOrderController::class, 'reorder'])->name('purchase-orders.reorder');
+        Route::resource('purchase-orders', PurchaseOrderController::class)->only(['store', 'update']);
+        Route::post('purchase-orders/{purchase_order}/status', [PurchaseOrderController::class, 'updateStatus'])->name('purchase-orders.status');
+        Route::post('purchase-orders/{purchase_order}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
+    });
+    Route::resource('suppliers', SupplierController::class)->only(['store', 'update'])->middleware('role:manager,procurement');
 
     // Store: what each role may do is checked in the controller
     Route::middleware('role:manager,procurement,kitchen,housekeeping')->group(function () {

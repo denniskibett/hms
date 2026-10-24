@@ -129,7 +129,7 @@
         <div class="bg-white rounded-lg border border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Pending Orders</h3>
-                <a href="{{ route('inventory.index') }}" class="text-sm text-primary hover:underline">View All</a>
+                <a href="{{ route('purchase-orders.index', ['status' => 'submitted']) }}" class="text-sm text-primary hover:underline">View All</a>
             </div>
             <div class="space-y-3">
                 @forelse($pendingOrders as $order)
@@ -149,7 +149,7 @@
                             </div>
                         </div>
                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-warning/10 text-warning">
-                            {{ ucfirst($order->status) }}
+                            {{ $order->status->label() }}
                         </span>
                     </div>
                 </div>
@@ -163,7 +163,7 @@
         <div class="bg-white rounded-lg border border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] p-6">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Awaiting Delivery</h3>
-                <a href="{{ route('inventory.index') }}" class="text-sm text-primary hover:underline">View All</a>
+                <a href="{{ route('purchase-orders.index', ['status' => 'ordered']) }}" class="text-sm text-primary hover:underline">View All</a>
             </div>
             <div class="space-y-3">
                 @forelse($awaitingDelivery as $order)
@@ -193,7 +193,7 @@
         <div class="bg-white rounded-lg border border-gray-200 dark:border-gray-800 dark:bg-white/[0.03] p-6">
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-2 gap-3">
-                <a href="{{ route('inventory.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
+                <a href="{{ route('purchase-orders.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
                     <div class="p-2 rounded-full bg-primary/10 inline-block mb-2">
                         <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -217,7 +217,7 @@
                     </div>
                     <p class="font-medium text-gray-900 dark:text-white">Inventory</p>
                 </a>
-                <a href="{{ route('inventory.movements') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
+                <a href="{{ route('suppliers.index') }}" class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-center">
                     <div class="p-2 rounded-full bg-info/10 inline-block mb-2">
                         <svg class="w-6 h-6 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

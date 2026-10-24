@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Enums\RoomStatus;
 use App\Services\FinanceService;
-use App\Services\OperationsService;
 use App\Services\KitchenService;
 use App\Services\CoreService;
 use App\Models\Stay;
@@ -27,7 +26,6 @@ class DashboardController extends Controller
 {
     public function __construct(
         private FinanceService $financeService,
-        private OperationsService $operationsService,
         private KitchenService $kitchenService,
         private CoreService $coreService
     ) {}
@@ -392,14 +390,13 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
         
-        $pendingOrders = PurchaseOrder::where('status', 'pending')
+        $pendingOrders = PurchaseOrder::with('supplier')->where('status', 'submitted')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
         
-        $awaitingDelivery = PurchaseOrder::where('status', 'approved')
-            ->where('status', '!=', 'delivered')
-            ->orderBy('received_at')
+        $awaitingDelivery = PurchaseOrder::with('supplier')->outstanding()
+            ->orderBy('delivery_date')
             ->limit(5)
             ->get();
         
