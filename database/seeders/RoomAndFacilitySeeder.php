@@ -2,99 +2,55 @@
 
 namespace Database\Seeders;
 
+use App\Models\Facility;
+use App\Models\FacilityPackage;
+use App\Models\RoomType;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
+/**
+ * Starting room types, conference venues and conference packages.
+ * Only adds what is missing, so it is safe to run again and never
+ * overwrites prices the hotel has changed.
+ */
 class RoomAndFacilitySeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        $now = Carbon::now();
+        $roomTypes = [
+            ['code' => 'executive', 'name' => 'Executive rooms', 'base_rate' => 7000, 'capacity' => 2, 'bed_type' => 'king'],
+            ['code' => 'deluxe', 'name' => 'Deluxe rooms', 'base_rate' => 5000, 'capacity' => 2, 'bed_type' => 'queen'],
+            ['code' => 'standard', 'name' => 'Standard rooms', 'base_rate' => 4000, 'capacity' => 2, 'bed_type' => 'double'],
+        ];
+        foreach ($roomTypes as $type) {
+            RoomType::firstOrCreate(['code' => $type['code']], $type);
+        }
 
-        // Seed Room Types
-        DB::table('room_types')->insert([
-            [
-                'name' => 'Executive rooms',
-                'code' => 'executive',
-                'base_rate' => 7000,
-                'capacity' => 2,
-                'bed_type' => 'king',
-                'description' => null,
-                'amenities' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Deluxe rooms',
-                'code' => 'deluxe',
-                'base_rate' => 5000,
-                'capacity' => 2,
-                'bed_type' => 'queen',
-                'description' => null,
-                'amenities' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Standard rooms',
-                'code' => 'standard',
-                'base_rate' => 4000,
-                'capacity' => 2,
-                'bed_type' => 'double',
-                'description' => null,
-                'amenities' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ]);
+        // Venues. Hire is included in the per-person conference packages, so the daily rate is 0.
+        $venues = [
+            ['code' => 'main_hall', 'name' => 'Main Conference Hall', 'capacity' => 50, 'base_rate' => 0,
+                'description' => 'Theatre, classroom or U-shape layout.',
+                'amenities' => ['Wi-Fi', 'PA system', 'Microphones', 'Flip chart', 'Screen']],
+            ['code' => 'boardroom', 'name' => 'Boardroom', 'capacity' => 15, 'base_rate' => 0,
+                'description' => 'Board table for meetings and interviews.',
+                'amenities' => ['Wi-Fi', 'Screen', 'Whiteboard']],
+            ['code' => 'garden', 'name' => 'Garden', 'capacity' => 100, 'base_rate' => 0,
+                'description' => 'Outdoor space for team building, receptions and parties.',
+                'amenities' => ['PA system', 'Parking']],
+        ];
+        foreach ($venues as $venue) {
+            Facility::firstOrCreate(['code' => $venue['code']], $venue + ['status' => 'available']);
+        }
 
-        // Seed Facilities (Conference rates)
-        DB::table('facilities')->insert([
-            [
-                'name' => 'Lunch Only',
-                'code' => 'lunch_only',
-                'capacity' => 50,
-                'base_rate' => 1800,
-                'description' => null,
-                'amenities' => json_encode(["Mints","Flip-charts","P.A system","Stationery","Mineral water"]),
-                'status' => 'available',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Half Day (Lunch and 10 O\'Clock Tea)',
-                'code' => 'half_day',
-                'capacity' => 50,
-                'base_rate' => 2000,
-                'description' => null,
-                'amenities' => json_encode(["Mints","Flip-charts","P.A system","Stationery","Mineral water"]),
-                'status' => 'available',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Full Day (Lunch and 2 Teas)',
-                'code' => 'full_day',
-                'capacity' => 50,
-                'base_rate' => 2500,
-                'description' => null,
-                'amenities' => json_encode(["Mints","Flip-charts","P.A system","Stationery","Mineral water"]),
-                'status' => 'available',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name' => 'Projector Hire per day',
-                'code' => 'projector_hire',
-                'capacity' => 1,
-                'base_rate' => 3000,
-                'description' => null,
-                'amenities' => json_encode(["Mints","Flip-charts","P.A system","Stationery","Mineral water"]),
-                'status' => 'available',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ]);
+        // Conference packages, sold with any venue
+        $inclusions = 'Mints, flip charts, PA system, stationery, mineral water';
+        $packages = [
+            ['name' => 'Lunch Only', 'price' => 1800, 'charge_basis' => 'per_person', 'inclusions' => $inclusions],
+            ['name' => "Half Day (Lunch and 10 O'Clock Tea)", 'price' => 2000, 'charge_basis' => 'per_person', 'inclusions' => $inclusions],
+            ['name' => 'Full Day (Lunch and 2 Teas)', 'price' => 2500, 'charge_basis' => 'per_person', 'inclusions' => $inclusions],
+            ['name' => 'Projector Hire per day', 'price' => 3000, 'charge_basis' => 'per_unit', 'inclusions' => null],
+        ];
+        foreach ($packages as $package) {
+            FacilityPackage::firstOrCreate(['name' => $package['name']], $package + ['facility_id' => null, 'is_active' => true]);
+        }
     }
 }

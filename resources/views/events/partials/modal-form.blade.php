@@ -55,6 +55,9 @@
                                         x-text="`${v.name} (${v.capacity})${v.status !== 'available' ? ' – ' + v.status : ''}`"></option>
                             </template>
                         </select>
+                        <p x-show="!venues.length" class="mt-1 text-xs text-warning-600 dark:text-warning-500">
+                            No venues yet. A manager adds them under <a href="{{ route('facilities.index') }}" class="underline">Facilities</a>.
+                        </p>
                     </div>
                     <div class="sm:col-span-2">
                         <label class="{{ $labelClass }}">From *</label>
