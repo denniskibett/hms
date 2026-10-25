@@ -7,7 +7,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
@@ -273,22 +276,38 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        // Delete avatar if exists
-        if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
+        // Staff accounts are closed by an admin (Users) or HR (Mark as Left)
+        if ($user->roles()->where('name', '!=', 'guest')->exists()) {
+            return back()->with('error', 'Staff accounts can only be closed by an administrator.');
         }
 
-        // Log the deletion
-        $this->coreService->log($user->id, 'account_deleted', 'User deleted their account');
+        // Guests with bookings keep their records (the hotel must keep invoices
+        // for tax); only their sign-in is closed. Accounts with no history go.
+        $hasHistory = DB::table('stays')->where('guest_id', $user->id)->exists();
 
+        // Log out first: logging out saves the user (remember token), which
+        // would re-create an account that was already deleted
         Auth::logout();
 
-        $user->delete();
+        if ($hasHistory) {
+            $user->forceFill(['status' => 'inactive', 'password' => Hash::make(Str::random(40))])->save();
+            $this->coreService->log($user->id, 'account_closed', 'Guest closed their account; booking records kept');
+        } else {
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $this->coreService->log($user->id, 'account_deleted', 'User deleted their account');
+            $user->roles()->detach();
+            $user->guestProfile()->delete();
+            $user->delete();
+        }
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        return Redirect::to('/')->with('status', $hasHistory
+            ? 'Your account is closed. We keep your booking records as the law requires.'
+            : 'Your account has been deleted.');
     }
 
     public function getData()
