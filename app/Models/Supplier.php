@@ -27,6 +27,11 @@ class Supplier extends Model
         return $this->hasMany(PurchaseOrder::class);
     }
 
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
     public function prices()
     {
         return $this->hasMany(SupplierPrice::class);
@@ -63,6 +68,29 @@ class Supplier extends Model
             ->get()
             ->mapWithKeys(fn (SupplierPrice $p) => [$p->inventory_item_id => (float) $p->unit_price])
             ->all();
+    }
+
+    /**
+     * Value of goods received from this supplier, at the prices paid.
+     */
+    public function receivedValue(): float
+    {
+        return round((float) InventoryTransaction::where('reference_type', 'purchase_order')
+            ->whereIn('reference_id', $this->purchaseOrders()->select('id'))
+            ->sum('total_value'), 2);
+    }
+
+    public function paidValue(): float
+    {
+        return round((float) $this->expenses()->paid()->sum('amount'), 2);
+    }
+
+    /**
+     * What the hotel still owes (negative = paid in advance).
+     */
+    public function balance(): float
+    {
+        return round($this->receivedValue() - $this->paidValue(), 2);
     }
 
     public function formData(): array

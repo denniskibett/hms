@@ -425,6 +425,15 @@
                 </li>
                 <li>
                   <a
+                    href="{{ route('expenses.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'expenses.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Expenses
+                  </a>
+                </li>
+                <li>
+                  <a
                     href="{{ route('invoices.index') }}"
                     class="menu-dropdown-item group"
                     :class="page === 'invoices.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"

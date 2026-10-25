@@ -17,6 +17,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\RotaController;
 use App\Http\Controllers\LeaveController;
@@ -231,6 +232,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
         Route::resource('invoices', InvoiceController::class)->only(['index', 'show']);
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+        Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::post('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
 
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
@@ -282,7 +286,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:admin')->group(function () {
-        Route::resource('users', UserController::class);
+        Route::resource('users', UserController::class)->only(['index', 'show', 'store', 'update', 'destroy']);
 
         Route::prefix('system')->name('system.')->group(function () {
             Route::get('/', [SystemController::class, 'index'])->name('index');

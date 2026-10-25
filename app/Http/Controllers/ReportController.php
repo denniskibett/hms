@@ -33,6 +33,7 @@ class ReportController extends Controller
         'events' => ['Conferences & Events', 'Events and revenue by venue', 'fa-calendar-alt'],
         'payroll' => ['Payroll & Statutory', 'Pay and the PAYE, NSSF, SHA and Housing Levy to remit', 'fa-money-check-alt'],
         'stock' => ['Stock', 'Purchases, usage by department, write-offs and stock value', 'fa-boxes'],
+        'expenses' => ['Expenses', 'Money paid out by kind, supplier and month, and what is owed to suppliers', 'fa-receipt'],
     ];
 
     /**
@@ -467,6 +468,55 @@ class ReportController extends Controller
                     'columns' => [['Kind', 'text'], ['Items', 'number'], ['Value', 'money']],
                     'rows' => $onHand->map(fn ($o) => [InventoryItem::TYPES[$o->item_type] ?? $o->item_type, (int) $o->items, round((float) $o->value, 2)])->all(),
                     'footer' => ['Total', (int) $onHand->sum('items'), round((float) $onHand->sum('value'), 2)],
+                ],
+            ],
+        ];
+    }
+
+    private function expenses(Carbon $from, Carbon $to): array
+    {
+        $paid = \App\Models\Expense::paid()->whereBetween('spent_on', [$from->toDateString(), $to->toDateString()]);
+        $categories = \App\Models\Expense::CATEGORIES;
+
+        $byCategory = (clone $paid)->selectRaw('category, COUNT(*) as n, SUM(amount) as total')->groupBy('category')->orderByDesc('total')->get();
+        $bySupplier = (clone $paid)->whereNotNull('supplier_id')->with('supplier:id,name')
+            ->selectRaw('supplier_id, COUNT(*) as n, SUM(amount) as total')->groupBy('supplier_id')->orderByDesc('total')->get();
+        $byMonth = (clone $paid)->selectRaw("DATE_FORMAT(spent_on, '%Y-%m') as month, SUM(CASE WHEN category = 'supplier_payment' THEN amount ELSE 0 END) as suppliers, SUM(CASE WHEN category <> 'supplier_payment' THEN amount ELSE 0 END) as running, SUM(amount) as total")
+            ->groupBy('month')->orderBy('month')->get();
+
+        $total = round((float) $byCategory->sum('total'), 2);
+        $supplierPaid = round((float) ($byCategory->firstWhere('category', 'supplier_payment')?->total ?? 0), 2);
+
+        // Owed now: everything received from suppliers less everything paid to them
+        $received = (float) DB::table('inventory_transactions')->where('reference_type', 'purchase_order')->sum('total_value');
+        $paidEver = (float) \App\Models\Expense::paid()->where('category', 'supplier_payment')->sum('amount');
+
+        return [
+            'cards' => [
+                ['Paid out', $total, 'money'],
+                ['Running costs', round($total - $supplierPaid, 2), 'money'],
+                ['Paid to suppliers', $supplierPaid, 'money'],
+                ['Owed to suppliers now', round($received - $paidEver, 2), 'money'],
+            ],
+            'sections' => [
+                [
+                    'title' => 'By kind',
+                    'columns' => [['Kind', 'text'], ['Payments', 'number'], ['Amount', 'money'], ['Share', 'percent']],
+                    'rows' => $byCategory->map(fn ($c) => [$categories[$c->category] ?? $c->category, (int) $c->n, (float) $c->total, $total ? round($c->total / $total * 100, 1) : 0])->all(),
+                    'footer' => ['Total', (int) $byCategory->sum('n'), $total, 100],
+                ],
+                [
+                    'title' => 'Paid to suppliers',
+                    'columns' => [['Supplier', 'text'], ['Payments', 'number'], ['Amount', 'money']],
+                    'rows' => $bySupplier->map(fn ($s) => [$s->supplier->name ?? '—', (int) $s->n, (float) $s->total])->all(),
+                    'footer' => ['Total', (int) $bySupplier->sum('n'), round((float) $bySupplier->sum('total'), 2)],
+                ],
+                [
+                    'title' => 'By month',
+                    'columns' => [['Month', 'text'], ['Running costs', 'money'], ['Suppliers', 'money'], ['Total', 'money']],
+                    'rows' => $byMonth->map(fn ($m) => [Carbon::parse($m->month . '-01')->format('F Y'), (float) $m->running, (float) $m->suppliers, (float) $m->total])->all(),
+                    'footer' => ['Total', round($total - $supplierPaid, 2), $supplierPaid, $total],
+                    'note' => 'Voided expenses are left out. Payroll is in the Payroll report.',
                 ],
             ],
         ];

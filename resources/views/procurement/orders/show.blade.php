@@ -151,6 +151,18 @@
                     @if ($order->received_at)<div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-gray-400">Fully received</dt><dd class="text-gray-800 dark:text-white/90">{{ $order->received_at->format('d M Y') }}</dd></div>@endif
                     @if ($order->supplier_reference)<div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-gray-400">Supplier ref.</dt><dd class="text-gray-800 dark:text-white/90">{{ $order->supplier_reference }}</dd></div>@endif
                     <div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-gray-400">Received value</dt><dd class="text-gray-800 dark:text-white/90">{{ $money($order->received_value) }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-gray-400">Paid</dt><dd class="text-gray-800 dark:text-white/90">{{ $money($order->paid_amount) }}</dd></div>
+                    @if ($order->amount_owed > 0)
+                        <div class="flex justify-between gap-3 font-semibold">
+                            <dt class="text-gray-800 dark:text-white/90">Owed to supplier</dt>
+                            <dd class="text-warning-600 dark:text-warning-400">
+                                {{ $money($order->amount_owed) }}
+                                @if (auth()->user()->hasAnyRole(['admin', 'manager', 'finance']))
+                                    <a href="{{ route('expenses.index', ['pay_supplier' => $order->supplier_id, 'po' => $order->id]) }}" class="ml-1 text-xs font-normal text-primary hover:underline">Pay</a>
+                                @endif
+                            </dd>
+                        </div>
+                    @endif
                     <div class="flex justify-between gap-3"><dt class="text-gray-500 dark:text-gray-400">Supplier terms</dt><dd class="text-gray-800 dark:text-white/90">{{ $order->supplier->payment_terms ?: '—' }}</dd></div>
                 </dl>
                 @if ($order->notes)

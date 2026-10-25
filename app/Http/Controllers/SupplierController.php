@@ -35,8 +35,11 @@ class SupplierController extends Controller
         $orders = $supplier->purchaseOrders()->with('items')->latest('id')->take(20)->get();
         $prices = $supplier->prices()->with('inventoryItem:id,name,unit_of_measure')->whereNull('effective_to')->get()->sortBy(fn ($p) => $p->inventoryItem?->name);
         $lowStock = $supplier->items()->active()->lowStock()->orderBy('name')->get();
+        $account = ['received' => $supplier->receivedValue(), 'paid' => $supplier->paidValue()];
+        $account['balance'] = round($account['received'] - $account['paid'], 2);
+        $payments = $supplier->expenses()->paid()->with('purchaseOrder:id,po_number')->latest('spent_on')->take(10)->get();
 
-        return view('procurement.suppliers.show', compact('supplier', 'orders', 'prices', 'lowStock'));
+        return view('procurement.suppliers.show', compact('supplier', 'orders', 'prices', 'lowStock', 'account', 'payments'));
     }
 
     public function store(Request $request): JsonResponse

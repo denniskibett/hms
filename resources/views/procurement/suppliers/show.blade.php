@@ -5,6 +5,7 @@
     $user = auth()->user();
     $canEdit = $user->hasAnyRole(['admin', 'manager', 'procurement']);
     $canBuy = $user->hasAnyRole(['admin', 'manager', 'procurement', 'kitchen']);
+    $canPay = $user->hasAnyRole(['admin', 'manager', 'finance']);
 @endphp
 
 @section('content')
@@ -45,6 +46,30 @@
         </div>
 
         <div class="space-y-6">
+            <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Account</h3>
+                    @if ($canPay && $account['balance'] > 0)
+                        <a href="{{ route('expenses.index', ['pay_supplier' => $supplier->id]) }}" class="text-sm text-primary hover:underline">Record payment</a>
+                    @endif
+                </div>
+                <dl class="space-y-3 p-5 text-sm">
+                    <div class="flex justify-between"><dt class="text-gray-500 dark:text-gray-400">Goods received</dt><dd class="text-gray-800 dark:text-white/90">{{ $money($account['received']) }}</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500 dark:text-gray-400">Paid</dt><dd class="text-gray-800 dark:text-white/90">{{ $money($account['paid']) }}</dd></div>
+                    <div class="flex justify-between font-semibold"><dt class="text-gray-800 dark:text-white/90">{{ $account['balance'] < 0 ? 'Paid in advance' : 'We owe' }}</dt><dd class="{{ $account['balance'] > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-success-600 dark:text-success-500' }}">{{ $money(abs($account['balance'])) }}</dd></div>
+                </dl>
+                @if ($payments->isNotEmpty())
+                    <ul class="divide-y divide-gray-100 border-t border-gray-100 text-xs dark:divide-gray-800 dark:border-gray-800">
+                        @foreach ($payments as $payment)
+                            <li class="flex justify-between px-5 py-2">
+                                <span class="text-gray-600 dark:text-gray-400">{{ $payment->spent_on->format('d M Y') }} · {{ $payment->method_label }}{{ $payment->purchaseOrder ? ' · ' . $payment->purchaseOrder->po_number : '' }}</span>
+                                <span class="text-gray-800 dark:text-white/90">{{ $money($payment->amount) }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+
             <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800"><h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Details</h3></div>
                 <dl class="space-y-3 p-5 text-sm">

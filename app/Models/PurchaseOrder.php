@@ -67,6 +67,11 @@ class PurchaseOrder extends Model
         return $this->hasMany(InventoryTransaction::class, 'reference_id')->where('reference_type', 'purchase_order');
     }
 
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
     public function scopeWithStatus(Builder $query, PurchaseOrderStatus|string $status): Builder
     {
         return $query->where('status', $status instanceof PurchaseOrderStatus ? $status->value : $status);
@@ -100,11 +105,24 @@ class PurchaseOrder extends Model
     }
 
     /**
-     * Value of what has been delivered so far.
+     * Value of what has been delivered so far, at the prices paid.
      */
     public function getReceivedValueAttribute(): float
     {
-        return round((float) $this->items->sum(fn ($i) => (float) $i->received_quantity * (float) $i->unit_price), 2);
+        return round((float) $this->receipts()->sum('total_value'), 2);
+    }
+
+    public function getPaidAmountAttribute(): float
+    {
+        return round((float) $this->expenses()->paid()->sum('amount'), 2);
+    }
+
+    /**
+     * Received but not yet paid.
+     */
+    public function getAmountOwedAttribute(): float
+    {
+        return round($this->received_value - $this->paid_amount, 2);
     }
 
     public function formData(): array
