@@ -233,6 +233,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
 
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     });
 
     /*
