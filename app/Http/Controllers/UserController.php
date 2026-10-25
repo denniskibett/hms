@@ -2,217 +2,192 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
-use App\Services\CoreService;
-use App\Models\User;
+use App\Helpers\SystemHelper;
+use App\Models\AuditTrail;
 use App\Models\Role;
-use App\Models\Department;
+use App\Models\User;
+use App\Services\CoreService;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 
+/**
+ * Accounts and access (admins). HR keeps the employment side of staff; the
+ * front desk keeps guests. Here an admin sets roles, status and passwords.
+ */
 class UserController extends Controller
 {
-    public function __construct(
-        private CoreService $coreService
-    ) {}
-    
-    /**
-     * Display a listing of users.
-     */
-    public function index(Request $request)
+    public const STATUSES = [
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+        'suspended' => 'Suspended',
+    ];
+
+    public function __construct(private CoreService $core)
     {
-        $this->authorize('viewAny', User::class);
-        
-        $role = $request->input('role');
-        $status = $request->input('status');
-        $search = $request->input('search');
-        
-        $users = $this->coreService->getUsersByRole($role ?? 'all', [
-            'status' => $status,
-            'search' => $search,
-            'per_page' => $request->input('per_page', 20),
+    }
+
+    public function index(Request $request): View
+    {
+        $filters = $request->validate([
+            'role' => ['nullable', 'string', 'max:50'],
+            'status' => ['nullable', Rule::in(array_keys(self::STATUSES))],
+            'search' => ['nullable', 'string', 'max:100'],
         ]);
-        
-        $roles = Role::all();
-        
-        return view('users.index', compact('users', 'roles'));
+        $filters['role'] ??= 'staff';
+
+        $users = User::with(['roles', 'staffProfile:id,user_id', 'guestProfile:id,user_id'])
+            ->when($filters['role'] === 'staff', fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', '!=', 'guest')))
+            ->when(! in_array($filters['role'], ['staff', 'all'], true), fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', $filters['role'])))
+            ->when($filters['status'] ?? null, fn ($q, $s) => $q->where('status', $s))
+            ->when($filters['search'] ?? null, fn ($q, $term) => $q->where(fn ($q) => $q
+                ->where('name', 'like', "%{$term}%")
+                ->orWhere('email', 'like', "%{$term}%")
+                ->orWhere('phone', 'like', "%{$term}%")))
+            ->orderBy('name')
+            ->paginate(SystemHelper::paginationLimit())
+            ->withQueryString();
+
+        $staff = User::whereHas('roles', fn ($r) => $r->where('name', '!=', 'guest'));
+        $stats = [
+            'staff' => (clone $staff)->where('status', 'active')->count(),
+            'admins' => User::where('status', 'active')->whereHas('roles', fn ($r) => $r->where('name', 'admin'))->count(),
+            'guests' => User::whereHas('roles', fn ($r) => $r->where('name', 'guest'))->count(),
+            'blocked' => (clone $staff)->where('status', '!=', 'active')->count(),
+        ];
+
+        return view('users.index', ['users' => $users, 'stats' => $stats, 'filters' => $filters, 'roles' => $this->roles()]);
     }
-    
-    /**
-     * Show the form for creating a new user.
-     */
-    public function create()
+
+    public function show(User $user): View
     {
-        $this->authorize('create', User::class);
-        
-        $roles = Role::where('name', '!=', 'guest')->get();
-        $departments = Department::all();
-        
-        return view('users.create', compact('roles', 'departments'));
+        $user->load(['roles', 'staffProfile.department', 'guestProfile']);
+        $activity = AuditTrail::where('user_id', $user->id)->latest('id')->take(25)->get();
+
+        return view('users.show', ['user' => $user, 'activity' => $activity, 'roles' => $this->roles()]);
     }
-    
-    /**
-     * Store a newly created user.
-     */
-    public function store(StoreUserRequest $request)
+
+    public function store(Request $request): JsonResponse
     {
-        $this->authorize('create', User::class);
-        
-        try {
-            $user = $this->coreService->createUser(
-                $request->validated(),
-                $request->input('role')
-            );
-            
-            return redirect()->route('users.show', $user)
-                ->with('success', 'User created successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error creating user: ' . $e->getMessage());
-        }
+        $data = $this->validated($request);
+
+        $user = DB::transaction(function () use ($data) {
+            $user = User::create($data['user'] + ['password' => Hash::make($data['password'])]);
+            $user->forceFill(['status' => $data['status']])->save();
+            $user->roles()->sync(Role::whereIn('name', $data['roles'])->pluck('id'));
+
+            return $user;
+        });
+
+        $this->core->log($request->user()->id, 'user_created', "Account for {$user->name} created with roles " . implode(', ', $data['roles']), ['user_id' => $user->id]);
+
+        return response()->json(['success' => true, 'message' => "{$user->name} added.", 'url' => route('users.show', $user)], 201);
     }
-    
-    /**
-     * Display the specified user.
-     */
-    public function show(User $user)
+
+    public function update(Request $request, User $user): JsonResponse
     {
-        $this->authorize('view', $user);
-        
-        $user->load(['roles', 'guestProfile', 'staffProfile.department']);
-        
-        return view('users.show', compact('user'));
-    }
-    
-    /**
-     * Show the form for editing the specified user.
-     */
-    public function edit(User $user)
-    {
-        $this->authorize('update', $user);
-        
-        $roles = Role::all();
-        $departments = Department::all();
-        $user->load(['roles', 'staffProfile']);
-        
-        return view('users.edit', compact('user', 'roles', 'departments'));
-    }
-    
-    /**
-     * Update the specified user.
-     */
-    public function update(UpdateUserRequest $request, User $user)
-    {
-        $this->authorize('update', $user);
-        
-        try {
-            $updatedUser = $this->coreService->updateUser($user, $request->validated());
-            
-            return redirect()->route('users.show', $user)
-                ->with('success', 'User updated successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error updating user: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Remove the specified user.
-     */
-    public function destroy(User $user)
-    {
-        $this->authorize('delete', $user);
-        
-        try {
-            // Soft delete the user
-            $user->delete();
-            
-            return redirect()->route('users.index')
-                ->with('success', 'User deleted successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error deleting user: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Deactivate a user.
-     */
-    public function deactivate(User $user, Request $request)
-    {
-        $this->authorize('deactivate', $user);
-        
-        $request->validate([
-            'reason' => 'required|string|max:255',
+        $data = $this->validated($request, $user);
+        $this->guardAdmins($request->user(), $user, $data['roles'], $data['status']);
+
+        $before = $user->roles->pluck('name')->sort()->values()->all();
+
+        DB::transaction(function () use ($user, $data) {
+            $user->update($data['user'] + (! empty($data['password']) ? ['password' => Hash::make($data['password'])] : []));
+            $user->forceFill(['status' => $data['status']])->save();
+            $user->roles()->sync(Role::whereIn('name', $data['roles'])->pluck('id'));
+        });
+
+        $after = collect($data['roles'])->sort()->values()->all();
+        $changes = array_filter([
+            $before !== $after ? 'roles ' . implode(', ', $before) . ' → ' . implode(', ', $after) : null,
+            ! empty($data['password']) ? 'password reset' : null,
+            "status {$data['status']}",
         ]);
-        
+        $this->core->log($request->user()->id, 'user_updated', "{$user->name}: " . implode('; ', $changes), ['user_id' => $user->id]);
+
+        return response()->json(['success' => true, 'message' => "{$user->name} updated."]);
+    }
+
+    /**
+     * Delete an account that was never used. Anyone with history is deactivated instead.
+     */
+    public function destroy(Request $request, User $user): JsonResponse
+    {
+        if ($user->id === $request->user()->id) {
+            return response()->json(['success' => false, 'message' => "You can't delete your own account."], 422);
+        }
+        if ($user->staffProfile()->exists() || $user->guestProfile()->exists() || DB::table('stays')->where('guest_id', $user->id)->exists()) {
+            return response()->json(['success' => false, 'message' => "{$user->name} has staff or guest records. Set the account to Inactive instead."], 422);
+        }
+
         try {
-            $this->coreService->deactivateUser($user, $request->input('reason'));
-            
-            return redirect()->route('users.show', $user)
-                ->with('success', 'User deactivated successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error deactivating user: ' . $e->getMessage());
+            DB::transaction(function () use ($user) {
+                $user->roles()->detach();
+                $user->delete();
+            });
+        } catch (QueryException) {
+            return response()->json(['success' => false, 'message' => "{$user->name} has history in the system. Set the account to Inactive instead."], 422);
+        }
+
+        $this->core->log($request->user()->id, 'user_deleted', "Account {$user->name} ({$user->email}) deleted");
+
+        return response()->json(['success' => true, 'message' => "{$user->name} deleted.", 'url' => route('users.index')]);
+    }
+
+    /**
+     * An admin can't lock themselves out, and the hotel always keeps one active admin.
+     */
+    private function guardAdmins(User $actor, User $user, array $roles, string $status): void
+    {
+        $losesAdmin = $user->hasRole('admin') && (! in_array('admin', $roles, true) || $status !== 'active');
+        if (! $losesAdmin) {
+            return;
+        }
+
+        if ($user->id === $actor->id) {
+            abort(response()->json(['success' => false, 'errors' => ['roles' => ["You can't remove your own admin access or deactivate yourself."]]], 422));
+        }
+
+        $otherAdmins = User::whereKeyNot($user->id)->where('status', 'active')->whereHas('roles', fn ($r) => $r->where('name', 'admin'))->exists();
+        if (! $otherAdmins) {
+            abort(response()->json(['success' => false, 'errors' => ['roles' => ['This is the only active admin. Make someone else an admin first.']]], 422));
         }
     }
-    
-    /**
-     * Reactivate a user.
-     */
-    public function reactivate(User $user)
+
+    private function roles(): array
     {
-        $this->authorize('reactivate', $user);
-        
-        try {
-            $user->update(['status' => 'active']);
-            
-            return redirect()->route('users.show', $user)
-                ->with('success', 'User reactivated successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error reactivating user: ' . $e->getMessage());
-        }
+        return Role::orderBy('name')->pluck('name')->all();
     }
-    
+
     /**
-     * Assign roles to user.
+     * @return array{user: array, roles: array, status: string, password: ?string}
      */
-    public function assignRoles(User $user, Request $request)
+    private function validated(Request $request, ?User $user = null): array
     {
-        $this->authorize('assignRoles', $user);
-        
-        $request->validate([
-            'roles' => 'required|array',
-            'roles.*' => 'exists:roles,name',
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id),
+                Rule::requiredIf(fn () => collect($request->input('roles', []))->diff(['guest'])->isNotEmpty())],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'roles' => ['required', 'array', 'min:1'],
+            'roles.*' => ['string', Rule::exists('roles', 'name')],
+            'status' => ['required', Rule::in(array_keys(self::STATUSES))],
+            'password' => [$user ? 'nullable' : 'required', 'string', Password::min(8)],
+        ], [
+            'email.required' => 'Staff accounts sign in with their email, so it is needed.',
+            'roles.required' => 'Give the account at least one role.',
         ]);
-        
-        try {
-            $this->coreService->assignRoles($user, $request->input('roles'));
-            
-            return redirect()->route('users.show', $user)
-                ->with('success', 'Roles assigned successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error assigning roles: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Get users by role (API).
-     */
-    public function getByRole(Request $request)
-    {
-        $request->validate([
-            'role' => 'required|string|exists:roles,name',
-        ]);
-        
-        $users = User::whereHas('roles', function ($q) use ($request) {
-            $q->where('name', $request->input('role'));
-        })->get(['id', 'name', 'email']);
-        
-        return response()->json($users);
+
+        return [
+            'user' => ['name' => $data['name'], 'email' => $data['email'] ?? null, 'phone' => $data['phone'] ?? null],
+            'roles' => array_values(array_unique($data['roles'])),
+            'status' => $data['status'],
+            'password' => $data['password'] ?? null,
+        ];
     }
 }
