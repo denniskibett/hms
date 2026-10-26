@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\SystemHelper;
 use App\Models\BookingRequest;
+use App\Models\GuestMessage;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\CoreService;
@@ -83,6 +84,7 @@ class BookingRequestController extends Controller
             'handled_by' => $request->user()->id,
             'handled_at' => now(),
         ]);
+        GuestMessage::forBookingRequest($bookingRequest, 'request_declined', ['reason' => $reason], $request->user());
         $this->core->log($request->user()->id, 'booking_request_declined', "{$bookingRequest->reference} declined: {$reason}", ['booking_request_id' => $bookingRequest->id]);
 
         return back()->with('success', "{$bookingRequest->reference} declined.");

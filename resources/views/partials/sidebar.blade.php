@@ -223,6 +223,15 @@
                 </li>
                 <li>
                   <a
+                    href="{{ route('guest-messages.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'guest-messages.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Guest Messages
+                  </a>
+                </li>
+                <li>
+                  <a
                     href="{{ route('events.index') }}"
                     class="menu-dropdown-item group"
                     :class="page === 'events.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"

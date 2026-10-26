@@ -63,13 +63,17 @@
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <!-- Stay history -->
-        <div class="lg:col-span-2">
+        <div class="space-y-6 lg:col-span-2">
             <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
                     <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Bookings</h3>
                 </div>
                 @include('stays.partials.table', ['stays' => $stays, 'showGuest' => false, 'empty' => 'No bookings yet'])
             </div>
+
+            @if ($guest->user)
+                @include('guest-messages.partials.card', ['messageGuest' => $guest->user])
+            @endif
         </div>
 
         <!-- Profile -->
@@ -166,6 +170,10 @@
             </div>
         </div>
     </div>
+
+    @if ($guest->user)
+        @include('guest-messages.partials.send-modal', ['messageGuest' => $guest->user])
+    @endif
 </div>
 
 @include('guests.partials.modal-form')
@@ -174,6 +182,7 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('guestPage', (config) => ({
         isLoading: false,
+        messageOpen: @js($errors->has('body') || $errors->has('channels')),
 
         async destroy() {
             if (!confirm(@js("Delete {$guest->name}? This cannot be undone."))) return;

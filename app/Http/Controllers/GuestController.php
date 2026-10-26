@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\StayStatus;
 use App\Helpers\SystemHelper;
 use App\Models\Guest;
+use App\Models\GuestMessage;
 use App\Models\Role;
 use App\Models\Stay;
 use App\Models\User;
@@ -72,7 +73,9 @@ class GuestController extends Controller
         ];
         $totals['balance'] = round($totals['billed'] - $totals['paid'], 2);
 
-        return view('guests.show', compact('guest', 'stays', 'totals'));
+        $messages = GuestMessage::with('sender:id,name')->where('guest_id', $guest->user_id)->latest('id')->take(10)->get();
+
+        return view('guests.show', compact('guest', 'stays', 'totals', 'messages'));
     }
 
     public function store(Request $request): JsonResponse

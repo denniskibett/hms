@@ -71,7 +71,7 @@
                 </div>
                 <form x-show="declining" x-cloak method="POST" action="{{ route('booking-requests.decline', $item) }}" class="mt-3 flex flex-wrap gap-2">
                     @csrf
-                    <input type="text" name="reason" required maxlength="255" placeholder="Why? e.g. fully booked those dates (tell the guest)"
+                    <input type="text" name="reason" required maxlength="255" placeholder="Why? The guest gets this by SMS, e.g. fully booked those dates"
                            class="h-10 flex-1 rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 dark:border-gray-700 dark:text-white/90">
                     <button type="submit" class="rounded-lg bg-error-500 px-4 text-sm font-medium text-white hover:bg-error-600">Decline</button>
                 </form>

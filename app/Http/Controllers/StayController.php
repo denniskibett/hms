@@ -7,6 +7,7 @@ use App\Enums\StayStatus;
 use App\Exceptions\BookingException;
 use App\Helpers\SystemHelper;
 use App\Models\BookingRequest;
+use App\Models\GuestMessage;
 use App\Models\Room;
 use App\Models\Stay;
 use App\Models\User;
@@ -140,6 +141,11 @@ class StayController extends Controller
             ]);
         }
 
+        // Reservations are provisional; confirm only firm bookings
+        if ($stay->status === StayStatus::Booked->value) {
+            GuestMessage::forStay($stay, 'booking_confirmed', by: $request->user());
+        }
+
         return redirect()->route('stays.show', $stay)->with('success', "Booking #{$stay->id} saved.");
     }
 
@@ -154,7 +160,9 @@ class StayController extends Controller
             'services',
         ]);
 
-        return view('stays.show', compact('stay'));
+        $messages = GuestMessage::with('sender:id,name')->where('stay_id', $stay->id)->latest('id')->take(10)->get();
+
+        return view('stays.show', compact('stay', 'messages'));
     }
 
     public function edit(Stay $stay): View|RedirectResponse
@@ -202,7 +210,10 @@ class StayController extends Controller
 
     public function checkIn(Request $request, Stay $stay): RedirectResponse
     {
-        return $this->runAction(fn () => $this->bookings->checkIn($stay, $request->user()), "Stay #{$stay->id} checked in.");
+        return $this->runAction(function () use ($request, $stay) {
+            $this->bookings->checkIn($stay, $request->user());
+            GuestMessage::forStay($stay->fresh(), 'checked_in', by: $request->user());
+        }, "Stay #{$stay->id} checked in.");
     }
 
     public function checkOut(Request $request, Stay $stay): RedirectResponse

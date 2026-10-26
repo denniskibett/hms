@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Concerns;
 
 use App\Exceptions\BillingException;
+use App\Models\GuestMessage;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Payment;
@@ -40,6 +41,8 @@ trait HandlesFolio
         } catch (BillingException $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
+
+        GuestMessage::forPayment($payment, $request->user());
 
         return back()
             ->with('success', "Payment {$payment->payment_reference} recorded.")

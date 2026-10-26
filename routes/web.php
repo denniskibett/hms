@@ -33,6 +33,7 @@ use App\Http\Controllers\KitchenOrderBillingController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\BookingRequestController;
+use App\Http\Controllers\GuestMessageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +100,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('booking-requests', [BookingRequestController::class, 'index'])->name('booking-requests.index');
         Route::post('booking-requests/{bookingRequest}/convert', [BookingRequestController::class, 'convert'])->name('booking-requests.convert');
         Route::post('booking-requests/{bookingRequest}/decline', [BookingRequestController::class, 'decline'])->name('booking-requests.decline');
+
+        // SMS and email to guests
+        Route::get('messages', [GuestMessageController::class, 'index'])->name('guest-messages.index');
+        Route::post('messages', [GuestMessageController::class, 'store'])->name('guest-messages.store');
+        Route::post('messages/{guestMessage}/retry', [GuestMessageController::class, 'retry'])->name('guest-messages.retry');
+        Route::put('messages/templates', [GuestMessageController::class, 'updateTemplates'])
+            ->middleware('role:manager')
+            ->name('guest-messages.templates');
     });
 
     // Stay folio: front desk takes payments; finance too

@@ -7,6 +7,7 @@ use App\Helpers\SystemHelper;
 use App\Models\BookingRequest;
 use App\Models\Facility;
 use App\Models\FacilityPackage;
+use App\Models\GuestMessage;
 use App\Models\Room;
 use App\Models\RoomType;
 use Carbon\Carbon;
@@ -136,6 +137,7 @@ class FrontController extends Controller
         unset($data['website']);
         $data['children'] ??= 0;
         $bookingRequest = BookingRequest::create($data + ['ip_address' => $request->ip()]);
+        GuestMessage::forBookingRequest($bookingRequest, 'request_received');
 
         return redirect()->route('book.thanks')->with('booking_request', $bookingRequest->reference);
     }

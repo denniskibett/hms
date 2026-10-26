@@ -196,8 +196,8 @@ class SystemHelper
     {
         $settings = self::settings();
 
-        // Get the about_us JSON field
-        $aboutUs = $settings->about_us ?? null;
+        // Read from the JSON `settings.about_us` column (matches how settings() seeds it)
+        $aboutUs = self::get('settings.about_us', null);
 
         // Decode if it's stored as a JSON string
         if (is_string($aboutUs)) {
@@ -272,12 +272,49 @@ class SystemHelper
         return self::get('contact_email');
     }
 
-    public static function socials()
+    /**
+     * Get social media links as a flat `network => url` map.
+     *
+     * Handles both storage shapes:
+     *   - flat:   {"facebook":"https://...","twitter":"https://..."}
+     *   - nested: {"facebook":{"url":"https://...","label":"Facebook"}, ...}
+     *
+     * Always returns string => string, so views can safely render {{ $url }}.
+     */
+    public static function socials(): array
     {
         $system = System::first();
-        
-        // Decode JSON into an array, fallback to empty array
-        return $system && $system->socials ? json_decode($system->socials, true) : [];
+
+        if (! $system || ! $system->socials) {
+            return [];
+        }
+
+        $decoded = json_decode($system->socials, true);
+
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        $flat = [];
+
+        foreach ($decoded as $network => $value) {
+            // Case 1: value is a plain URL string
+            if (is_string($value)) {
+                if (filter_var($value, FILTER_VALIDATE_URL)) {
+                    $flat[$network] = $value;
+                }
+                continue;
+            }
+
+            // Case 2: value is an array like ['url' => '...', 'label' => '...']
+            if (is_array($value) && isset($value['url']) && is_string($value['url'])) {
+                if (filter_var($value['url'], FILTER_VALIDATE_URL)) {
+                    $flat[$network] = $value['url'];
+                }
+            }
+        }
+
+        return $flat;
     }
 
 
@@ -442,18 +479,17 @@ class SystemHelper
         return (int) self::get('hr.annual_leave_days', 21);
     }
 
-    public static function twoFactorAuthEnabled()
+    public static function twoFactorAuthEnabled(): bool
     {
-        $settings = System::settings()->settings ?? [];
-
-        return $settings['security']['two_factor_auth'] ?? false;
+        return (bool) self::get('settings.security.two_factor_auth', false);
     }
 
     public static function services()
     {
         $settings = self::settings();
 
-        $services = $settings->services ?? null;
+        // Read from the JSON `settings.services` column (matches how settings() seeds it)
+        $services = self::get('settings.services', null);
 
         if (is_string($services)) {
             $services = json_decode($services, true);

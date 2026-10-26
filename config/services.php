@@ -39,5 +39,11 @@ return [
         'analytics_id' => env('GOOGLE_ANALYTICS_ID'),
     ],
 
+    // Guest SMS. 'log' is test mode: messages are recorded, not sent.
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+        'sender_id' => env('SMS_SENDER_ID'),
+    ],
+
 
 ];

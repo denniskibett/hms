@@ -73,8 +73,9 @@
                 <p class="text-lg font-semibold text-white">{{ SystemHelper::appName() }}</p>
                 <p class="mt-2 text-sm">{{ SystemHelper::slogan() }}</p>
                 <div class="mt-4 flex gap-4 text-lg">
-                    @foreach (array_filter(SystemHelper::socials() ?: []) as $network => $url)
-                        <a href="{{ $url }}" target="_blank" rel="noopener" class="hover:text-white" aria-label="{{ $network }}"><i class="fab fa-{{ $network }}"></i></a>
+                    @foreach (SystemHelper::socials() as $network => $url)
+                        @continue(! is_string($url) || $url === '')
+                        <a href="{{ $url }}" target="_blank" rel="noopener" class="hover:text-white" aria-label="{{ ucfirst($network) }}"><i class="fab fa-{{ $network }}"></i></a>
                     @endforeach
                 </div>
             </div>
