@@ -266,7 +266,8 @@ class GuestMessage extends Model
 
         $response = Http::withToken($config['key'])
             ->acceptJson()
-            ->timeout(20)
+            ->connectTimeout(30)
+            ->timeout(30)
             ->when($config['sandbox'], fn ($http) => $http->withHeaders(['X-Sandbox-Mode' => 'true']))
             ->post(rtrim($config['url'], '/') . '/sms/send', [
                 'sender_id' => $config['sender_id'],
