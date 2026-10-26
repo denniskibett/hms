@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\RoomStatus;
 use App\Enums\TaskStatus;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,10 +14,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * A job for staff: cleaning a room, fixing a tap, a kitchen deep clean.
  * Cleaning and maintenance tasks on a room move the room's status along:
  * finishing the last one puts the room back in service.
+ *
+ * Repeating tasks: the first task of a series has is_recurring set and the
+ * pattern; each later copy points to it with parent_task_id. Copies are made
+ * by generateRecurring() as they fall due.
  */
 class Task extends Model
 {
     use HasFactory, SoftDeletes;
+
+    public const REPEATS = [
+        'daily' => ['day', 'days'],
+        'weekly' => ['week', 'weeks'],
+        'monthly' => ['month', 'months'],
+        'yearly' => ['year', 'years'],
+    ];
 
     public const PRIORITIES = [
         'low' => 'Low',
@@ -55,6 +67,10 @@ class Task extends Model
         'notes',
         'verification_notes',
         'parent_task_id',
+        'is_recurring',
+        'recurrence_pattern',
+        'recurrence_interval',
+        'recurrence_end_date',
     ];
 
     protected $casts = [
@@ -70,6 +86,9 @@ class Task extends Model
         'estimated_cost' => 'decimal:2',
         'actual_cost' => 'decimal:2',
         'checklist' => 'array',
+        'is_recurring' => 'boolean',
+        'recurrence_interval' => 'integer',
+        'recurrence_end_date' => 'date',
     ];
 
     protected static function booted(): void
@@ -130,6 +149,22 @@ class Task extends Model
     public function verifier()
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    /**
+     * The first task of the repeating series this one belongs to.
+     */
+    public function series()
+    {
+        return $this->belongsTo(Task::class, 'parent_task_id');
+    }
+
+    /**
+     * Copies made from this repeating task.
+     */
+    public function occurrences()
+    {
+        return $this->hasMany(Task::class, 'parent_task_id');
     }
 
     public function items()
@@ -247,6 +282,97 @@ class Task extends Model
         }
     }
 
+    // ---- Repeating tasks ---------------------------------------------------
+
+    /**
+     * "Every day", "Every 2 weeks until 31 Dec 2026", or null.
+     */
+    public function getRepeatLabelAttribute(): ?string
+    {
+        if (! $this->recurrence_pattern || ! isset(self::REPEATS[$this->recurrence_pattern])) {
+            return null;
+        }
+
+        [$one, $many] = self::REPEATS[$this->recurrence_pattern];
+        $every = max((int) $this->recurrence_interval, 1);
+
+        return 'Every ' . ($every === 1 ? $one : "{$every} {$many}")
+            . ($this->recurrence_end_date ? ' until ' . $this->recurrence_end_date->format('d M Y') : '');
+    }
+
+    /**
+     * The due date after $from in this series.
+     */
+    public function nextDueAfter(CarbonInterface $from): CarbonInterface
+    {
+        $every = max((int) $this->recurrence_interval, 1);
+        $next = $from->copy();
+
+        return match ($this->recurrence_pattern) {
+            'weekly' => $next->addWeeks($every),
+            'monthly' => $next->addMonthsNoOverflow($every),
+            'yearly' => $next->addYearsNoOverflow($every),
+            default => $next->addDays($every),
+        };
+    }
+
+    /**
+     * Make the next copy of every repeating series that falls due by the end
+     * of tomorrow, so staff see tomorrow's jobs today. A copy appears even if
+     * the previous one wasn't finished. After a long gap the series jumps to
+     * its next date instead of creating a backlog. Returns how many were made.
+     */
+    public static function generateRecurring(?CarbonInterface $now = null): int
+    {
+        $now ??= now();
+        $horizon = $now->copy()->addDay()->endOfDay();
+        $made = 0;
+
+        $series = self::where('is_recurring', true)
+            ->whereNull('parent_task_id')
+            ->whereNotNull('recurrence_pattern')
+            ->where(fn ($q) => $q->whereNull('recurrence_end_date')->orWhereDate('recurrence_end_date', '>=', $now->toDateString()))
+            ->get();
+
+        foreach ($series as $root) {
+            $last = self::withTrashed()->where(fn ($q) => $q->whereKey($root->id)->orWhere('parent_task_id', $root->id))->max('due_date');
+            $next = $root->nextDueAfter(\Illuminate\Support\Carbon::parse($last));
+
+            // Skip dates missed while nothing ran (keep at most today's)
+            while ($next->lt($now->copy()->startOfDay())) {
+                $next = $root->nextDueAfter($next);
+            }
+
+            while ($next->lte($horizon)) {
+                if ($root->recurrence_end_date && $next->copy()->startOfDay()->gt($root->recurrence_end_date)) {
+                    break;
+                }
+
+                self::create([
+                    'task_type_id' => $root->task_type_id,
+                    'title' => $root->title,
+                    'description' => $root->description,
+                    'assigned_to' => $root->assigned_to,
+                    'department_id' => $root->department_id,
+                    'room_id' => $root->room_id,
+                    'facility_id' => $root->facility_id,
+                    'priority' => $root->priority,
+                    'estimated_minutes' => $root->estimated_minutes,
+                    'checklist' => $root->checklist
+                        ? array_map(fn ($i) => ['item' => $i['item'] ?? (string) $i, 'completed' => false], $root->checklist)
+                        : null,
+                    'due_date' => $next,
+                    'created_by' => $root->created_by,
+                    'parent_task_id' => $root->id,
+                ]);
+                $made++;
+                $next = $root->nextDueAfter($next);
+            }
+        }
+
+        return $made;
+    }
+
     public function formData(): array
     {
         return [
@@ -260,6 +386,11 @@ class Task extends Model
             'priority' => $this->priority,
             'due_date' => $this->due_date?->format('Y-m-d\TH:i'),
             'estimated_minutes' => $this->estimated_minutes,
+            // Only the first task of a series carries the repeat settings
+            'can_repeat' => ! $this->parent_task_id,
+            'recurrence_pattern' => $this->is_recurring ? ($this->recurrence_pattern ?? '') : '',
+            'recurrence_interval' => $this->recurrence_interval ?: 1,
+            'recurrence_end_date' => $this->recurrence_end_date?->toDateString() ?? '',
         ];
     }
 }

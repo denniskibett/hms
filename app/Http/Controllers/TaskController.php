@@ -34,6 +34,7 @@ class TaskController extends Controller
     public function index(Request $request): View
     {
         $user = $request->user();
+        self::repeatDueTasks();
         $filters = $request->validate([
             'view' => ['nullable', Rule::in(['open', 'mine', 'overdue', 'done', 'all'])],
             'category' => ['nullable', Rule::in(array_keys(TaskType::CATEGORIES))],
@@ -74,7 +75,8 @@ class TaskController extends Controller
     {
         $this->authorizeView($request->user(), $task);
 
-        $task->load(['taskType', 'assignee', 'department', 'room.roomType', 'stay.guest', 'creator', 'verifier', 'comments.user', 'items.inventoryItem']);
+        $task->load(['taskType', 'assignee', 'department', 'room.roomType', 'stay.guest', 'creator', 'verifier', 'comments.user', 'items.inventoryItem', 'series'])
+            ->loadCount('occurrences');
         $stock = InventoryItem::active()->where('quantity', '>', 0)->orderBy('name')->get(['id', 'name', 'unit_of_measure', 'quantity']);
 
         return view('tasks.show', array_merge(compact('task', 'stock'), $this->formOptions()));
@@ -90,6 +92,10 @@ class TaskController extends Controller
 
             return $task;
         });
+
+        if ($task->is_recurring) {
+            Task::generateRecurring();
+        }
 
         $this->core->log($request->user()->id, 'task_created', "Task #{$task->id} \"{$task->title}\" created", ['task_id' => $task->id]);
 
@@ -121,6 +127,40 @@ class TaskController extends Controller
         });
 
         return response()->json(['success' => true, 'message' => 'Task updated.']);
+    }
+
+    /**
+     * End a repeating series. Copies already made stay as they are.
+     */
+    public function stopRepeating(Request $request, Task $task): RedirectResponse
+    {
+        $user = $request->user();
+        $this->authorizeView($user, $task);
+        $root = $task->series ?? $task;
+
+        if (! $root->is_recurring) {
+            return back()->with('error', 'This task does not repeat.');
+        }
+        if (! $user->hasAnyRole(['admin', 'manager']) && $root->created_by !== $user->id) {
+            return back()->with('error', 'Only a manager or the person who set it up can stop a repeating task.');
+        }
+
+        $root->update(['is_recurring' => false]);
+        $root->comments()->create(['user_id' => $user->id, 'content' => "Stopped repeating ({$root->repeat_label})."]);
+        $this->core->log($user->id, 'task_repeat_stopped', "Task #{$root->id} \"{$root->title}\" no longer repeats", ['task_id' => $root->id]);
+
+        return back()->with('success', 'This task will not repeat any more.');
+    }
+
+    /**
+     * Make due copies of repeating tasks, at most once an hour. The scheduler
+     * also does this daily (tasks:repeat); this keeps it working without one.
+     */
+    public static function repeatDueTasks(): void
+    {
+        if (\Illuminate\Support\Facades\Cache::add('tasks:repeat:ran', true, now()->addHour())) {
+            Task::generateRecurring();
+        }
     }
 
     /**
@@ -382,6 +422,11 @@ class TaskController extends Controller
             'priority' => ['required', Rule::in(array_keys(Task::PRIORITIES))],
             'due_date' => ['required', 'date'],
             'estimated_minutes' => ['nullable', 'integer', 'min:1', 'max:10000'],
+            'recurrence_pattern' => ['nullable', Rule::in(array_keys(Task::REPEATS))],
+            'recurrence_interval' => ['nullable', 'required_with:recurrence_pattern', 'integer', 'min:1', 'max:365'],
+            'recurrence_end_date' => ['nullable', 'date', 'after_or_equal:due_date'],
+        ], [
+            'recurrence_end_date.after_or_equal' => 'The repeat must end on or after the first due date.',
         ]);
 
         $type = TaskType::find($data['task_type_id']);
@@ -392,6 +437,17 @@ class TaskController extends Controller
         $data['assigned_to'] ??= null;
         $data['room_id'] ??= null;
         $data['blocks_room'] = ! empty($data['room_id']) && ($data['blocks_room'] ?? false);
+
+        // Repeat settings live on the first task of a series; copies can't repeat themselves
+        if ($task?->parent_task_id || empty($data['recurrence_pattern'])) {
+            $data = array_merge($data, ['is_recurring' => false, 'recurrence_pattern' => null, 'recurrence_interval' => null, 'recurrence_end_date' => null]);
+        } else {
+            $data['is_recurring'] = true;
+            $data['recurrence_end_date'] ??= null;
+        }
+        if ($task?->parent_task_id) {
+            unset($data['is_recurring'], $data['recurrence_pattern'], $data['recurrence_interval'], $data['recurrence_end_date']);
+        }
 
         return $data;
     }

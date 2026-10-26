@@ -95,6 +95,7 @@
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                             <td class="px-5 py-3">
                                 <a href="{{ route('tasks.show', $task) }}" class="font-medium text-gray-800 hover:text-primary dark:text-white/90">{{ $task->title }}</a>
+                                @if ($task->is_recurring || $task->parent_task_id)<i class="fas fa-redo ml-1 text-xs text-primary" title="Repeating task"></i>@endif
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     <span class="{{ $task->priority_classes }}">{{ $task->priority_label }}</span> · {{ $task->taskType->name ?? '—' }}
                                 </p>

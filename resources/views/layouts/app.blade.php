@@ -41,6 +41,29 @@
         }
     </style>
 
+    {{-- Unsaved form drafts: forms keep what was typed if the page reloads or a dialog
+         is closed, until it is saved. Kept in this browser only, per user; never passwords. --}}
+    <script>
+        window.formDrafts = {
+            prefix: @js('hms:draft:' . auth()->id() . ':'),
+            maxAgeDays: 7,
+            key(form, id) { return this.prefix + form + ':' + (id || 'new'); },
+            load(key) {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(key) || 'null');
+                    if (!saved || Date.now() - saved.at > this.maxAgeDays * 864e5) return null;
+                    return saved.data;
+                } catch (e) { return null; }
+            },
+            save(key, data) {
+                try {
+                    const clean = JSON.parse(JSON.stringify(data, (k, v) => /password/i.test(k) ? undefined : v));
+                    localStorage.setItem(key, JSON.stringify({ at: Date.now(), data: clean }));
+                } catch (e) { /* storage full or blocked: drafts are a convenience */ }
+            },
+            clear(key) { try { localStorage.removeItem(key); } catch (e) {} },
+        };
+    </script>
 </head>
 
 <body class="font-outfit antialiased bg-gray-100"

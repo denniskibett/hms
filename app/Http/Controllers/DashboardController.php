@@ -56,6 +56,8 @@ class DashboardController extends Controller
             $roles[] = 'manager';
         }
 
+        TaskController::repeatDueTasks();
+
         $sections = [];
         foreach (self::SECTIONS as $name => $allowed) {
             if (array_intersect($allowed, $roles)) {

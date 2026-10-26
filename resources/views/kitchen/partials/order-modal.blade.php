@@ -171,9 +171,18 @@ document.addEventListener('alpine:init', () => {
         payNow: true,
         payment: { method: 'cash', payment_reference: '' },
         form: {},
+        draftKey: window.formDrafts.key('kitchen-order', null),
+        draftRestored: false,
 
         init() {
             this.form = this.blank();
+            // Keep a half-taken order until it is sent (see window.formDrafts)
+            this.$watch('form', () => {
+                if (!this.isOpen) return;
+                this.form.items.length || this.form.special_instructions || this.form.customer_name
+                    ? window.formDrafts.save(this.draftKey, this.form)
+                    : window.formDrafts.clear(this.draftKey);
+            });
         },
 
         blank() {
@@ -201,13 +210,21 @@ document.addEventListener('alpine:init', () => {
         },
 
         open() {
-            this.form = this.blank();
+            const draft = window.formDrafts.load(this.draftKey);
+            this.form = draft ? { ...this.blank(), ...draft } : this.blank();
+            this.draftRestored = !!draft;
             this.payNow = true;
             this.payment = { method: 'cash', payment_reference: '' };
             this.search = '';
             this.errors = {};
             this.isOpen = true;
             document.body.classList.add('overflow-hidden');
+        },
+
+        discardDraft() {
+            window.formDrafts.clear(this.draftKey);
+            this.form = this.blank();
+            this.draftRestored = false;
         },
 
         close() {
@@ -250,6 +267,7 @@ document.addEventListener('alpine:init', () => {
                 const data = await response.json().catch(() => ({}));
 
                 if (response.ok && data.success !== false) {
+                    window.formDrafts.clear(this.draftKey);
                     this.close();
                     if (data.receipt_url) window.open(data.receipt_url, '_blank');
                     window.location.reload();

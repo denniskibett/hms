@@ -158,6 +158,29 @@
         </div>
 
         <div class="space-y-6">
+            @php $root = $task->series ?? $task; @endphp
+            @if ($root->recurrence_pattern && ($root->is_recurring || $task->series))
+                <div class="rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm">
+                    <p class="font-medium text-gray-800 dark:text-white/90">
+                        <i class="fas fa-redo mr-1 text-primary"></i>
+                        {{ $root->is_recurring ? $root->repeat_label : 'Stopped repeating' }}
+                    </p>
+                    <p class="mt-1 text-gray-600 dark:text-gray-400">
+                        @if ($task->series)
+                            A copy of <a href="{{ route('tasks.show', $task->series) }}" class="text-primary hover:underline">task #{{ $task->series->id }}</a>.
+                        @else
+                            {{ $task->occurrences_count }} {{ Str::plural('copy', $task->occurrences_count) }} made so far.
+                        @endif
+                    </p>
+                    @if ($root->is_recurring && ($isManager || $root->created_by === $user->id))
+                        <form method="POST" action="{{ route('tasks.stop-repeating', $task) }}" class="mt-3" onsubmit="return confirm('Stop making new copies of this task?')">
+                            @csrf
+                            <button type="submit" class="text-sm text-error-500 hover:underline">Stop repeating</button>
+                        </form>
+                    @endif
+                </div>
+            @endif
+
             <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800"><h3 class="text-lg font-medium text-gray-800 dark:text-white/90">Details</h3></div>
                 <dl class="space-y-3 p-5 text-sm">

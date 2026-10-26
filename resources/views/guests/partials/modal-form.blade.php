@@ -23,6 +23,11 @@
             <h4 class="mb-6 text-lg font-medium text-gray-800 dark:text-white/90" x-text="form.id ? 'Edit Guest' : 'New Guest'"></h4>
 
             <form @submit.prevent="submit()" class="space-y-6">
+                <div x-show="draftRestored" x-cloak
+                     class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-info-200 bg-info-50 px-4 py-3 text-sm text-info-700 dark:border-info-500/30 dark:bg-info-500/10 dark:text-info-400">
+                    <span><i class="fas fa-history mr-1"></i> We kept what you typed last time. Check it, then save.</span>
+                    <button type="button" @click="discardDraft()" class="text-xs font-medium underline">Discard and start again</button>
+                </div>
                 <div x-show="Object.keys(errors).length" x-cloak
                      class="rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">
                     <p class="mb-1 font-medium">Please fix the following:</p>
@@ -149,9 +154,20 @@ document.addEventListener('alpine:init', () => {
         isLoading: false,
         errors: {},
         form: {},
+        original: null,
+        draftKey: null,
+        draftRestored: false,
+        pristine: null,
 
         init() {
             this.form = this.blank();
+            // Keep what was typed until it is saved (see window.formDrafts)
+            this.$watch('form', () => {
+                if (!this.isOpen || !this.draftKey) return;
+                JSON.stringify(this.form) === this.pristine
+                    ? window.formDrafts.clear(this.draftKey)
+                    : window.formDrafts.save(this.draftKey, this.form);
+            });
         },
 
         blank() {
@@ -172,9 +188,25 @@ document.addEventListener('alpine:init', () => {
                 : base;
             // Options not in the preset list (from older records) stay selectable
             this.form.preferences.tags.forEach(t => { if (!this.tagOptions.includes(t)) this.tagOptions.push(t); });
+            this.original = guest;
+            this.pristine = JSON.stringify(this.form);
+            this.draftKey = window.formDrafts.key('guest', guest?.id);
+            this.draftRestored = false;
+            const draft = window.formDrafts.load(this.draftKey);
+            if (draft) {
+                this.form = { ...this.form, ...draft, id: guest?.id ?? null };
+                this.draftRestored = true;
+            }
             this.errors = {};
             this.isOpen = true;
             document.body.classList.add('overflow-hidden');
+        },
+
+        discardDraft() {
+            window.formDrafts.clear(this.draftKey);
+            this.open(this.original);
+            window.formDrafts.clear(this.draftKey);
+            this.draftRestored = false;
         },
 
         close() {
@@ -205,6 +237,7 @@ document.addEventListener('alpine:init', () => {
                 const data = await response.json().catch(() => ({}));
 
                 if (response.ok && data.success !== false) {
+                    window.formDrafts.clear(this.draftKey);
                     this.close();
                     this.$dispatch('guest-saved', { guest: data.guest, created: !isEdit, message: data.message });
                     return;

@@ -13,7 +13,8 @@
         'update' => route('tasks.update', ':id'),
         'destroy' => '',
         'blank' => ['id' => null, 'task_type_id' => '', 'title' => '', 'description' => '', 'assigned_to' => '', 'room_id' => '', 'blocks_room' => false,
-                    'priority' => 'medium', 'due_date' => now()->addHours(2)->format('Y-m-d\TH:i'), 'estimated_minutes' => null],
+                    'priority' => 'medium', 'due_date' => now()->addHours(2)->format('Y-m-d\TH:i'), 'estimated_minutes' => null,
+                    'can_repeat' => true, 'recurrence_pattern' => '', 'recurrence_interval' => 1, 'recurrence_end_date' => ''],
      ]))"
      @open-task-form.window="open($event.detail)" @keydown.escape.window="close()">
     <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5">
@@ -85,6 +86,38 @@
                 <input type="checkbox" x-model="form.blocks_room" class="h-4 w-4 rounded border-gray-300 text-primary">
                 Take the room out of service until this is done
             </label>
+
+            <!-- Repeat (only on the first task of a series) -->
+            <fieldset x-show="form.can_repeat" class="rounded-lg bg-gray-50 p-4 dark:bg-white/[0.03]">
+                <legend class="sr-only">Repeat</legend>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div>
+                        <label class="{{ $labelClass }}">Repeats</label>
+                        <select x-model="form.recurrence_pattern" class="{{ $inputClass }}">
+                            <option value="">Never</option>
+                            @foreach (\App\Models\Task::REPEATS as $value => [$one, $many])
+                                <option value="{{ $value }}">Every {{ $one }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div x-show="form.recurrence_pattern">
+                        <label class="{{ $labelClass }}">How often</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">every</span>
+                            <input type="number" x-model.number="form.recurrence_interval" min="1" max="365" class="{{ $inputClass }}">
+                            <span class="text-sm text-gray-600 dark:text-gray-400"
+                                  x-text="({ daily: ['day', 'days'], weekly: ['week', 'weeks'], monthly: ['month', 'months'], yearly: ['year', 'years'] })[form.recurrence_pattern]?.[form.recurrence_interval > 1 ? 1 : 0]"></span>
+                        </div>
+                    </div>
+                    <div x-show="form.recurrence_pattern">
+                        <label class="{{ $labelClass }}">Until (optional)</label>
+                        <input type="date" x-model="form.recurrence_end_date" class="{{ $inputClass }}">
+                    </div>
+                </div>
+                <p x-show="form.recurrence_pattern" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    The next copy appears a day before it is due, with the same person, room and checklist.
+                </p>
+            </fieldset>
 
             <div class="flex justify-end gap-3">
                 <button type="button" @click="close()" class="rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300">Cancel</button>

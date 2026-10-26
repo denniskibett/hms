@@ -163,6 +163,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('tasks/{task}/checklist', [TaskController::class, 'toggleChecklist'])->name('tasks.checklist');
         Route::post('tasks/{task}/comments', [TaskController::class, 'comment'])->name('tasks.comments.store');
         Route::post('tasks/{task}/items', [TaskController::class, 'useItem'])->name('tasks.items.store');
+        Route::post('tasks/{task}/stop-repeating', [TaskController::class, 'stopRepeating'])->name('tasks.stop-repeating');
     });
     Route::middleware('role:manager')->group(function () {
         Route::post('task-types', [TaskController::class, 'storeType'])->name('task-types.store');

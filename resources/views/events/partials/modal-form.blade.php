@@ -205,9 +205,20 @@ document.addEventListener('alpine:init', () => {
         isLoading: false,
         errors: {},
         form: {},
+        original: null,
+        draftKey: null,
+        draftRestored: false,
+        pristine: null,
 
         init() {
             this.form = this.blank();
+            // Keep what was typed until it is saved (see window.formDrafts)
+            this.$watch('form', () => {
+                if (!this.isOpen || !this.draftKey) return;
+                JSON.stringify(this.form) === this.pristine
+                    ? window.formDrafts.clear(this.draftKey)
+                    : window.formDrafts.save(this.draftKey, this.form);
+            });
         },
 
         blank() {
@@ -252,9 +263,28 @@ document.addEventListener('alpine:init', () => {
             // Existing lines keep their quantities; only new lines follow pax / days
             this.form.items = (data?.items ?? []).map(item => ({ ...item, auto_qty: false, auto_days: false }));
             if (!this.form.id && this.form.facility_id) this.venueChanged();
+            this.original = data;
+            this.pristine = JSON.stringify(this.form);
+            this.draftKey = window.formDrafts.key('event', data?.id);
+            this.draftRestored = false;
+
+            // A venue passed in from the venue page is a prefill: start fresh
+            const draft = data && !data.id ? null : window.formDrafts.load(this.draftKey);
+            if (draft) {
+                this.form = { ...this.form, ...draft, id: data?.id ?? null };
+                this.draftRestored = true;
+            }
+
             this.errors = {};
             this.isOpen = true;
             document.body.classList.add('overflow-hidden');
+        },
+
+        discardDraft() {
+            window.formDrafts.clear(this.draftKey);
+            this.open(this.original);
+            window.formDrafts.clear(this.draftKey);
+            this.draftRestored = false;
         },
 
         close() {
@@ -322,6 +352,7 @@ document.addEventListener('alpine:init', () => {
                 const data = await response.json().catch(() => ({}));
 
                 if (response.ok && data.success !== false) {
+                    window.formDrafts.clear(this.draftKey);
                     this.close();
                     isEdit ? window.location.reload() : window.location.href = data.url;
                     return;
