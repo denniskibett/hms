@@ -210,6 +210,19 @@
                 </li>
                 <li>
                   <a
+                    href="{{ route('booking-requests.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'booking-requests.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Website Requests
+                    @php($newRequests = \App\Models\BookingRequest::open()->count())
+                    @if ($newRequests)
+                      <span class="absolute right-3 rounded-full bg-warning-500 px-2 text-xs font-medium text-white">{{ $newRequests }}</span>
+                    @endif
+                  </a>
+                </li>
+                <li>
+                  <a
                     href="{{ route('events.index') }}"
                     class="menu-dropdown-item group"
                     :class="page === 'events.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"

@@ -37,6 +37,9 @@
     @unless ($isNew)
         @method('PUT')
     @endunless
+    @if ($isNew && ($requestId = old('booking_request_id', ($bookingRequest ?? null)?->id)))
+        <input type="hidden" name="booking_request_id" value="{{ $requestId }}">
+    @endif
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <!-- Left: booking details -->

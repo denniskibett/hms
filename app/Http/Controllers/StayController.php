@@ -6,6 +6,7 @@ use App\Enums\MealPlan;
 use App\Enums\StayStatus;
 use App\Exceptions\BookingException;
 use App\Helpers\SystemHelper;
+use App\Models\BookingRequest;
 use App\Models\Room;
 use App\Models\Stay;
 use App\Models\User;
@@ -86,7 +87,37 @@ class StayController extends Controller
             'status' => StayStatus::Booked->value,
         ]);
 
-        return view('stays.create', $this->formData($stay));
+        // Converting a website request: fill in its dates, plan and notes, and
+        // suggest free rooms of the type asked for
+        $bookingRequest = $request->integer('request')
+            ? BookingRequest::with('roomType')->where('status', 'new')->find($request->integer('request'))
+            : null;
+        $lines = null;
+
+        if ($bookingRequest) {
+            $stay->fill([
+                'arrival_date' => $bookingRequest->arrival_date,
+                'departure_date' => $bookingRequest->departure_date,
+                'meal_plan' => $bookingRequest->meal_plan,
+                'special_requests' => trim("Website request {$bookingRequest->reference}" . ($bookingRequest->message ? ": {$bookingRequest->message}" : '')),
+            ]);
+
+            $free = Room::availableBetween($bookingRequest->arrival_date, $bookingRequest->departure_date)
+                ->when($bookingRequest->room_type_id, fn ($q, $type) => $q->orderByRaw('room_type_id = ? desc', [$type]))
+                ->orderBy('room_number')
+                ->take($bookingRequest->rooms)
+                ->pluck('id');
+            $count = max($bookingRequest->rooms, 1);
+            $lines = collect(range(0, $count - 1))->map(fn ($i) => [
+                'room_id' => $free[$i] ?? '',
+                'adults' => max(intdiv($bookingRequest->adults, $count) + ($i < $bookingRequest->adults % $count ? 1 : 0), 1),
+                'children' => intdiv($bookingRequest->children, $count) + ($i < $bookingRequest->children % $count ? 1 : 0),
+                'rate' => null,
+                'guest_notes' => null,
+            ])->all();
+        }
+
+        return view('stays.create', $this->formData($stay, $lines) + ['bookingRequest' => $bookingRequest]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -97,6 +128,16 @@ class StayController extends Controller
             $stay = $this->bookings->create($data, $request->user());
         } catch (BookingException $e) {
             return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        // Booked from a website request
+        if ($requestId = $request->integer('booking_request_id')) {
+            BookingRequest::whereKey($requestId)->where('status', 'new')->update([
+                'status' => 'converted',
+                'stay_id' => $stay->id,
+                'handled_by' => $request->user()->id,
+                'handled_at' => now(),
+            ]);
         }
 
         return redirect()->route('stays.show', $stay)->with('success', "Booking #{$stay->id} saved.");
@@ -229,7 +270,7 @@ class StayController extends Controller
         return back()->with('success', $message);
     }
 
-    private function formData(Stay $stay): array
+    private function formData(Stay $stay, ?array $lines = null): array
     {
         $guests = User::whereHas('roles', fn ($q) => $q->where('name', 'guest'))
             ->orWhere('id', $stay->guest_id)
@@ -246,7 +287,7 @@ class StayController extends Controller
             'stay' => $stay,
             'guests' => $guests,
             'rooms' => $rooms,
-            'lines' => old('rooms', $stay->roomAllocations->map(fn ($a) => [
+            'lines' => old('rooms', $lines ?? $stay->roomAllocations->map(fn ($a) => [
                 'room_id' => $a->room_id,
                 'adults' => $a->adults,
                 'children' => $a->children,

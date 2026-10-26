@@ -32,6 +32,7 @@ use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\KitchenOrderBillingController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\FrontController;
+use App\Http\Controllers\BookingRequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,9 +40,12 @@ use App\Http\Controllers\FrontController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('welcome'); // Your hotel template
-})->name('home');
+Route::get('/', [FrontController::class, 'home'])->name('home');
+Route::get('/book', [FrontController::class, 'book'])->name('book');
+Route::post('/book', [FrontController::class, 'submitBooking'])
+    ->middleware('throttle:5,1')
+    ->name('book.submit');
+Route::get('/book/thanks', [FrontController::class, 'thanks'])->name('book.thanks');
 Route::get('/about', [FrontController::class, 'about'])->name('about');
 Route::get('/contact', [FrontController::class, 'contact'])->name('contact');
 Route::post('/contact', [FrontController::class, 'submitContact'])
@@ -90,6 +94,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('stays/{stay}/check-in', [StayController::class, 'checkIn'])->name('stays.check-in');
         Route::post('stays/{stay}/check-out', [StayController::class, 'checkOut'])->name('stays.check-out');
         Route::post('stays/{stay}/cancel', [StayController::class, 'cancel'])->name('stays.cancel');
+
+        // Requests from the public website
+        Route::get('booking-requests', [BookingRequestController::class, 'index'])->name('booking-requests.index');
+        Route::post('booking-requests/{bookingRequest}/convert', [BookingRequestController::class, 'convert'])->name('booking-requests.convert');
+        Route::post('booking-requests/{bookingRequest}/decline', [BookingRequestController::class, 'decline'])->name('booking-requests.decline');
     });
 
     // Stay folio: front desk takes payments; finance too
