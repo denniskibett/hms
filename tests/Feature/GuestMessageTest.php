@@ -14,6 +14,7 @@ use App\Models\System;
 use App\Models\User;
 use App\Services\BookingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -213,6 +214,43 @@ class GuestMessageTest extends TestCase
         Mail::assertSent(GuestMessageMail::class, fn ($mail) => $mail->hasTo('otieno@example.com')
             && str_contains($mail->render(), 'Line one<br />'));
         $this->assertSame('sent', GuestMessage::sole()->status);
+    }
+
+    public function test_kenyasms_sends_and_records_the_message_id(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(['kenyasms.test/*' => Http::response(['status' => 'success', 'message_id' => 'KS-123'])]);
+        config([
+            'services.sms.driver' => 'kenyasms',
+            'services.kenyasms' => ['key' => 'k', 'url' => 'https://kenyasms.test/api/v1', 'sender_id' => 'HOTEL', 'type' => 'transactional', 'sandbox' => false],
+        ]);
+
+        GuestMessage::queue('sms', '254712345678', 'Hello')->deliver();
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://kenyasms.test/api/v1/sms/send'
+            && $request->hasHeader('Authorization', 'Bearer k')
+            && $request['recipient'] === '254712345678'
+            && $request['sender_id'] === 'HOTEL'
+            && $request['message'] === 'Hello');
+        $message = GuestMessage::sole();
+        $this->assertSame('sent', $message->status);
+        $this->assertSame('KS-123', $message->provider_ref);
+    }
+
+    public function test_kenyasms_errors_mark_the_message_failed(): void
+    {
+        Http::preventStrayRequests();
+        Http::fake(['kenyasms.test/*' => Http::response(['status' => 'error', 'message' => 'Insufficient balance'], 402)]);
+        config([
+            'services.sms.driver' => 'kenyasms',
+            'services.kenyasms' => ['key' => 'k', 'url' => 'https://kenyasms.test/api/v1', 'sender_id' => 'HOTEL', 'type' => 'transactional', 'sandbox' => false],
+        ]);
+
+        GuestMessage::queue('sms', '254712345678', 'Hello')->deliver();
+
+        $message = GuestMessage::sole();
+        $this->assertSame('failed', $message->status);
+        $this->assertSame('KenyaSMS: Insufficient balance', $message->error);
     }
 
     public function test_failed_messages_can_be_sent_again(): void

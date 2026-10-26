@@ -6,6 +6,7 @@ use App\Helpers\SystemHelper;
 use App\Mail\GuestMessageMail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -249,8 +250,36 @@ class GuestMessage extends Model
     {
         return match ($driver = config('services.sms.driver')) {
             'log' => $this->logOnly('sms'),
+            'kenyasms' => $this->sendKenyaSms(),
             default => throw new \RuntimeException("SMS provider '{$driver}' is not set up."),
         };
+    }
+
+    // KenyaSMS: POST /sms/send, answers {"status": "success", "message_id": ...}
+    private function sendKenyaSms(): array
+    {
+        $config = config('services.kenyasms');
+
+        if (! $config['key'] || ! $config['sender_id']) {
+            throw new \RuntimeException('KenyaSMS key or sender ID is missing from .env.');
+        }
+
+        $response = Http::withToken($config['key'])
+            ->acceptJson()
+            ->timeout(20)
+            ->when($config['sandbox'], fn ($http) => $http->withHeaders(['X-Sandbox-Mode' => 'true']))
+            ->post(rtrim($config['url'], '/') . '/sms/send', [
+                'sender_id' => $config['sender_id'],
+                'recipient' => $this->recipient,
+                'message' => $this->body,
+                'message_type' => $config['type'],
+            ]);
+
+        if ($response->json('status') !== 'success') {
+            throw new \RuntimeException('KenyaSMS: ' . ($response->json('error') ?? $response->json('message') ?? "HTTP {$response->status()}"));
+        }
+
+        return ['sent', 'kenyasms', (string) ($response->json('message_id') ?? $response->json('id')) ?: null];
     }
 
     private function sendEmail(): array

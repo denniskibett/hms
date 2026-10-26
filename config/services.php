@@ -42,7 +42,14 @@ return [
     // Guest SMS. 'log' is test mode: messages are recorded, not sent.
     'sms' => [
         'driver' => env('SMS_DRIVER', 'log'),
-        'sender_id' => env('SMS_SENDER_ID'),
+    ],
+
+    'kenyasms' => [
+        'key' => env('KENYASMS_KEY'),
+        'url' => env('KENYASMS_URL', 'https://kenyasms.com/api/v1'),
+        'sender_id' => env('KENYASMS_SENDER_ID'),
+        'type' => env('KENYASMS_DEFAULT_TYPE', 'transactional'),
+        'sandbox' => (bool) env('KENYASMS_SANDBOX', false),
     ],
 
 
