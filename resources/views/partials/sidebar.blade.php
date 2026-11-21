@@ -1,34 +1,15 @@
 <aside
   :class="sidebarToggle ? 'translate-x-0 lg:w-[90px]' : '-translate-x-full'"
-  class="sidebar fixed left-0 top-0 z-9999 flex h-screen w-[290px] flex-col overflow-y-hidden border-r border-gray-200 bg-white px-5 dark:border-gray-800 dark:bg-black lg:static lg:translate-x-0"
+  class="sidebar fixed left-0 top-0 z-9999 flex h-screen w-[290px] flex-col overflow-y-hidden border-r border-gray-200 bg-white px-5 dark:border-gray-800 lg:static lg:translate-x-0"
 >
 <!-- SIDEBAR HEADER -->
 <div
     :class="sidebarToggle ? 'justify-center' : 'justify-between'"
     class="flex items-center gap-2 pt-8 pb-7 sidebar-header"
 >
-    <a href="{{ route('dashboard') }}" class="flex items-center">
-        <!-- Full Logo (hidden when toggled) -->
-        <span class="logo" :class="sidebarToggle ? 'hidden' : ''">
-            <img
-                class="dark:hidden h-12"
-                src="{{ SystemHelper::logoUrl() ?? asset('images/logo/logo.svg') }}"
-                alt="{{ SystemHelper::appName() }} Logo"
-            />
-            <img
-                class="hidden dark:block h-12"
-                src="{{ SystemHelper::logoUrl(true) ?? asset('images/logo/logo-dark.svg') }}"
-                alt="{{ SystemHelper::appName() }} Logo"
-            />
-        </span>
-
-        <!-- Icon Logo (shown when toggled) -->
-        <img
-            class="logo-icon h-10"
-            :class="sidebarToggle ? 'lg:block' : 'hidden'"
-            src="{{ SystemHelper::logoUrl(true) ?? asset('images/logo/logo-icon.svg') }}"
-            alt="{{ SystemHelper::appName() }} Icon"
-        />
+    <a href="{{ route('dashboard') }}" class="flex items-center gap-3" aria-label="{{ SystemHelper::appName() }} dashboard">
+        @include('public.partials.logo', ['class' => 'h-12 w-12 shrink-0'])
+        <span class="text-base font-semibold leading-tight text-gray-800" :class="sidebarToggle ? 'lg:hidden' : ''">{{ SystemHelper::appName() }}</span>
     </a>
 </div>
 <!-- SIDEBAR HEADER -->

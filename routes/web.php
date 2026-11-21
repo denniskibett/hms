@@ -81,6 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/search', \App\Http\Controllers\SearchController::class)->name('search');
 
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -139,7 +140,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::middleware('role:manager,receptionist')->group(function () {
-        Route::resource('room-types', RoomTypeController::class);
+        // Room types are added and edited in dialogs on the list page
+        Route::resource('room-types', RoomTypeController::class)->except(['create', 'edit']);
     });
 
     // Conference & events: front office books, managers set up venues and packages
