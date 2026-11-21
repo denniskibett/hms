@@ -70,6 +70,16 @@ use Illuminate\Support\Facades\Storage;
                     </svg>
                     Colors
                 </button>
+                <button type="button" onclick="switchTab('billing')" data-tab="billing" 
+                        class="tab-button inline-flex items-center px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
+                    <i class="fas fa-percent mr-2 text-xs"></i>
+                    Billing &amp; taxes
+                </button>
+                <button type="button" onclick="switchTab('payments')" data-tab="payments" 
+                        class="tab-button inline-flex items-center px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
+                    <i class="fas fa-mobile-screen-button mr-2 text-xs"></i>
+                    Payments
+                </button>
                 <button type="button" onclick="switchTab('notifications')" data-tab="notifications" 
                         class="tab-button inline-flex items-center px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,6 +318,66 @@ use Illuminate\Support\Facades\Storage;
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Billing Tab -->
+            <div id="billing-tab" class="tab-content hidden space-y-6">
+                <p class="text-sm text-gray-500">Tax rates used on every invoice and receipt. Confirm them with your accountant.</p>
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">VAT %</span>
+                        <input type="number" step="0.01" min="0" max="50" name="vat_percent" value="{{ old('vat_percent', SystemHelper::vatPercent()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tourism / catering levy %</span>
+                        <input type="number" step="0.01" min="0" max="20" name="tourism_levy_percent" value="{{ old('tourism_levy_percent', SystemHelper::tourismLevyPercent()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Child rate, % of adult</span>
+                        <input type="number" step="1" min="0" max="100" name="child_rate_percent" value="{{ old('child_rate_percent', SystemHelper::childRatePercent()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">KRA PIN (shown on invoices)</span>
+                        <input type="text" name="kra_pin" maxlength="20" value="{{ old('kra_pin', SystemHelper::kraPin()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200 uppercase"></label>
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Annual leave days</span>
+                        <input type="number" min="0" max="60" name="annual_leave_days" value="{{ old('annual_leave_days', SystemHelper::annualLeaveDays()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                </div>
+                <label class="flex items-center gap-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+                    <input type="hidden" name="prices_include_tax" value="0">
+                    <input type="checkbox" name="prices_include_tax" value="1" @checked(old('prices_include_tax', SystemHelper::pricesIncludeTax())) class="h-5 w-5 rounded border-gray-300">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Room and menu prices already include VAT and levy (invoices show the tax inside the price)</span>
+                </label>
+            </div>
+
+            <!-- Payments Tab -->
+            @php
+                $pg = \App\Services\Payments\PaymentGateways::class;
+                $sharet = $pg::config('sharet');
+                $mpesa = $pg::config('mpesa');
+                $saved = fn ($p, $k) => $pg::hasSecret($p, $k) ? 'Saved. Leave blank to keep it' : '';
+            @endphp
+            <div id="payments-tab" class="tab-content hidden space-y-8">
+                <section class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">Sharet Pay</h3>
+                        <label class="flex items-center gap-2 text-sm"><input type="hidden" name="sharet_enabled" value="0"><input type="checkbox" name="sharet_enabled" value="1" @checked(! empty($sharet['enabled'])) class="h-5 w-5 rounded border-gray-300"> On</label>
+                    </div>
+                    <p class="text-sm text-gray-500">Pay links for M-Pesa and card. In Sharet, point the webhook to <code class="rounded bg-gray-100 px-1">{{ route('webhooks.sharet') }}</code>.</p>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">API key (sk_…)</span><input type="password" name="sharet_api_key" autocomplete="off" placeholder="{{ $saved('sharet', 'api_key') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook secret</span><input type="password" name="sharet_webhook_secret" autocomplete="off" placeholder="{{ $saved('sharet', 'webhook_secret') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label class="md:col-span-2"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">API address</span><input type="url" name="sharet_base_url" value="{{ $sharet['base_url'] ?? \App\Services\Payments\SharetPay::DEFAULT_BASE_URL }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    </div>
+                </section>
+                <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">M-Pesa (Daraja)</h3>
+                        <label class="flex items-center gap-2 text-sm"><input type="hidden" name="mpesa_enabled" value="0"><input type="checkbox" name="mpesa_enabled" value="1" @checked(! empty($mpesa['enabled'])) class="h-5 w-5 rounded border-gray-300"> On</label>
+                    </div>
+                    <p class="text-sm text-gray-500">Sends a PIN prompt to the guest's phone. Keys come from the Safaricom developer portal (Daraja). Callbacks arrive automatically.</p>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</span><select name="mpesa_environment" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"><option value="sandbox" @selected(($mpesa['environment'] ?? 'sandbox') === 'sandbox')>Sandbox (testing)</option><option value="production" @selected(($mpesa['environment'] ?? '') === 'production')>Production</option></select></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Account type</span><select name="mpesa_type" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"><option value="paybill" @selected(($mpesa['type'] ?? 'paybill') === 'paybill')>Paybill</option><option value="till" @selected(($mpesa['type'] ?? '') === 'till')>Till (Buy Goods)</option></select></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Business shortcode</span><input type="text" inputmode="numeric" name="mpesa_shortcode" value="{{ $mpesa['shortcode'] ?? '' }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Till number (Buy Goods only)</span><input type="text" inputmode="numeric" name="mpesa_till_number" value="{{ $mpesa['till_number'] ?? '' }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Consumer key</span><input type="password" name="mpesa_consumer_key" autocomplete="off" placeholder="{{ $saved('mpesa', 'consumer_key') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Consumer secret</span><input type="password" name="mpesa_consumer_secret" autocomplete="off" placeholder="{{ $saved('mpesa', 'consumer_secret') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label class="md:col-span-3"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Passkey</span><input type="password" name="mpesa_passkey" autocomplete="off" placeholder="{{ $saved('mpesa', 'passkey') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    </div>
+                </section>
             </div>
 
             <!-- Notifications Tab -->

@@ -31,7 +31,7 @@
                     <h1 class="text-xl font-bold">{{ SystemHelper::appName() }}</h1>
                     <p class="text-sm text-gray-500">{{ SystemHelper::address() }}</p>
                     <p class="text-sm text-gray-500">
-                        {{ collect([SystemHelper::contactPhone(), SystemHelper::contactEmail()])->filter()->join(' · ') }}
+                        {{ collect([SystemHelper::contactPhone(), SystemHelper::contactEmail(), SystemHelper::kraPin() ? 'KRA PIN ' . SystemHelper::kraPin() : null])->filter()->join(' · ') }}
                     </p>
                     @if (SystemHelper::get('billing.kra_pin'))
                         <p class="text-sm text-gray-500">KRA PIN: {{ SystemHelper::get('billing.kra_pin') }}</p>

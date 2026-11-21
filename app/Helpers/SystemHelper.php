@@ -117,7 +117,8 @@ class SystemHelper
         $settings = self::settings();
         
         if (str_contains($key, '.')) {
-            $keys = explode('.', $key);
+            // "settings.about_us" and "about_us" both mean settings JSON → about_us
+            $keys = explode('.', preg_replace('/^settings\./', '', $key));
             $value = $settings->settings ?? [];
             
             foreach ($keys as $k) {
@@ -151,14 +152,27 @@ class SystemHelper
         });
 
         if ($icon) {
-            return $system->logo_icon ? asset('images/logo/' . basename($system->logo_icon)) : asset('images/logo/logo-icon.svg');
+            return $system->logo_icon ? self::uploadUrl($system->logo_icon, 'images/logo/') : asset('images/logo/logo-icon.svg');
         }
 
         if ($dark) {
-            return $system->logo_dark ? asset('images/logo/' . basename($system->logo_dark)) : asset('images/logo/logo-dark.svg');
+            return $system->logo_dark ? self::uploadUrl($system->logo_dark, 'images/logo/') : asset('images/logo/logo-dark.svg');
         }
 
-        return $system->logo ? asset('images/logo/' . basename($system->logo)) : asset('images/logo/logo.svg');
+        return $system->logo ? self::uploadUrl($system->logo, 'images/logo/') : asset('images/logo/logo.svg');
+    }
+
+    /**
+     * Uploads are stored on the public disk (storage/app/public/system/...);
+     * older installs kept them in public/images/logo. Serve whichever exists.
+     */
+    public static function uploadUrl(string $path, string $legacyDir): string
+    {
+        if (is_file(public_path($legacyDir . basename($path)))) {
+            return asset($legacyDir . basename($path));
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
 
@@ -441,6 +455,11 @@ class SystemHelper
     public static function tourismLevyPercent(): float
     {
         return (float) self::get('billing.tourism_levy_percent', 2);
+    }
+
+    public static function kraPin(): ?string
+    {
+        return self::get('billing.kra_pin') ?: null;
     }
 
     // true (hotel's choice, 2026-10-20): rates already include VAT and levy;

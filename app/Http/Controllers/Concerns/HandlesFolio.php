@@ -49,6 +49,33 @@ trait HandlesFolio
             ->with('receipt_url', $invoice->receiptUrl($payment));
     }
 
+    /**
+     * Ask the guest to pay online: an M-Pesa prompt on their phone, or a Sharet Pay link.
+     */
+    protected function folioOnlinePayment(Request $request, ?Invoice $invoice): RedirectResponse
+    {
+        $data = $request->validate([
+            'provider' => ['required', Rule::in(array_keys(\App\Services\Payments\PaymentGateways::LABELS))],
+            'amount' => ['required', 'numeric', 'min:1'],
+            'phone' => ['nullable', 'string', 'max:20', 'required_if:provider,mpesa'],
+        ]);
+
+        if (! $invoice) {
+            return back()->with('error', 'This booking has no invoice to pay.');
+        }
+
+        try {
+            $payment = app(\App\Services\Payments\OnlinePayments::class)
+                ->request($invoice, $data['provider'], $request->user(), (float) $data['amount'], $data['phone'] ?? null);
+        } catch (BillingException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', $data['provider'] === 'mpesa'
+            ? 'M-Pesa prompt sent. The folio updates by itself once the guest enters their PIN.'
+            : 'Sharet Pay link ready: ' . ($payment->payment_details['pay_url'] ?? '') . ' (share it with the guest).');
+    }
+
     protected function folioVoidPayment(Request $request, Payment $payment): RedirectResponse
     {
         $reason = $request->validate(['reason' => ['nullable', 'string', 'max:255']])['reason'] ?? null;

@@ -29,6 +29,11 @@ class StayBillingController extends Controller
         return $this->folioPayment($request, $stay->currentInvoice() ?? $this->billing->syncStayInvoice($stay));
     }
 
+    public function requestOnlinePayment(Request $request, Stay $stay): RedirectResponse
+    {
+        return $this->folioOnlinePayment($request, $stay->currentInvoice() ?? $this->billing->syncStayInvoice($stay));
+    }
+
     public function voidPayment(Request $request, Stay $stay, Payment $payment): RedirectResponse
     {
         abort_unless($payment->invoice?->stay_id === $stay->id, 404);

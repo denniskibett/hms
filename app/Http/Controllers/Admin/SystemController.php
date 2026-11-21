@@ -60,6 +60,11 @@ class SystemController extends Controller
             'password_expiry' => 'nullable|integer|min:0|max:365',
             'backup_frequency' => 'nullable|in:daily,weekly,monthly',
             'backup_retention' => 'nullable|integer|min:1|max:365',
+            'vat_percent' => 'nullable|numeric|min:0|max:50',
+            'tourism_levy_percent' => 'nullable|numeric|min:0|max:20',
+            'child_rate_percent' => 'nullable|numeric|min:0|max:100',
+            'kra_pin' => 'nullable|string|max:20',
+            'annual_leave_days' => 'nullable|integer|min:0|max:60',
         ]);
 
         // Prepare data for update
@@ -127,6 +132,52 @@ class SystemController extends Controller
             'backup_retention' => $request->integer('backup_retention', 30),
             'backup_to_cloud' => $request->boolean('backup_to_cloud', false),
         ];
+
+        // Billing and taxes (read by SystemHelper::vatPercent() etc.)
+        if ($request->has('vat_percent')) {
+            $settings['billing'] = array_merge($settings['billing'] ?? [], [
+                'vat_percent' => (float) $request->input('vat_percent', 16),
+                'tourism_levy_percent' => (float) $request->input('tourism_levy_percent', 2),
+                'child_rate_percent' => (float) $request->input('child_rate_percent', 50),
+                'prices_include_tax' => $request->boolean('prices_include_tax'),
+                'kra_pin' => strtoupper(trim((string) $request->input('kra_pin', ''))),
+            ]);
+            $settings['hr'] = array_merge($settings['hr'] ?? [], [
+                'annual_leave_days' => $request->integer('annual_leave_days', 21),
+            ]);
+        }
+
+        // Online payments (secrets encrypted; blank keeps the saved value)
+        if ($request->has('sharet_enabled')) {
+            $request->validate([
+                'sharet_api_key' => 'nullable|string|max:255',
+                'sharet_webhook_secret' => 'nullable|string|max:255',
+                'sharet_base_url' => 'nullable|url|max:255',
+                'mpesa_environment' => 'nullable|in:sandbox,production',
+                'mpesa_type' => 'nullable|in:paybill,till',
+                'mpesa_shortcode' => 'nullable|digits_between:5,8',
+                'mpesa_till_number' => 'nullable|digits_between:5,8',
+                'mpesa_consumer_key' => 'nullable|string|max:255',
+                'mpesa_consumer_secret' => 'nullable|string|max:255',
+                'mpesa_passkey' => 'nullable|string|max:255',
+            ]);
+            $settings = \App\Services\Payments\PaymentGateways::merge($settings, 'sharet', [
+                'enabled' => $request->boolean('sharet_enabled'),
+                'api_key' => $request->input('sharet_api_key'),
+                'webhook_secret' => $request->input('sharet_webhook_secret'),
+                'base_url' => $request->input('sharet_base_url') ?: \App\Services\Payments\SharetPay::DEFAULT_BASE_URL,
+            ]);
+            $settings = \App\Services\Payments\PaymentGateways::merge($settings, 'mpesa', [
+                'enabled' => $request->boolean('mpesa_enabled'),
+                'environment' => $request->input('mpesa_environment', 'sandbox'),
+                'type' => $request->input('mpesa_type', 'paybill'),
+                'shortcode' => $request->input('mpesa_shortcode'),
+                'till_number' => $request->input('mpesa_till_number'),
+                'consumer_key' => $request->input('mpesa_consumer_key'),
+                'consumer_secret' => $request->input('mpesa_consumer_secret'),
+                'passkey' => $request->input('mpesa_passkey'),
+            ]);
+        }
 
         $data['settings'] = $settings;
 

@@ -52,6 +52,14 @@ Route::get('/stay/{roomType}', [FrontController::class, 'room'])->name('stay.sho
 Route::get('/dining', [FrontController::class, 'dining'])->name('dining');
 Route::get('/events-and-conferences', [FrontController::class, 'events'])->name('events');
 Route::get('/about', [FrontController::class, 'about'])->name('about');
+
+// Payment confirmations (no session, no CSRF; each verifies itself)
+Route::post('/webhooks/sharet', [\App\Http\Controllers\PaymentWebhookController::class, 'sharet'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->middleware('throttle:120,1')->name('webhooks.sharet');
+Route::post('/webhooks/mpesa/{token}', [\App\Http\Controllers\PaymentWebhookController::class, 'mpesa'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class, \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
+    ->middleware('throttle:120,1')->name('webhooks.mpesa');
 Route::get('/contact', [FrontController::class, 'contact'])->name('contact');
 Route::post('/contact', [FrontController::class, 'submitContact'])
     ->middleware('throttle:5,1')
@@ -117,6 +125,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Stay folio: front desk takes payments; finance too
     Route::middleware('role:manager,receptionist,finance')->group(function () {
         Route::post('stays/{stay}/payments', [StayBillingController::class, 'storePayment'])->name('stays.payments.store');
+        Route::post('stays/{stay}/payments/online', [StayBillingController::class, 'requestOnlinePayment'])->middleware('throttle:10,1')->name('stays.payments.online');
         Route::get('stays/{stay}/invoice', [StayBillingController::class, 'invoice'])->name('stays.invoice');
         Route::get('stays/{stay}/payments/{payment}/receipt', [StayBillingController::class, 'receipt'])->name('stays.receipt');
     });
@@ -147,6 +156,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Event folio: same split as the stay folio
     Route::middleware('role:manager,receptionist,finance')->group(function () {
         Route::post('events/{event}/payments', [FacilityBookingBillingController::class, 'storePayment'])->name('events.payments.store');
+        Route::post('events/{event}/payments/online', [FacilityBookingBillingController::class, 'requestOnlinePayment'])->middleware('throttle:10,1')->name('events.payments.online');
         Route::post('events/{event}/charges', [FacilityBookingBillingController::class, 'storeCharge'])->name('events.charges.store');
         Route::get('events/{event}/invoice', [FacilityBookingBillingController::class, 'invoice'])->name('events.invoice');
         Route::get('events/{event}/payments/{payment}/receipt', [FacilityBookingBillingController::class, 'receipt'])->name('events.receipt');
@@ -215,6 +225,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Walk-in order folio: same split as the stay folio
         Route::middleware('role:manager,kitchen,receptionist,finance')->group(function () {
             Route::post('orders/{order}/payments', [KitchenOrderBillingController::class, 'storePayment'])->name('orders.payments.store');
+            Route::post('orders/{order}/payments/online', [KitchenOrderBillingController::class, 'requestOnlinePayment'])->middleware('throttle:10,1')->name('orders.payments.online');
             Route::post('orders/{order}/charges', [KitchenOrderBillingController::class, 'storeCharge'])->name('orders.charges.store');
             Route::get('orders/{order}/invoice', [KitchenOrderBillingController::class, 'invoice'])->name('orders.invoice');
             Route::get('orders/{order}/payments/{payment}/receipt', [KitchenOrderBillingController::class, 'receipt'])->name('orders.receipt');

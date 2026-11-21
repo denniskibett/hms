@@ -29,6 +29,13 @@ class KitchenOrderBillingController extends Controller
         return $this->folioPayment($request, $order->currentInvoice() ?? $this->billing->syncKitchenOrderInvoice($order));
     }
 
+    public function requestOnlinePayment(Request $request, KitchenOrder $order): RedirectResponse
+    {
+        abort_if($order->charge_to_room, 404);
+
+        return $this->folioOnlinePayment($request, $order->currentInvoice() ?? $this->billing->syncKitchenOrderInvoice($order));
+    }
+
     public function voidPayment(Request $request, KitchenOrder $order, Payment $payment): RedirectResponse
     {
         abort_unless($payment->invoice?->kitchen_order_id === $order->id, 404);

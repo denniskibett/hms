@@ -27,6 +27,11 @@ class FacilityBookingBillingController extends Controller
         return $this->folioPayment($request, $event->currentInvoice() ?? $this->billing->syncFacilityBookingInvoice($event));
     }
 
+    public function requestOnlinePayment(Request $request, FacilityBooking $event): RedirectResponse
+    {
+        return $this->folioOnlinePayment($request, $event->currentInvoice() ?? $this->billing->syncFacilityBookingInvoice($event));
+    }
+
     public function voidPayment(Request $request, FacilityBooking $event, Payment $payment): RedirectResponse
     {
         abort_unless($payment->invoice?->facility_booking_id === $event->id, 404);

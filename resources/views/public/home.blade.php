@@ -10,6 +10,23 @@
     $phone = SystemHelper::contactPhone();
     $email = SystemHelper::contactEmail();
     $address = SystemHelper::address();
+    // One icon per service, picked from its name so titles and icons always match
+    $serviceIcon = fn (string $title) => collect([
+        'conferenc|meeting|boardroom' => 'chalkboard-user',
+        'accommodation|room|stay|suite' => 'bed',
+        'restaurant|dining|dinner' => 'utensils',
+        'catering' => 'bowl-food',
+        'event|wedding|party' => 'calendar-check',
+        'bar|drink|cocktail' => 'martini-glass',
+        'tour|travel|explore' => 'map-location-dot',
+        'laundry' => 'shirt',
+        'driver|transport|taxi|airport' => 'car',
+        'babysit|kids|child' => 'baby',
+        'pool|swim' => 'person-swimming',
+        'spa|massage|gym' => 'spa',
+        'wifi|wi-fi|internet' => 'wifi',
+        'parking' => 'square-parking',
+    ])->first(fn ($icon, $pattern) => preg_match('/' . $pattern . '/i', $title)) ?? 'bell-concierge';
 @endphp
 
 @section('content')
@@ -57,7 +74,7 @@
             <div class="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" data-stagger=".1" data-effect="flip">
                 @foreach ($services as $service)
                     <div class="lift rounded-xl border border-line bg-white p-7">
-                        <span class="flex h-12 w-12 items-center justify-center rounded-full bg-cream text-xl text-clay"><i class="fa-solid fa-{{ ['bed', 'utensils', 'champagne-glasses', 'people-group', 'map-location-dot', 'martini-glass-citrus'][$loop->index % 6] }}"></i></span>
+                        <span class="flex h-12 w-12 items-center justify-center rounded-full bg-cream text-xl text-clay"><i class="fa-solid fa-{{ $serviceIcon($service['title']) }}" aria-hidden="true"></i></span>
                         <h3 class="mt-4 text-lg font-semibold">{{ $service['title'] }}</h3>
                         <p class="mt-2 text-[15px] leading-relaxed text-muted">{{ $service['description'] ?? '' }}</p>
                     </div>

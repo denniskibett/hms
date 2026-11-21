@@ -23,12 +23,13 @@
     $methods = \App\Models\Payment::METHODS;
     $canManageMoney = auth()->user()->hasAnyRole(['admin', 'manager', 'finance']);
     $balance = $invoice ? round((float) $invoice->total - (float) $invoice->paid_amount, 2) : 0;
+    $guestPhone = $owner->guest->phone ?? $owner->customer_phone ?? $owner->contact_phone ?? null;
     $charges = $invoice ? round((float) $invoice->items->sum(fn ($i) => (float) $i->quantity * (float) $i->unit_price), 2) : 0;
     $inputClass = 'h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90';
     $labelClass = 'mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400';
     $secondaryButton = 'inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3';
     // Reopen the dialog that failed validation
-    $openDialog = old('amount') !== null ? 'pay' : (old('unit_price') !== null ? 'charge' : (old('discount_amount') !== null ? 'discount' : null));
+    $openDialog = old('provider') !== null ? 'online' : (old('amount') !== null ? 'pay' : (old('unit_price') !== null ? 'charge' : (old('discount_amount') !== null ? 'discount' : null)));
 @endphp
 
 <div x-data="{ dialog: @js($openDialog) }" class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
@@ -59,6 +60,11 @@
                             class="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90">
                         <i class="fas fa-money-bill-wave"></i> Record Payment
                     </button>
+                    @if (\App\Services\Payments\PaymentGateways::enabled('mpesa') || \App\Services\Payments\PaymentGateways::enabled('sharet'))
+                        <button type="button" @click="dialog = 'online'" class="{{ $secondaryButton }}">
+                            <i class="fas fa-mobile-screen-button"></i> Request online payment
+                        </button>
+                    @endif
                 @endif
             </div>
         @endif
@@ -120,14 +126,17 @@
         <div class="border-t border-gray-100 px-5 py-4 dark:border-gray-800">
             <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-400">Payments</p>
             @forelse ($invoice->payments->sortByDesc('received_at') as $payment)
-                <div x-data="{ voidOpen: false }" class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm {{ $payment->status !== 'completed' ? 'opacity-60' : '' }}">
+                <div x-data="{ voidOpen: false }" class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-2 text-sm {{ ! in_array($payment->status, ['completed', 'pending'], true) ? 'opacity-60' : '' }}">
                     <div>
-                        <p class="font-medium text-gray-800 dark:text-white/90 {{ $payment->status !== 'completed' ? 'line-through' : '' }}">
+                        <p class="font-medium text-gray-800 dark:text-white/90 {{ ! in_array($payment->status, ['completed', 'pending'], true) ? 'line-through' : '' }}">
                             {{ $money($payment->amount) }} · {{ $payment->method_label }}
                         </p>
                         <p class="text-xs text-gray-500 dark:text-gray-400">
                             {{ $payment->payment_reference }} · {{ $payment->received_at?->format('d M Y, H:i') }}
-                            @if ($payment->status !== 'completed') · <span class="text-error-500">{{ $payment->status === 'cancelled' ? 'Voided' : ucfirst($payment->status) }}</span>@endif
+                            @if ($payment->status === 'pending')
+                                · <span class="text-warning-600">Waiting for {{ \App\Services\Payments\PaymentGateways::LABELS[$payment->payment_details['provider'] ?? ''] ?? 'online payment' }}</span>
+                                @if (! empty($payment->payment_details['pay_url'])) · <a href="{{ $payment->payment_details['pay_url'] }}" target="_blank" rel="noopener" class="text-primary hover:underline">Pay link</a>@endif
+                            @elseif ($payment->status !== 'completed') · <span class="text-error-500">{{ $payment->status === 'cancelled' ? (isset($payment->payment_details['provider']) ? 'Not paid' : 'Voided') : ucfirst($payment->status) }}</span>@endif
                         </p>
                     </div>
                     @if ($payment->status === 'completed')
@@ -198,6 +207,38 @@
                     <div class="mt-6 flex justify-end gap-3">
                         <button type="button" @click="dialog = null" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">Cancel</button>
                         <button type="submit" class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90">Save payment</button>
+                    </div>
+                </form>
+            @endif
+
+            @if ($balance > 0)
+                <form x-show="dialog === 'online'" method="POST" action="{{ route("{$routePrefix}.payments.online", $owner) }}" x-data="{ provider: @js(\App\Services\Payments\PaymentGateways::enabled('mpesa') ? 'mpesa' : 'sharet') }"
+                      class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    @csrf
+                    <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Request online payment</h4>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">The folio updates by itself once the guest pays.</p>
+                    <div class="mt-4 space-y-4">
+                        <div class="flex gap-2">
+                            @foreach (\App\Services\Payments\PaymentGateways::LABELS as $key => $label)
+                                @if (\App\Services\Payments\PaymentGateways::enabled($key))
+                                    <label class="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm" :class="provider === '{{ $key }}' ? 'border-primary bg-primary/5' : 'border-gray-300'">
+                                        <input type="radio" name="provider" value="{{ $key }}" x-model="provider"> {{ $key === 'mpesa' ? 'M-Pesa prompt' : 'Sharet Pay link' }}
+                                    </label>
+                                @endif
+                            @endforeach
+                        </div>
+                        <div>
+                            <label class="{{ $labelClass }}">Amount ({{ $currency }}) *</label>
+                            <input type="number" name="amount" step="1" min="1" max="{{ $balance }}" value="{{ (int) ceil($balance) }}" required class="{{ $inputClass }}">
+                        </div>
+                        <div x-show="provider === 'mpesa'">
+                            <label class="{{ $labelClass }}">Guest's M-Pesa number *</label>
+                            <input type="tel" name="phone" value="{{ old('phone', $guestPhone ?? '') }}" placeholder="0712 345 678" class="{{ $inputClass }}" :required="provider === 'mpesa'">
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" @click="dialog = null" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90" x-text="provider === 'mpesa' ? 'Send prompt' : 'Create link'"></button>
                     </div>
                 </form>
             @endif
