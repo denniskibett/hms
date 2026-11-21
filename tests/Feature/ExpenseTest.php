@@ -62,6 +62,7 @@ class ExpenseTest extends TestCase
             'amount' => 5000,
             'method' => 'mobile_money',
             'reference' => 'QXY123',
+            'paid_now' => true,   // finance records one already paid; staff requests are covered in ExpenseApprovalTest
         ], $data));
     }
 
@@ -118,6 +119,9 @@ class ExpenseTest extends TestCase
         $this->assertEquals(5300, $report['cards'][0][1]);
         $this->assertEquals(700, $report['cards'][3][1]);   // 1,000 received − 300 paid
 
-        $this->actingAs($this->userWithRole('procurement'))->get(route('expenses.index'))->assertForbidden();
+        // Other staff can ask for expenses (as in Breve) but only see their own, and not the supplier balances
+        $page = $this->actingAs($this->userWithRole('procurement'))->get(route('expenses.index'))->assertOk()->assertDontSee('Owed to suppliers');
+        $this->assertSame(0, $page->viewData('expenses')->total());
+        $this->actingAs($this->userWithRole('guest'))->get(route('expenses.index'))->assertForbidden();
     }
 }

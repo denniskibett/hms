@@ -6,6 +6,7 @@
 @php
     $inputClass = 'h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30';
     $labelClass = 'mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400';
+    $canPayNow = \App\Http\Controllers\ExpenseController::canPay(auth()->user());
 @endphp
 
 <div x-data="facilityForm(@js([
@@ -13,7 +14,7 @@
         'update' => '',
         'destroy' => '',
         'blank' => ['id' => null, 'spent_on' => today()->toDateString(), 'category' => 'utilities', 'description' => '', 'amount' => '', 'method' => 'mobile_money',
-                    'reference' => '', 'supplier_id' => '', 'purchase_order_id' => '', 'department_id' => ''],
+                    'reference' => '', 'supplier_id' => '', 'purchase_order_id' => '', 'department_id' => '', 'paid_now' => $canPayNow],
      ]))"
      @open-expense-form.window="open($event.detail)" @keydown.escape.window="close()">
     <div x-show="isOpen" x-transition.opacity x-cloak class="slideover">
@@ -33,7 +34,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="{{ $labelClass }}">Paid on *</label>
+                    <label class="{{ $labelClass }}">Date of the bill *</label>
                     <input type="date" x-model="form.spent_on" required max="{{ today()->toDateString() }}" class="{{ $inputClass }}">
                 </div>
 
@@ -70,7 +71,12 @@
                     <label class="{{ $labelClass }}">Amount ({{ SystemHelper::currencySymbol() }}) *</label>
                     <input type="number" x-model.number="form.amount" required min="0.01" step="0.01" class="{{ $inputClass }}">
                 </div>
-                <div>
+                @if ($canPayNow)
+                    <label class="flex items-center gap-2 self-end pb-3 text-sm text-gray-700">
+                        <input type="checkbox" x-model="form.paid_now" class="h-4 w-4 rounded-sm border-gray-300"> Already paid
+                    </label>
+                @endif
+                <div x-show="form.paid_now">
                     <label class="{{ $labelClass }}">Paid by *</label>
                     <select x-model="form.method" class="{{ $inputClass }}">
                         @foreach (\App\Models\Payment::METHODS as $value => $label)
@@ -78,9 +84,9 @@
                         @endforeach
                     </select>
                 </div>
-                <div x-show="!['cash', 'credit_card'].includes(form.method)">
+                <div x-show="form.paid_now && !['cash', 'credit_card'].includes(form.method)">
                     <label class="{{ $labelClass }}">Reference *</label>
-                    <input type="text" x-model="form.reference" maxlength="100" :required="!['cash', 'credit_card'].includes(form.method)" class="{{ $inputClass }} uppercase" placeholder="M-Pesa code / cheque no.">
+                    <input type="text" x-model="form.reference" maxlength="100" :required="form.paid_now && !['cash', 'credit_card'].includes(form.method)" class="{{ $inputClass }} uppercase" placeholder="M-Pesa code / cheque no.">
                 </div>
                 <div>
                     <label class="{{ $labelClass }}">Department</label>
@@ -91,11 +97,17 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="sm:col-span-2">
+                    <label class="{{ $labelClass }}">Receipt or bill (photo or PDF)</label>
+                    <input type="file" data-field="receipt" accept="image/*,application/pdf" class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200">
+                </div>
             </div>
+
+            <p x-show="!form.paid_now" class="rounded-lg bg-warning-50 px-4 py-3 text-sm text-warning-700">This goes to a manager to approve; finance pays it after.</p>
 
             <div class="flex justify-end gap-3">
                 <button type="button" @click="close()" class="rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300">Cancel</button>
-                <button type="submit" :disabled="isLoading" class="rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">Save</button>
+                <button type="submit" :disabled="isLoading" class="rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50" x-text="form.paid_now ? 'Save' : 'Send for approval'"></button>
             </div>
         </form>
     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SystemHelper;
 use App\Models\Payroll;
 use App\Models\ShiftAssignment;
 use App\Models\StaffProfile;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Monthly payroll: HR generates and adjusts drafts, a manager approves,
@@ -43,14 +45,21 @@ class PayrollController extends Controller
             'housing_levy' => round($payrolls->sum(fn ($p) => (float) $p->housing_levy), 2),
             'other' => round($payrolls->sum(fn ($p) => (float) $p->other_deductions), 2),
             'net' => round($payrolls->sum(fn ($p) => (float) $p->net), 2),
+            'employer_nssf' => round($payrolls->sum(fn ($p) => (float) $p->employer_nssf), 2),
+            'employer_housing_levy' => round($payrolls->sum(fn ($p) => (float) $p->employer_housing_levy), 2),
+            'employer_cost' => round($payrolls->sum(fn ($p) => $p->employer_cost), 2),
         ];
+        // To remit to KRA / NSSF / SHA for the month: employee and employer shares together
+        $totals['remit'] = round($totals['paye'] + $totals['nssf'] + $totals['employer_nssf'] + $totals['shif'] + $totals['housing_levy'] + $totals['employer_housing_levy'], 2);
+
+        $rates = ['label' => SystemHelper::payroll('rates_label'), 'checked' => SystemHelper::payroll('rates_checked')];
 
         $missing = StaffProfile::active()
             ->whereDate('hire_date', '<=', Carbon::parse($month . '-01')->endOfMonth())
             ->whereNotIn('user_id', $payrolls->pluck('user_id'))
             ->count();
 
-        return view('hr.payroll', compact('payrolls', 'totals', 'month', 'missing'));
+        return view('hr.payroll', compact('payrolls', 'totals', 'month', 'missing', 'rates'));
     }
 
     /**
@@ -80,13 +89,18 @@ class PayrollController extends Controller
 
                 // A cancelled payroll for the month is reused (user + month is unique)
                 $payroll = Payroll::firstOrNew(['user_id' => $member->user_id, 'period_month' => $start->toDateString()]);
+                // The staff record's named allowances and deductions (house, transport, loan, SACCO) become payslip lines
+                $allowances = $member->allowanceLines();
+                $deductions = $member->deductionLines();
+                $payroll->setRelation('staffProfile', $member);
                 $payroll->fill([
                     'basic_salary' => $member->salary,
                     'overtime_hours' => $hours,
                     'overtime_amount' => Payroll::overtimePay((float) $member->salary, $hours),
-                    'allowances' => 0,
+                    'allowances' => round(collect($allowances)->sum('amount'), 2),
                     'bonuses' => 0,
-                    'other_deductions' => 0,
+                    'other_deductions' => round(collect($deductions)->sum('amount'), 2),
+                    'breakdown' => ['allowances' => $allowances, 'deductions' => $deductions],
                     'status' => 'draft',
                     'approved_by' => null,
                     'approved_at' => null,
@@ -117,7 +131,17 @@ class PayrollController extends Controller
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $payroll->fill($data + ['overtime_amount' => Payroll::overtimePay((float) $data['basic_salary'], (float) $data['overtime_hours'])])->calculate();
+        // Hand-edited totals replace the named lines when they no longer add up
+        $breakdown = (array) ($payroll->breakdown ?? []);
+        foreach (['allowances' => 'Allowances', 'deductions' => 'Other deductions'] as $list => $label) {
+            $field = $list === 'allowances' ? 'allowances' : 'other_deductions';
+            $lines = $breakdown[$list] ?? [];
+            if (abs(collect($lines)->sum('amount') - (float) $data[$field]) > 0.009) {
+                $breakdown[$list] = (float) $data[$field] > 0 ? [['name' => $label, 'amount' => round((float) $data[$field], 2)]] : [];
+            }
+        }
+
+        $payroll->fill($data + ['breakdown' => $breakdown, 'overtime_amount' => Payroll::overtimePay((float) $data['basic_salary'], (float) $data['overtime_hours'])])->calculate();
 
         $gross = (float) $payroll->basic_salary + (float) $payroll->overtime_amount + (float) $payroll->allowances + (float) $payroll->bonuses;
         if ($gross - (float) $payroll->tax_deductions - (float) $payroll->other_deductions < 0) {
@@ -167,6 +191,39 @@ class PayrollController extends Controller
         $this->core->log($user->id, 'payroll_' . $data['status'], "{$count} payroll " . str('record')->plural($count) . " {$data['status']}" . (isset($data['month']) ? " for {$data['month']}" : ''));
 
         return back()->with('success', "{$count} payroll " . str('record')->plural($count) . " {$data['status']}.");
+    }
+
+    /**
+     * CSV downloads for a month (as in Breve): ?type=statutory (PAYE, NSSF, SHA, housing levy per person, for the
+     * returns) or ?type=bulk (net pay per person with their M-Pesa number or bank account, for a bulk payment).
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $data = $request->validate(['month' => ['required', 'date_format:Y-m'], 'type' => ['nullable', Rule::in(['statutory', 'bulk'])]]);
+        $type = $data['type'] ?? 'statutory';
+        $rows = Payroll::with(['user:id,name,phone', 'staffProfile'])->forMonth($data['month'])->where('status', '!=', 'cancelled')->get()->sortBy(fn ($p) => $p->user->name);
+
+        return response()->streamDownload(function () use ($rows, $type, $data) {
+            $out = fopen('php://output', 'w');
+            if ($type === 'bulk') {
+                fputcsv($out, ['Name', 'Method', 'Phone or account', 'Bank', 'Amount', 'Reference']);
+                foreach ($rows as $p) {
+                    $s = $p->staffProfile;
+                    $mpesa = ($s?->pay_method ?? 'bank') === 'mpesa';
+                    fputcsv($out, [$p->user->name, $mpesa ? 'M-Pesa' : 'Bank', $mpesa ? ($s->mpesa_phone ?: $p->user->phone) : $s?->account_number, $mpesa ? '' : $s?->bank_name, number_format((float) $p->net, 2, '.', ''), 'Salary ' . $data['month']]);
+                }
+            } else {
+                fputcsv($out, ['Name', 'KRA PIN', 'ID number', 'NSSF number', 'SHA number', 'Gross', 'NSSF (employee)', 'NSSF (employer)', 'SHIF', 'Housing levy (employee)', 'Housing levy (employer)', 'Taxable pay', 'PAYE', 'Net pay']);
+                foreach ($rows as $p) {
+                    if (! empty($p->breakdown['stipend'])) {
+                        continue; // stipends are not on the statutory returns
+                    }
+                    $s = $p->staffProfile;
+                    fputcsv($out, [$p->user->name, $s?->kra_pin, $s?->id_number, $s?->nssf_number, $s?->shif_number, $p->gross, $p->nssf, $p->employer_nssf, $p->shif, $p->housing_levy, $p->employer_housing_levy, $p->breakdown['taxable_pay'] ?? '', $p->paye, $p->net]);
+                }
+            }
+            fclose($out);
+        }, "payroll-{$data['month']}-{$type}.csv", ['Content-Type' => 'text/csv']);
     }
 
     public function payslip(Payroll $payroll): View

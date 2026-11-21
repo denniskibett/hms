@@ -31,6 +31,13 @@
         @include('partials.stat-card', ['label' => 'Overdue', 'value' => $money($stats['overdue']), 'icon' => 'fa-exclamation-triangle', 'tone' => 'error', 'href' => route('invoices.index', ['status' => 'overdue'])])
     </div>
 
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        @include('partials.stat-card', ['label' => 'Expenses Paid This Month', 'value' => $money($out['expenses']), 'icon' => 'fa-receipt', 'tone' => 'warning', 'href' => route('expenses.index', ['status' => 'paid'])])
+        @include('partials.stat-card', ['label' => 'Payroll Paid This Month', 'value' => $money($out['payroll']), 'icon' => 'fa-money-check-alt', 'tone' => 'info', 'href' => route('hr.payroll.index')])
+        @include('partials.stat-card', ['label' => 'Net Cash This Month', 'value' => $money($out['net']), 'icon' => 'fa-scale-balanced', 'tone' => $out['net'] < 0 ? 'error' : 'success'])
+        @include('partials.stat-card', ['label' => 'Expenses Not Yet Paid', 'value' => $money($out['awaiting']), 'icon' => 'fa-hourglass-half', 'tone' => 'gray', 'href' => route('expenses.index', ['status' => 'approved', 'from' => now()->subYear()->toDateString()])])
+    </div>
+
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <!-- Overdue balances -->
         <div class="rounded-2xl border border-gray-100 bg-white lg:col-span-2 dark:border-gray-800 dark:bg-gray-900">

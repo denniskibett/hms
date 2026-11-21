@@ -287,12 +287,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
         Route::resource('invoices', InvoiceController::class)->only(['index', 'show']);
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
-        Route::get('expenses', [ExpenseController::class, 'index'])->name('expenses.index');
-        Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
-        Route::post('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
 
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    });
+
+    /*
+    | Expenses (as in Breve): any staff member records one and it waits for approval; managers approve or
+    | reject, finance or a manager pays. Who may approve / pay / void is checked in ExpenseController.
+    */
+    Route::middleware('role:manager,finance,procurement,kitchen,housekeeping,hr,receptionist')->group(function () {
+        Route::get('expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+        Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::get('expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
+        Route::get('expenses/{expense}/receipt', [ExpenseController::class, 'receipt'])->name('expenses.receipt');
+        Route::post('expenses/{expense}/approve', [ExpenseController::class, 'approve'])->name('expenses.approve');
+        Route::post('expenses/{expense}/pay', [ExpenseController::class, 'pay'])->name('expenses.pay');
+        Route::post('expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
     });
 
     /*
@@ -331,6 +342,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('role:manager,hr,finance')->group(function () {
             Route::get('payroll', [PayrollController::class, 'index'])->name('payroll.index');
             Route::post('payroll/status', [PayrollController::class, 'updateStatus'])->name('payroll.status');
+            Route::get('payroll/export', [PayrollController::class, 'export'])->name('payroll.export');
             Route::get('payroll/{payroll}/payslip', [PayrollController::class, 'payslip'])->name('payroll.payslip');
         });
     });

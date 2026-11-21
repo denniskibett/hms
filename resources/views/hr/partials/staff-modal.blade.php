@@ -17,6 +17,8 @@
             'department_id' => '', 'job_title' => '', 'id_number' => '', 'kra_pin' => '', 'nssf_number' => '', 'shif_number' => '',
             'salary' => '', 'hire_date' => today()->toDateString(), 'employment_status' => 'probation', 'contract_period' => 3,
             'bank_name' => '', 'bank_branch' => '', 'account_number' => '',
+            'pay_basis' => 'statutory', 'pay_method' => 'bank', 'mpesa_phone' => '', 'insurance_premium' => '',
+            'house_allowance' => '', 'transport_allowance' => '', 'other_allowance' => '', 'loan_deduction' => '', 'sacco_deduction' => '',
             'emergency_contact' => ['name' => '', 'phone' => '', 'relationship' => ''], 'notes' => '',
         ],
      ]))"
@@ -128,8 +130,45 @@
                 </fieldset>
 
                 <fieldset>
-                    <legend class="{{ $legendClass }}">Bank (for salary)</legend>
+                    <legend class="{{ $legendClass }}">Pay</legend>
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                        <div class="sm:col-span-2">
+                            <label class="{{ $labelClass }}">Paid as</label>
+                            <select x-model="form.pay_basis" class="{{ $inputClass }}">
+                                @foreach (\App\Models\StaffProfile::PAY_BASES as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
+                            </select>
+                        </div>
+                        <div x-show="form.pay_basis !== 'stipend'">
+                            <label class="{{ $labelClass }}">Insurance premium / month</label>
+                            <input type="number" x-model.number="form.insurance_premium" min="0" step="0.01" class="{{ $inputClass }}" placeholder="For insurance relief">
+                        </div>
+                        @foreach (\App\Models\StaffProfile::ALLOWANCES as $key => $label)
+                            <div>
+                                <label class="{{ $labelClass }}">{{ $label }}</label>
+                                <input type="number" x-model.number="form.{{ $key }}_allowance" min="0" step="0.01" class="{{ $inputClass }}" placeholder="0">
+                            </div>
+                        @endforeach
+                        @foreach (\App\Models\StaffProfile::DEDUCTIONS as $key => $label)
+                            <div>
+                                <label class="{{ $labelClass }}">{{ $label }} (deducted)</label>
+                                <input type="number" x-model.number="form.{{ $key }}_deduction" min="0" step="0.01" class="{{ $inputClass }}" placeholder="0">
+                            </div>
+                        @endforeach
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500" x-show="form.pay_basis === 'stipend'">A stipend has no PAYE, NSSF, SHA or housing levy and is left off the statutory returns. Check with your accountant whether it is taxable.</p>
+                </fieldset>
+
+                <fieldset>
+                    <legend class="{{ $legendClass }}">Salary paid by</legend>
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                        <select x-model="form.pay_method" class="{{ $inputClass }}">
+                            @foreach (\App\Models\StaffProfile::PAY_METHODS as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
+                        </select>
+                        <template x-if="form.pay_method === 'mpesa'">
+                            <input type="text" x-model="form.mpesa_phone" maxlength="20" class="{{ $inputClass }} sm:col-span-2" placeholder="M-Pesa number, e.g. 0712 345 678">
+                        </template>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-3" x-show="form.pay_method === 'bank'">
                         <input type="text" x-model="form.bank_name" maxlength="100" class="{{ $inputClass }}" placeholder="Bank">
                         <input type="text" x-model="form.bank_branch" maxlength="100" class="{{ $inputClass }}" placeholder="Branch">
                         <input type="text" x-model="form.account_number" maxlength="50" class="{{ $inputClass }}" placeholder="Account number">

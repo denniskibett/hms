@@ -26,6 +26,16 @@ class FinanceController extends Controller
             'in_house' => (float) Invoice::unpaid()->whereHas('stay', fn ($q) => $q->inHouse())->sum('due_amount'),
         ];
 
+        // Money out this month (as Breve's cash book): paid expenses, and payroll paid at its full cost to the hotel
+        $payrollPaid = \App\Models\Payroll::where('status', 'paid')->where('paid_at', '>=', $monthStart)->get();
+        $out = [
+            'expenses' => round((float) \App\Models\Expense::paid()->where('paid_at', '>=', $monthStart)->sum('amount'), 2),
+            'payroll' => round($payrollPaid->sum(fn ($p) => $p->employer_cost), 2),
+            'awaiting' => round((float) \App\Models\Expense::open()->sum('amount'), 2),
+        ];
+        $out['total'] = round($out['expenses'] + $out['payroll'], 2);
+        $out['net'] = round($stats['collected_month'] - $out['total'], 2);
+
         $tax = [
             'billed' => (float) (clone $issuedThisMonth)->sum('total'),
             'vat' => (float) (clone $issuedThisMonth)->sum('vat_amount'),
@@ -54,6 +64,6 @@ class FinanceController extends Controller
             ->take(8)
             ->get();
 
-        return view('finance.index', compact('stats', 'tax', 'byMethod', 'overdue', 'recentPayments'));
+        return view('finance.index', compact('stats', 'tax', 'byMethod', 'overdue', 'recentPayments', 'out'));
     }
 }

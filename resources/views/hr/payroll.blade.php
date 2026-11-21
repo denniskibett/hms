@@ -50,6 +50,20 @@
         </div>
     </div>
 
+    @if ($payrolls->isNotEmpty())
+        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            @include('partials.stat-card', ['label' => 'Gross pay', 'value' => $currency . ' ' . $money($totals['gross']), 'icon' => 'fa-coins', 'tone' => 'primary'])
+            @include('partials.stat-card', ['label' => 'Net pay to staff', 'value' => $currency . ' ' . $money($totals['net']), 'icon' => 'fa-hand-holding-usd', 'tone' => 'success'])
+            @include('partials.stat-card', ['label' => 'To remit (KRA, NSSF, SHA)', 'value' => $currency . ' ' . $money($totals['remit']), 'icon' => 'fa-landmark', 'tone' => 'warning'])
+            @include('partials.stat-card', ['label' => 'Cost to the hotel', 'value' => $currency . ' ' . $money($totals['employer_cost']), 'icon' => 'fa-building', 'tone' => 'info'])
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-sm">
+            <span class="text-gray-500">Download:</span>
+            <a href="{{ route('hr.payroll.export', ['month' => $month, 'type' => 'statutory']) }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 font-medium text-gray-700 hover:bg-gray-50"><i class="fas fa-file-csv"></i> Statutory returns (PAYE, NSSF, SHA, levy)</a>
+            <a href="{{ route('hr.payroll.export', ['month' => $month, 'type' => 'bulk']) }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 font-medium text-gray-700 hover:bg-gray-50"><i class="fas fa-file-csv"></i> Bulk pay file (M-Pesa / bank)</a>
+        </div>
+    @endif
+
     <div class="rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900" x-data>
         <div class="custom-scrollbar overflow-x-auto">
             <table class="min-w-full text-sm">
@@ -71,7 +85,7 @@
                     @forelse ($payrolls as $payroll)
                         <tr>
                             <td class="px-4 py-3 text-left">
-                                <p class="font-medium text-gray-800 dark:text-white/90">{{ $payroll->user->name }}</p>
+                                <p class="font-medium text-gray-800 dark:text-white/90">{{ $payroll->user->name }}@if (! empty($payroll->breakdown['stipend']))<span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">Stipend</span>@endif</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     Basic {{ $money($payroll->basic_salary) }}{{ (float) $payroll->overtime_amount ? ' · OT ' . $money($payroll->overtime_amount) : '' }}{{ (float) $payroll->allowances ? ' · Allow. ' . $money($payroll->allowances) : '' }}{{ (float) $payroll->bonuses ? ' · Bonus ' . $money($payroll->bonuses) : '' }}
                                 </p>
@@ -120,11 +134,11 @@
     </div>
 
     <p class="text-xs text-gray-500 dark:text-gray-400">
-        Deductions use the 2025 Kenyan rates: PAYE bands with {{ $currency }} {{ number_format(SystemHelper::payroll('personal_relief')) }} personal relief,
-        NSSF {{ SystemHelper::payroll('nssf_rate') }}% up to {{ number_format(SystemHelper::payroll('nssf_upper_limit')) }},
-        SHA {{ SystemHelper::payroll('shif_rate') }}% (min {{ SystemHelper::payroll('shif_minimum') }}),
-        Housing Levy {{ SystemHelper::payroll('housing_levy_rate') }}%. NSSF, SHA and the levy are deducted before PAYE.
-        Confirm these with your accountant whenever KRA changes them.
+        Rates: {{ $rates['label'] }}. Personal relief {{ $currency }} {{ number_format(SystemHelper::payroll('personal_relief')) }}; insurance relief
+        {{ SystemHelper::payroll('insurance_relief_rate') }}% of premiums up to {{ number_format(SystemHelper::payroll('insurance_relief_cap')) }}.
+        NSSF, SHA and the levy are deducted before PAYE; the hotel pays NSSF and the levy again as employer.
+        @if ($rates['checked']) Checked {{ \Carbon\Carbon::parse($rates['checked'])->format('j M Y') }}. @endif
+        Confirm them with your accountant whenever KRA changes them (Kenya's budget is in June).
     </p>
 </div>
 
