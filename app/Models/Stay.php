@@ -15,6 +15,7 @@ class Stay extends Model
 
     protected $fillable = [
         'guest_id',
+        'company_id',
         'status',
         'arrival_date',
         'departure_date',
@@ -40,6 +41,11 @@ class Stay extends Model
     ];
 
     // ---- Relationships ---------------------------------------------------
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     public function guest()
     {

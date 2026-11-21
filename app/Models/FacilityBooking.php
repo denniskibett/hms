@@ -15,6 +15,7 @@ class FacilityBooking extends Model
     protected $fillable = [
         'facility_id',
         'stay_id',
+        'company_id',
         'title',
         'client_name',
         'contact_name',
@@ -145,5 +146,10 @@ class FacilityBooking extends Model
                 'unit_price' => (float) $i->unit_price,
             ])->values()->all(),
         ];
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

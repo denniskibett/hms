@@ -7,7 +7,8 @@ namespace App\Enums;
  *
  *   reserved ──► booked ──► checked_in ──► checked_out
  *       │           │
- *       └───────────┴──► cancelled
+ *       ├───────────┴──► cancelled
+ *       └───────────┴──► no_show (night audit: never arrived) ──► booked (reinstated) / cancelled
  *
  * reserved = provisional hold (not yet confirmed), booked = confirmed.
  */
@@ -18,6 +19,7 @@ enum StayStatus: string
     case CheckedIn = 'checked_in';
     case CheckedOut = 'checked_out';
     case Cancelled = 'cancelled';
+    case NoShow = 'no_show';
 
     public function label(): string
     {
@@ -27,6 +29,7 @@ enum StayStatus: string
             self::CheckedIn => 'Checked In',
             self::CheckedOut => 'Checked Out',
             self::Cancelled => 'Cancelled',
+            self::NoShow => 'No-show',
         };
     }
 
@@ -38,6 +41,7 @@ enum StayStatus: string
             self::CheckedIn => 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-500',
             self::CheckedOut => 'bg-gray-100 text-gray-600 dark:bg-gray-500/15 dark:text-gray-400',
             self::Cancelled => 'bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500',
+            self::NoShow => 'bg-orange-50 text-orange-700',
         };
     }
 
@@ -49,9 +53,10 @@ enum StayStatus: string
     public function allowedTransitions(): array
     {
         return match ($this) {
-            self::Reserved => [self::Booked, self::CheckedIn, self::Cancelled],
-            self::Booked => [self::Reserved, self::CheckedIn, self::Cancelled],
+            self::Reserved => [self::Booked, self::CheckedIn, self::Cancelled, self::NoShow],
+            self::Booked => [self::Reserved, self::CheckedIn, self::Cancelled, self::NoShow],
             self::CheckedIn => [self::CheckedOut],
+            self::NoShow => [self::Booked, self::Cancelled],
             self::CheckedOut, self::Cancelled => [],
         };
     }

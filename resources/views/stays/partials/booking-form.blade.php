@@ -16,6 +16,7 @@
         'arrival' => old('arrival_date', $stay->arrival_date?->toDateString()),
         'departure' => old('departure_date', $stay->departure_date?->toDateString()),
         'mealPlan' => old('meal_plan', $stay->meal_plan?->value ?? 'BB'),
+        'companyId' => (string) old('company_id', $stay->company_id ?? ''),
         'lines' => collect($lines)->map(fn ($l) => [
             'room_id' => (string) ($l['room_id'] ?? ''),
             'adults' => (int) ($l['adults'] ?? 1),
@@ -70,6 +71,23 @@
                             </div>
                         @endif
                     </div>
+
+                    @if ($companies->isNotEmpty())
+                        <div class="sm:col-span-2">
+                            <label class="{{ $labelClass }}">Bill to</label>
+                            @if ($inHouse)
+                                <p class="text-gray-800">{{ $stay->company?->name ?? 'The guest' }}</p>
+                            @else
+                                <select name="company_id" x-model="companyId" @change="refresh()" class="{{ $inputClass }}">
+                                    <option value="">The guest pays</option>
+                                    @foreach ($companies as $company)
+                                        <option value="{{ $company->id }}">{{ $company->name }}{{ (float) $company->rate_discount_percent > 0 ? ' · ' . rtrim(rtrim(number_format((float) $company->rate_discount_percent, 2), '0'), '.') . '% off rooms' : '' }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">A company account gets the invoice on its payment terms; the guest can check out without paying.</p>
+                            @endif
+                        </div>
+                    @endif
 
                     <div>
                         <label class="{{ $labelClass }}">Arrival *</label>
@@ -238,6 +256,7 @@ document.addEventListener('alpine:init', () => {
         arrival: config.arrival,
         departure: config.departure,
         mealPlan: config.mealPlan,
+        companyId: config.companyId,
         inHouse: config.inHouse,
         today: new Date().toLocaleDateString('en-CA'),
         quote: null,
@@ -329,6 +348,7 @@ document.addEventListener('alpine:init', () => {
                         arrival_date: this.arrival,
                         departure_date: this.departure,
                         meal_plan: this.mealPlan,
+                        company_id: this.companyId || null,
                         rooms: this.lines.filter(l => l.room_id).map(l => ({
                             room_id: Number(l.room_id),
                             adults: Number(l.adults) || 1,

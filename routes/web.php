@@ -259,6 +259,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('inventory/{inventory}/move', [InventoryController::class, 'move'])->name('inventory.move');
     });
 
+    // Night audit: front desk, finance and managers close the day
+    Route::middleware('role:manager,finance,receptionist')->group(function () {
+        Route::get('night-audits', [\App\Http\Controllers\NightAuditController::class, 'index'])->name('night-audits.index');
+        Route::post('night-audits', [\App\Http\Controllers\NightAuditController::class, 'store'])->middleware('throttle:10,1')->name('night-audits.store');
+        Route::get('night-audits/{nightAudit}', [\App\Http\Controllers\NightAuditController::class, 'show'])->name('night-audits.show');
+    });
+
+    // Company accounts (city ledger): front desk can look up; finance and managers manage and take payments
+    Route::middleware('role:manager,finance,receptionist')->group(function () {
+        Route::get('companies', [\App\Http\Controllers\CompanyController::class, 'index'])->name('companies.index');
+        Route::get('companies/{company}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('companies.show');
+        Route::get('companies/{company}/statement', [\App\Http\Controllers\CompanyController::class, 'statement'])->name('companies.statement');
+    });
+    Route::middleware('role:manager,finance')->group(function () {
+        Route::post('companies', [\App\Http\Controllers\CompanyController::class, 'store'])->name('companies.store');
+        Route::put('companies/{company}', [\App\Http\Controllers\CompanyController::class, 'update'])->name('companies.update');
+        Route::post('companies/{company}/payments', [\App\Http\Controllers\CompanyController::class, 'pay'])->middleware('throttle:20,1')->name('companies.pay');
+    });
+
     /*
     |--------------------------------------------------------------------------
     | Finance

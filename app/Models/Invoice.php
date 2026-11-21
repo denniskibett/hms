@@ -14,6 +14,7 @@ class Invoice extends Model
         'stay_id',
         'facility_booking_id',
         'kitchen_order_id',
+        'company_id',
         'invoice_number',
         'subtotal',
         'tax_amount',
@@ -85,6 +86,11 @@ class Invoice extends Model
     /**
      * Payments for this invoice.
      */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function etimsReceipt()
     {
         return $this->hasOne(EtimsReceipt::class);
@@ -137,11 +143,22 @@ class Invoice extends Model
     }
 
     /**
+     * Money actually owed: unpaid, leaving out bookings that haven't started yet
+     * (their invoice exists from the day they're booked, but nobody owes it yet).
+     */
+    public function scopeReceivable($query)
+    {
+        return $query->unpaid()->whereDoesntHave('stay', fn ($s) => $s
+            ->whereIn('status', ['reserved', 'booked'])
+            ->whereDate('arrival_date', '>', today()));
+    }
+
+    /**
      * Unpaid and past the due date (the guest's departure date).
      */
     public function scopeOverdue($query)
     {
-        return $query->unpaid()->whereDate('due_date', '<', today());
+        return $query->receivable()->whereDate('due_date', '<', today());
     }
 
     /**
@@ -165,6 +182,7 @@ class Invoice extends Model
     public function getBilledToAttribute(): ?string
     {
         return match (true) {
+            (bool) $this->company_id => $this->company?->name,
             (bool) $this->facility_booking_id => $this->facilityBooking?->client_name,
             (bool) $this->kitchen_order_id => $this->kitchenOrder?->customer_name ?: 'Walk-in customer',
             default => $this->stay?->guest?->name,

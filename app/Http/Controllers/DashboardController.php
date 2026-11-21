@@ -98,7 +98,7 @@ class DashboardController extends Controller
             'departures' => Stay::departingToday()->count(),
             'collected_today' => (float) (clone $collected)->whereDate('received_at', today())->sum('amount'),
             'collected_month' => (float) (clone $collected)->where('received_at', '>=', today()->startOfMonth())->sum('amount'),
-            'outstanding' => (float) Invoice::unpaid()->sum('due_amount'),
+            'outstanding' => (float) Invoice::receivable()->sum('due_amount'),
             'overdue' => (float) Invoice::overdue()->sum('due_amount'),
             'events_today' => FacilityBooking::where('status', FacilityBookingStatus::Confirmed->value)
                 ->whereDate('start_date', '<=', today())->whereDate('end_date', '>=', today())->with('facility:id,name')->get(),
@@ -163,7 +163,7 @@ class DashboardController extends Controller
         return [
             'collected_today' => (float) (clone $collected)->whereDate('received_at', today())->sum('amount'),
             'collected_month' => (float) (clone $collected)->where('received_at', '>=', today()->startOfMonth())->sum('amount'),
-            'outstanding' => (float) Invoice::unpaid()->sum('due_amount'),
+            'outstanding' => (float) Invoice::receivable()->sum('due_amount'),
             'overdue' => (float) Invoice::overdue()->sum('due_amount'),
             'overdue_invoices' => Invoice::overdue()->with(['stay.guest', 'facilityBooking', 'kitchenOrder'])->orderBy('due_date')->take(6)->get(),
             'payroll_to_pay' => Payroll::where('status', 'approved')->selectRaw('period_month, COUNT(*) as staff, SUM(net) as net')->groupBy('period_month')->get(),
