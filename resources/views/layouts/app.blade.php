@@ -36,7 +36,7 @@
     {{-- Theme colours from System Settings as "r g b", so Tailwind opacity modifiers (bg-primary/10) work --}}
     <style>
         :root {
-            --color-primary-rgb: {{ SystemHelper::rgb(SystemHelper::primaryColor(), '58 87 232') }};
+            --color-primary-rgb: {{ SystemHelper::rgb(SystemHelper::primaryColor(), '168 85 8') }};
             --color-secondary-rgb: {{ SystemHelper::rgb(SystemHelper::secondaryColor(), '8 177 186') }};
         }
     </style>
@@ -66,18 +66,17 @@
     </script>
 </head>
 
-<body class="font-outfit antialiased bg-gray-100"
+<body class="font-outfit antialiased bg-gray-50 text-gray-800"
       x-data="{
           page: '{{ request()->segment(1) ?? 'dashboard' }}',
           loaded: true,
-          darkMode: JSON.parse(localStorage.getItem('darkMode')) || false,
+          darkMode: false,
           stickyMenu: false,
           sidebarToggle: false,
           scrollTop: false,
           selected: $persist('{{ ucfirst(request()->segment(1) ?? 'Dashboard') }}')
       }"
-      x-init="$watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
-      :class="{'dark bg-gray-900': darkMode}">
+>
 
 @include('partials.preloader')
 

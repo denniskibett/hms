@@ -34,7 +34,7 @@
                         <!-- Current Avatar -->
                         <div class="flex flex-col items-center">
                             <div class="relative">
-                                <img :src="avatarPreview || '{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/default-avatar.png') }}'" 
+                                <img :src="avatarPreview || '{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/default-avatar.svg') }}'" 
                                         alt="Profile Picture" 
                                         class="w-32 h-32 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700">
                                 <div x-show="isUploading" class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">

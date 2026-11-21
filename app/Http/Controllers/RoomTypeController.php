@@ -39,14 +39,6 @@ class RoomTypeController extends Controller
         return view('room-types.index', compact('roomTypes', 'bedTypes'));
     }
 
-    /**
-     * Show the form for creating a new room type.
-     */
-    public function create()
-    {
-        $bedTypes = RoomType::getBedTypeOptions();
-        return view('room-types.create', compact('bedTypes'));
-    }
 
     /**
      * Store a newly created room type in storage.
@@ -91,14 +83,6 @@ class RoomTypeController extends Controller
         return view('room-types.show', compact('roomType', 'bedTypes'));
     }
 
-    /**
-     * Show the form for editing the specified room type.
-     */
-    public function edit(RoomType $roomType)
-    {
-        $bedTypes = RoomType::getBedTypeOptions();
-        return view('room-types.edit', compact('roomType', 'bedTypes'));
-    }
 
     /**
      * Update the specified room type in storage.
