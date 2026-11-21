@@ -104,6 +104,7 @@
           <!-- Menu Item Dashboard -->
 
           <!-- Menu Item Guests -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist']))
           <li>
             <a
               href="{{ route('guests.index') }}"
@@ -135,9 +136,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Guests -->
 
           <!-- Menu Item Stays -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist']))
           <li>
             <a
               href="#"
@@ -205,13 +208,46 @@
                     All Stays
                   </a>
                 </li>
+                <li>
+                  <a
+                    href="{{ route('booking-requests.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'booking-requests.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Website Requests
+                    @php($newRequests = \App\Models\BookingRequest::open()->count())
+                    @if ($newRequests)
+                      <span class="absolute right-3 rounded-full bg-warning-500 px-2 text-xs font-medium text-white">{{ $newRequests }}</span>
+                    @endif
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="{{ route('guest-messages.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'guest-messages.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Guest Messages
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="{{ route('events.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'events.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Conferences &amp; Events
+                  </a>
+                </li>
               </ul>
             </div>
             <!-- Dropdown Menu End -->
           </li>
+          @endif
           <!-- Menu Item Stays -->
 
           <!-- Menu Item Rooms -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist', 'housekeeping']))
           <li>
             <a
               href="#"
@@ -301,9 +337,11 @@
             </div>
             <!-- Dropdown Menu End -->
           </li>
+          @endif
           <!-- Menu Item Rooms -->
 
           <!-- Menu Item Tasks -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist', 'housekeeping', 'kitchen', 'procurement', 'hr', 'finance']))
           <li>
             <a
               href="{{ route('tasks.index') }}"
@@ -335,9 +373,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Tasks -->
 
           <!-- Menu Item Finance -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'finance']))
           <li>
             <a
               href="#"
@@ -407,6 +447,15 @@
                 </li>
                 <li>
                   <a
+                    href="{{ route('expenses.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'expenses.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Expenses
+                  </a>
+                </li>
+                <li>
+                  <a
                     href="{{ route('invoices.index') }}"
                     class="menu-dropdown-item group"
                     :class="page === 'invoices.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
@@ -423,15 +472,7 @@
                     Payments
                   </a>
                 </li>
-                <li>
-                  <a
-                    href="{{ route('inventory.index') }}"
-                    class="menu-dropdown-item group"
-                    :class="page === 'expenses.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
-                  >
-                    Expenses
-                  </a>
-                </li>
+                
                 <li>
                   <a
                     href="{{ route('reports.index') }}"
@@ -445,9 +486,11 @@
             </div>
             <!-- Dropdown Menu End -->
           </li>
+          @endif
           <!-- Menu Item Finance -->
 
           <!-- Menu Item Inventory -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'procurement', 'kitchen', 'housekeeping']))
           <li>
             <a
               href="{{ route('inventory.index') }}"
@@ -479,9 +522,47 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Inventory -->
 
+          <!-- Menu Item Procurement -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'procurement', 'kitchen', 'finance']))
+          <li>
+            <a
+              href="{{ route('purchase-orders.index') }}"
+              @click="selected = (selected === 'Procurement' ? '':'Procurement')"
+              class="menu-item group"
+              :class="(selected === 'Procurement') || (page === 'purchase-orders' || page === 'suppliers') ? 'menu-item-active' : 'menu-item-inactive'"
+            >
+              <svg
+                :class="(selected === 'Procurement') || (page === 'purchase-orders' || page === 'suppliers') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M8.50391 4.25C8.50391 3.83579 8.83969 3.5 9.25391 3.5H15.2777C15.4766 3.5 15.6674 3.57902 15.8081 3.71967L18.2807 6.19234C18.4214 6.333 18.5004 6.52376 18.5004 6.72268V16.75C18.5004 17.1642 18.1646 17.5 17.7504 17.5H16.248V17.4993H14.748V17.5H9.25391C8.83969 17.5 8.50391 17.1642 8.50391 16.75V4.25ZM14.748 19H9.25391C8.01126 19 7.00391 17.9926 7.00391 16.75V6.49854H6.24805C5.83383 6.49854 5.49805 6.83432 5.49805 7.24854V19.75C5.49805 20.1642 5.83383 20.5 6.24805 20.5H13.998C14.4123 20.5 14.748 20.1642 14.748 19.75L14.748 19ZM7.00391 4.99854V4.25C7.00391 3.00736 8.01127 2 9.25391 2H15.2777C15.8745 2 16.4468 2.23705 16.8687 2.659L19.3414 5.13168C19.7634 5.55364 20.0004 6.12594 20.0004 6.72268V16.75C20.0004 17.9926 18.9931 19 17.7504 19H16.248L16.248 19.75C16.248 20.9926 15.2407 22 13.998 22H6.24805C5.00541 22 3.99805 20.9926 3.99805 19.75V7.24854C3.99805 6.00589 5.00541 4.99854 6.24805 4.99854H7.00391Z"
+                  fill=""
+                />
+              </svg>
+
+              <span
+                class="menu-item-text"
+                :class="sidebarToggle ? 'lg:hidden' : ''"
+              >
+                Procurement
+              </span>
+            </a>
+          </li>
+          @endif
+          <!-- Menu Item Procurement -->
+
           <!-- Menu Item Kitchen -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'kitchen', 'receptionist']))
           <li>
             <a
               href="{{ route('kitchen.index') }}"
@@ -509,13 +590,15 @@
                 class="menu-item-text"
                 :class="sidebarToggle ? 'lg:hidden' : ''"
               >
-                Kitchen
+                Restaurant &amp; Kitchen
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Kitchen -->
 
           <!-- Menu Item HR -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'hr', 'finance']))
           <li>
             <a
               href="#"
@@ -576,53 +659,45 @@
               >
                 <li>
                   <a
-                    href="{{ route('hr.index') }}"
+                    href="{{ route('hr.staff.index') }}"
                     class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                    :class="page === 'hr.staff.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
                     Staff
                   </a>
                 </li>
                 <li>
                   <a
-                    href="{{ route('hr.index') }}"
+                    href="{{ route('hr.rota.index') }}"
                     class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                    :class="page === 'hr.rota.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
-                    Schedule
+                    Rota
                   </a>
                 </li>
                 <li>
                   <a
-                    href="{{ route('hr.index') }}"
+                    href="{{ route('hr.payroll.index') }}"
                     class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                    :class="page === 'hr.payroll.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
                     Payroll
                   </a>
                 </li>
                 <li>
                   <a
-                    href="{{ route('hr.index') }}"
+                    href="{{ route('hr.leave.index') }}"
                     class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                    :class="page === 'hr.leave.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
                     Leave
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="{{ route('hr.index') }}"
-                    class="menu-dropdown-item group"
-                    :class="page === 'hr.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
-                  >
-                    Attendance
                   </a>
                 </li>
               </ul>
             </div>
             <!-- Dropdown Menu End -->
           </li>
+          @endif
           <!-- Menu Item HR -->
 
           
@@ -656,6 +731,7 @@
 
         <ul class="flex flex-col gap-4 mb-6">
           <!-- Menu Item Reports -->
+          @if (auth()->user()->hasAnyRole(['admin', 'manager', 'finance']))
           <li>
             <a
               href="{{ route('reports.index') }}"
@@ -687,9 +763,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Reports -->
 
           <!-- Menu Item Users -->
+          @if (auth()->user()->hasAnyRole(['admin']))
           <li>
             <a
               href="{{ route('users.index') }}"
@@ -721,9 +799,11 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item Users -->
 
           <!-- Menu Item System -->
+          @if (auth()->user()->hasAnyRole(['admin']))
           <li>
             <a
               href="{{ route('system.index') }}"
@@ -755,41 +835,9 @@
               </span>
             </a>
           </li>
+          @endif
           <!-- Menu Item System -->
 
-          <!-- Menu Item UI Components -->
-          <li>
-            <a
-              href=""
-              @click="selected = (selected === 'UI' ? '':'UI')"
-              class="menu-item group"
-              :class="(selected === 'UI') || (page === 'ui') ? 'menu-item-active' : 'menu-item-inactive'"
-            >
-              <svg
-                :class="(selected === 'UI') || (page === 'ui') ? 'menu-item-icon-active' : 'menu-item-icon-inactive'"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H18.5001C19.7427 20.75 20.7501 19.7426 20.7501 18.5V5.5C20.7501 4.25736 19.7427 3.25 18.5001 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H18.5001C18.9143 4.75 19.2501 5.08579 19.2501 5.5V8.58325L19.2501 8.58325V5.5ZM19.2501 10.0833H15.416V13.9165H19.2501V10.0833ZM13.916 10.0833L10.083 10.0833V13.9165L13.916 13.9165V10.0833ZM8.58301 10.0833H4.75V13.9165H8.58301V10.0833ZM4.75 18.5V15.4165H8.58301V19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5ZM10.083 19.25V15.4165L13.916 15.4165V19.25H10.083ZM15.416 19.25V15.4165H19.2501V18.5C19.2501 18.9142 18.9142 19.25 18.5001 19.25H15.416Z"
-                  fill=""
-                />
-              </svg>
-
-              <span
-                class="menu-item-text"
-                :class="sidebarToggle ? 'lg:hidden' : ''"
-              >
-                UI Components
-              </span>
-            </a>
-          </li>
-          <!-- Menu Item UI Components -->
 
           <!-- Menu Item Calendar -->
           <li>

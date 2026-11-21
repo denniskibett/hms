@@ -5,9 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * A person on a shift on a day (the rota). After the day, HR marks it worked
+ * or absent and records overtime, which feeds payroll.
+ */
 class ShiftAssignment extends Model
 {
     use HasFactory;
+
+    public const STATUSES = [
+        'scheduled' => 'Scheduled',
+        'completed' => 'Worked',
+        'absent' => 'Absent',
+        'on_leave' => 'On leave',
+    ];
 
     protected $fillable = [
         'user_id',
@@ -23,32 +34,13 @@ class ShiftAssignment extends Model
         'overtime_hours' => 'decimal:2',
     ];
 
-    /**
-     * User assigned to this shift.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Shift details.
-     */
     public function shift()
     {
         return $this->belongsTo(Shift::class);
-    }
-
-    /**
-     * Get status options.
-     */
-    public static function getStatusOptions()
-    {
-        return [
-            'scheduled' => 'Scheduled',
-            'completed' => 'Completed',
-            'absent' => 'Absent',
-            'on_leave' => 'On Leave',
-        ];
     }
 }

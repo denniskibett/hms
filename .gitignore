@@ -22,3 +22,12 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Database dumps contain personal data - never commit
+*.sql
+
+# Local scratch
+tree.txt
+
+# Hand-applied schema changes for live are tracked
+!database/schema/*.sql

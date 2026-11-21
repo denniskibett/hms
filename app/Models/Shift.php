@@ -2,12 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * A shift pattern staff are put on: Morning 06:00–14:00, Night 22:00–06:00…
+ * Times are stored as "HH:MM:SS" strings; a night shift ends the next day.
+ */
 class Shift extends Model
 {
     use HasFactory;
+
+    public const TYPES = [
+        'morning' => 'Morning',
+        'evening' => 'Evening',
+        'night' => 'Night',
+        'custom' => 'Other',
+    ];
 
     protected $fillable = [
         'name',
@@ -18,53 +30,45 @@ class Shift extends Model
     ];
 
     protected $casts = [
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Assignments for this shift.
-     */
     public function assignments()
     {
         return $this->hasMany(ShiftAssignment::class);
     }
 
-    /**
-     * Today's assignments.
-     */
-    public function todayAssignments()
-    {
-        return $this->assignments()->whereDate('date', today());
-    }
-
-    /**
-     * Scope for active shifts.
-     */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
 
     /**
-     * Get shift type options.
+     * "06:00–14:00"
      */
-    public static function getTypeOptions()
+    public function getHoursLabelAttribute(): string
     {
-        return [
-            'morning' => 'Morning Shift',
-            'evening' => 'Evening Shift',
-            'night' => 'Night Shift',
-            'custom' => 'Custom Shift',
-        ];
+        return substr($this->start_time, 0, 5) . '–' . substr($this->end_time, 0, 5);
     }
 
-    /**
-     * Calculate shift duration in hours.
-     */
-    public function getDurationHoursAttribute()
+    public function getDurationHoursAttribute(): float
     {
-        return $this->start_time->diffInHours($this->end_time);
+        [$sh, $sm] = array_map('intval', explode(':', $this->start_time));
+        [$eh, $em] = array_map('intval', explode(':', $this->end_time));
+        $minutes = ($eh * 60 + $em) - ($sh * 60 + $sm);
+
+        return round(($minutes <= 0 ? $minutes + 1440 : $minutes) / 60, 2);
+    }
+
+    public function formData(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'start_time' => substr($this->start_time, 0, 5),
+            'end_time' => substr($this->end_time, 0, 5),
+            'type' => $this->type,
+            'is_active' => $this->is_active,
+        ];
     }
 }

@@ -17,7 +17,9 @@ class SystemServiceProvider extends ServiceProvider
         });
         
         // Create alias for easier access
-        class_alias(\App\Helpers\SystemHelper::class, 'SystemHelper');
+        if (! class_exists('SystemHelper', false)) {
+            class_alias(\App\Helpers\SystemHelper::class, 'SystemHelper');
+        }
     }
 
     /**

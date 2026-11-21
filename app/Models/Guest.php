@@ -2,9 +2,17 @@
 
 namespace App\Models;
 
+use App\Enums\StayStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use PragmaRX\Countries\Package\Countries;
 
+/**
+ * A guest's profile. Name, phone and email live on the linked User
+ * (stays.guest_id points at users.id, not at this table).
+ */
 class Guest extends Model
 {
     use HasFactory;
@@ -26,60 +34,112 @@ class Guest extends Model
         'preferences' => 'array',
     ];
 
+    public const ID_TYPES = [
+        'national_id' => 'National ID',
+        'passport' => 'Passport',
+        'driving_license' => 'Driving Licence',
+        'other' => 'Other',
+    ];
 
+    public const PREFERENCE_TAGS = [
+        'Quiet Room', 'High Floor', 'Ground Floor', 'Near Elevator', 'Accessible',
+        'Twin Beds', 'Extra Pillows', 'Non Smoking', 'Late Check Out', 'Early Check In',
+        'Vegetarian', 'Halal',
+    ];
+
+    // ---- Relationships --------------------------------------------------
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
-
-
 
     public function stays()
     {
-        return $this->hasManyThrough(Stay::class, User::class, 'id', 'guest_id');
+        return $this->hasMany(Stay::class, 'guest_id', 'user_id');
     }
 
-    /**
-     * Current active stay.
-     */
-    public function currentStay()
+    // ---- Scopes ---------------------------------------------------------
+
+    public function scopeSearch(Builder $query, string $term): Builder
     {
-        return $this->stays()
-            ->whereIn('stays.status', ['booked', 'checked_in'])
-            ->where('stays.departure_date', '>=', now())
-            ->latest('stays.created_at')
-            ->first();
+        return $query->where(fn ($q) => $q
+            ->whereHas('user', fn ($u) => $u
+                ->where('name', 'like', "%{$term}%")
+                ->orWhere('email', 'like', "%{$term}%")
+                ->orWhere('phone', 'like', "%{$term}%"))
+            ->orWhere('id_number', 'like', "%{$term}%"));
     }
 
-    /**
-     * Scope for guests by ID type.
-     */
-    public function scopeByIdType($query, $type)
+    public function scopeInHouse(Builder $query): Builder
     {
-        return $query->where('id_type', $type);
+        return $query->whereHas('stays', fn ($q) => $q->inHouse());
     }
 
     /**
-     * Scope for guests by nationality.
+     * Has a reservation that hasn't checked in yet (today, overdue or future).
      */
-    public function scopeByNationality($query, $nationality)
+    public function scopeExpected(Builder $query): Builder
     {
-        return $query->where('nationality', $nationality);
+        return $query->whereHas('stays', fn ($q) => $q->whereIn('status', [StayStatus::Reserved->value, StayStatus::Booked->value]));
+    }
+
+    // ---- Helpers --------------------------------------------------------
+
+    public function getNameAttribute(): string
+    {
+        return $this->user->name ?? 'Guest';
+    }
+
+    public function getIdTypeLabelAttribute(): ?string
+    {
+        return self::ID_TYPES[$this->id_type] ?? null;
     }
 
     /**
-     * Get ID type options.
+     * Values for the add/edit modal.
      */
-    public static function getIdTypeOptions()
+    public function formData(): array
     {
         return [
-            'passport' => 'Passport',
-            'national_id' => 'National ID',
-            'driving_license' => 'Driving License',
-            'other' => 'Other',
+            'id' => $this->id,
+            'name' => $this->user?->name,
+            'phone' => $this->user?->phone,
+            'email' => $this->user?->email,
+            'dob' => $this->user?->dob,
+            'id_type' => $this->id_type,
+            'id_number' => $this->id_number,
+            'nationality' => $this->nationality,
+            'address' => $this->address,
+            'emergency_contact' => [
+                'name' => $this->emergency_contact['name'] ?? '',
+                'phone' => $this->emergency_contact['phone'] ?? '',
+                'relationship' => $this->emergency_contact['relationship'] ?? '',
+            ],
+            'preferences' => [
+                'tags' => $this->preferences['tags'] ?? [],
+                'allergies' => $this->preferences['allergies'] ?? '',
+                'notes' => $this->preferences['notes'] ?? '',
+            ],
         ];
     }
 
-
+    /**
+     * Country names for the nationality field.
+     */
+    public static function countries(): array
+    {
+        return Cache::rememberForever('guest_countries', function () {
+            try {
+                return (new Countries)->all()
+                    ->map(fn ($c) => $c->name->common ?? null)
+                    ->filter()
+                    ->sort()
+                    ->values()
+                    ->all();
+            } catch (\Throwable) {
+                return ['Kenya', 'Uganda', 'Tanzania', 'Rwanda', 'United Kingdom', 'United States'];
+            }
+        });
+    }
 }

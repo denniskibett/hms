@@ -17,20 +17,8 @@ use Illuminate\Support\Facades\Route;
     @vite([
         'resources/css/app.css',
         'resources/js/app.js',
-        'resources/js/bootstrap.js',
-        'resources/js/index.js',
-        'resources/js/components/charts/chart-01.js',
-        'resources/js/components/charts/chart-02.js',
-        'resources/js/components/charts/chart-03.js'
+        'resources/js/index.js'
     ])
-
-    <!-- Auto-load all JS components -->
-    @php
-        $components = array_diff(scandir(resource_path('js/components')), array('..', '.'));
-    @endphp
-    @foreach ($components as $component)
-        @vite(['resources/js/components/' . $component])
-    @endforeach
   </head>
   <body
     x-data="{ page: 'comingSoon', 'loaded': true, 'darkMode': false, 'stickyMenu': false, 'sidebarToggle': false, 'scrollTop': false }"
@@ -175,7 +163,7 @@ use Illuminate\Support\Facades\Route;
                     autofocus
                     autocomplete="username"
                     placeholder="info@gmail.com"
-                    class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                   />
                   @error('email')
                     <div class="mt-2 text-sm text-red-600">{{ $message }}</div>
@@ -197,7 +185,7 @@ use Illuminate\Support\Facades\Route;
                       required
                       autocomplete="current-password"
                       placeholder="Enter your password"
-                      class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                      class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                     />
                     <span
                       @click="showPassword = !showPassword"

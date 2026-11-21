@@ -41,7 +41,8 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        // Inactive or suspended accounts (e.g. staff who have left) can't sign in
+        if (! Auth::attempt($this->only('email', 'password') + ['status' => 'active'], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

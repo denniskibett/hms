@@ -51,8 +51,20 @@ class SystemController extends Controller
             'primary_color' => 'required|string|max:7',
             'secondary_color' => 'required|string|max:7',
             'pagination_limit' => 'required|integer|min:5|max:100',
-            'logo' => 'nullable|image|max:2048',
-            'favicon' => 'nullable|image|max:1024',
+            // No SVG: it can carry script and is served from our own domain
+            'logo' => 'nullable|file|mimes:png,jpg,jpeg,webp|max:2048',
+            'favicon' => 'nullable|file|mimes:png,ico|max:1024',
+            'contact_email' => 'nullable|email|max:255',
+            'login_attempts' => 'nullable|integer|min:1|max:20',
+            'session_timeout' => 'nullable|integer|min:5|max:1440',
+            'password_expiry' => 'nullable|integer|min:0|max:365',
+            'backup_frequency' => 'nullable|in:daily,weekly,monthly',
+            'backup_retention' => 'nullable|integer|min:1|max:365',
+            'vat_percent' => 'nullable|numeric|min:0|max:50',
+            'tourism_levy_percent' => 'nullable|numeric|min:0|max:20',
+            'child_rate_percent' => 'nullable|numeric|min:0|max:100',
+            'kra_pin' => 'nullable|string|max:20',
+            'annual_leave_days' => 'nullable|integer|min:0|max:60',
         ]);
 
         // Prepare data for update
@@ -65,11 +77,11 @@ class SystemController extends Controller
         ]);
 
         // Handle file uploads
+        // store() names the file by hash with an extension guessed from its content,
+        // never the client-supplied one
         if ($request->hasFile('logo')) {
-            $logo = $request->file('logo');
-            $logoName = 'logo-' . time() . '.' . $logo->getClientOriginalExtension();
-            $data['logo'] = $logo->storeAs('system', $logoName, 'public');
-            
+            $data['logo'] = $request->file('logo')->store('system', 'public');
+
             // Delete old logo
             if ($system->logo) {
                 Storage::disk('public')->delete($system->logo);
@@ -77,10 +89,8 @@ class SystemController extends Controller
         }
 
         if ($request->hasFile('favicon')) {
-            $favicon = $request->file('favicon');
-            $faviconName = 'favicon-' . time() . '.' . $favicon->getClientOriginalExtension();
-            $data['favicon'] = $favicon->storeAs('system', $faviconName, 'public');
-            
+            $data['favicon'] = $request->file('favicon')->store('system', 'public');
+
             // Delete old favicon
             if ($system->favicon) {
                 Storage::disk('public')->delete($system->favicon);
@@ -104,9 +114,9 @@ class SystemController extends Controller
         // Update security settings
         $settings['security'] = [
             'two_factor_auth' => $request->boolean('two_factor_auth'),
-            'login_attempts' => $request->input('login_attempts', 5),
-            'session_timeout' => $request->input('session_timeout', 30),
-            'password_expiry' => $request->input('password_expiry', 90),
+            'login_attempts' => $request->integer('login_attempts', 5),
+            'session_timeout' => $request->integer('session_timeout', 30),
+            'password_expiry' => $request->integer('password_expiry', 90),
         ];
 
         // Update integrations
@@ -119,9 +129,70 @@ class SystemController extends Controller
         $settings['backup'] = [
             'auto_backup' => $request->boolean('auto_backup', true),
             'backup_frequency' => $request->input('backup_frequency', 'daily'),
-            'backup_retention' => $request->input('backup_retention', 30),
+            'backup_retention' => $request->integer('backup_retention', 30),
             'backup_to_cloud' => $request->boolean('backup_to_cloud', false),
         ];
+
+        // Billing and taxes (read by SystemHelper::vatPercent() etc.)
+        if ($request->has('vat_percent')) {
+            $settings['billing'] = array_merge($settings['billing'] ?? [], [
+                'vat_percent' => (float) $request->input('vat_percent', 16),
+                'tourism_levy_percent' => (float) $request->input('tourism_levy_percent', 2),
+                'child_rate_percent' => (float) $request->input('child_rate_percent', 50),
+                'prices_include_tax' => $request->boolean('prices_include_tax'),
+                'kra_pin' => strtoupper(trim((string) $request->input('kra_pin', ''))),
+            ]);
+            $settings['hr'] = array_merge($settings['hr'] ?? [], [
+                'annual_leave_days' => $request->integer('annual_leave_days', 21),
+            ]);
+        }
+
+        // KRA eTIMS (the communication key comes from "Initialise device", not this form)
+        if ($request->has('etims_enabled')) {
+            $request->validate([
+                'etims_environment' => 'nullable|in:sandbox,production',
+                'etims_bhf_id' => 'nullable|string|max:3',
+                'etims_device_serial' => 'nullable|string|max:60',
+            ]);
+            $settings['etims'] = array_merge($settings['etims'] ?? [], [
+                'enabled' => $request->boolean('etims_enabled'),
+                'environment' => $request->input('etims_environment', 'sandbox'),
+                'bhf_id' => $request->input('etims_bhf_id') ?: '00',
+                'device_serial' => trim((string) $request->input('etims_device_serial')),
+            ]);
+        }
+
+        // Online payments (secrets encrypted; blank keeps the saved value)
+        if ($request->has('sharet_enabled')) {
+            $request->validate([
+                'sharet_api_key' => 'nullable|string|max:255',
+                'sharet_webhook_secret' => 'nullable|string|max:255',
+                'sharet_base_url' => 'nullable|url|max:255',
+                'mpesa_environment' => 'nullable|in:sandbox,production',
+                'mpesa_type' => 'nullable|in:paybill,till',
+                'mpesa_shortcode' => 'nullable|digits_between:5,8',
+                'mpesa_till_number' => 'nullable|digits_between:5,8',
+                'mpesa_consumer_key' => 'nullable|string|max:255',
+                'mpesa_consumer_secret' => 'nullable|string|max:255',
+                'mpesa_passkey' => 'nullable|string|max:255',
+            ]);
+            $settings = \App\Services\Payments\PaymentGateways::merge($settings, 'sharet', [
+                'enabled' => $request->boolean('sharet_enabled'),
+                'api_key' => $request->input('sharet_api_key'),
+                'webhook_secret' => $request->input('sharet_webhook_secret'),
+                'base_url' => $request->input('sharet_base_url') ?: \App\Services\Payments\SharetPay::DEFAULT_BASE_URL,
+            ]);
+            $settings = \App\Services\Payments\PaymentGateways::merge($settings, 'mpesa', [
+                'enabled' => $request->boolean('mpesa_enabled'),
+                'environment' => $request->input('mpesa_environment', 'sandbox'),
+                'type' => $request->input('mpesa_type', 'paybill'),
+                'shortcode' => $request->input('mpesa_shortcode'),
+                'till_number' => $request->input('mpesa_till_number'),
+                'consumer_key' => $request->input('mpesa_consumer_key'),
+                'consumer_secret' => $request->input('mpesa_consumer_secret'),
+                'passkey' => $request->input('mpesa_passkey'),
+            ]);
+        }
 
         $data['settings'] = $settings;
 
@@ -132,6 +203,30 @@ class SystemController extends Controller
         Cache::forget('system_settings');
 
         return redirect()->route('system.index')->with('success', 'Settings updated successfully!');
+    }
+
+    /**
+     * Register this install with KRA eTIMS and keep the communication key (encrypted).
+     */
+    public function initialiseEtims(\App\Services\Etims\Etims $etims)
+    {
+        if (! SystemHelper::kraPin() || empty(\App\Services\Etims\Etims::config()['device_serial'])) {
+            return back()->with('error', 'Save the KRA PIN and the eTIMS device serial first.');
+        }
+
+        try {
+            $key = $etims->initialise();
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $system = System::settings();
+        $settings = $system->settings ?? [];
+        $settings['etims']['cmc_key'] = \Illuminate\Support\Facades\Crypt::encryptString($key);
+        $system->update(['settings' => $settings]);
+        Cache::forget('system_settings');
+
+        return back()->with('success', 'eTIMS device registered with KRA.');
     }
 
     public function clearCache()

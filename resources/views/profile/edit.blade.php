@@ -20,7 +20,7 @@
         </div>
 
         <!-- Profile Edit Form -->
-        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800 lg:p-6">
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs dark:border-gray-800 dark:bg-gray-800 lg:p-6">
             <h3 class="text-lg font-semibold mb-6">Edit Profile</h3>
 
             <form id="profile-form" method="POST" @submit.prevent="saveProfile" enctype="multipart/form-data">

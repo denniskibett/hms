@@ -20,6 +20,11 @@ class CheckMaintenanceMode
     {
         // Check if maintenance mode is enabled
         if ($this->isMaintenanceModeEnabled()) {
+            // Keep auth pages reachable so an admin can log in and switch it off
+            if ($request->routeIs('login', 'logout', 'password.*')) {
+                return $next($request);
+            }
+
             // Check if user is authenticated and has admin privileges
             if (!$this->hasAdminAccess($request)) {
                 // Return maintenance page response

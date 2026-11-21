@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InvoiceStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,9 +12,16 @@ class Invoice extends Model
 
     protected $fillable = [
         'stay_id',
+        'facility_booking_id',
+        'kitchen_order_id',
         'invoice_number',
         'subtotal',
         'tax_amount',
+        'tax_inclusive',
+        'vat_rate',
+        'vat_amount',
+        'levy_rate',
+        'levy_amount',
         'discount_amount',
         'total',
         'paid_amount',
@@ -26,6 +34,11 @@ class Invoice extends Model
     protected $casts = [
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
+        'tax_inclusive' => 'boolean',
+        'vat_rate' => 'decimal:2',
+        'vat_amount' => 'decimal:2',
+        'levy_rate' => 'decimal:2',
+        'levy_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'total' => 'decimal:2',
         'paid_amount' => 'decimal:2',
@@ -46,6 +59,22 @@ class Invoice extends Model
     }
 
     /**
+     * Event this invoice is for (invoices have a stay or an event).
+     */
+    public function facilityBooking()
+    {
+        return $this->belongsTo(FacilityBooking::class);
+    }
+
+    /**
+     * Walk-in restaurant order this invoice is for.
+     */
+    public function kitchenOrder()
+    {
+        return $this->belongsTo(KitchenOrder::class);
+    }
+
+    /**
      * Items in this invoice.
      */
     public function items()
@@ -56,6 +85,11 @@ class Invoice extends Model
     /**
      * Payments for this invoice.
      */
+    public function etimsReceipt()
+    {
+        return $this->hasOne(EtimsReceipt::class);
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class);
@@ -94,20 +128,106 @@ class Invoice extends Model
     }
 
     /**
-     * Scope for unpaid invoices.
+     * Money still owed (not cancelled, not fully paid).
      */
     public function scopeUnpaid($query)
     {
-        return $query->whereIn('status', ['sent', 'partial']);
+        return $query->whereIn('status', ['sent', 'partial', 'overdue'])
+            ->whereColumn('paid_amount', '<', 'total');
     }
 
     /**
-     * Scope for overdue invoices.
+     * Unpaid and past the due date (the guest's departure date).
      */
     public function scopeOverdue($query)
     {
-        return $query->whereIn('status', ['sent', 'partial'])
-            ->where('due_date', '<', now());
+        return $query->unpaid()->whereDate('due_date', '<', today());
+    }
+
+    /**
+     * Matches the invoice number or the guest's name / phone.
+     */
+    public function scopeSearch($query, string $term)
+    {
+        return $query->where(fn ($q) => $q
+            ->where('invoice_number', 'like', "%{$term}%")
+            ->orWhereHas('stay.guest', fn ($g) => $g
+                ->where('name', 'like', "%{$term}%")
+                ->orWhere('phone', 'like', "%{$term}%"))
+            ->orWhereHas('facilityBooking', fn ($b) => $b->search($term))
+            ->orWhereHas('kitchenOrder', fn ($o) => $o->where('order_number', 'like', "%{$term}%")->orWhere('customer_name', 'like', "%{$term}%")));
+    }
+
+    /**
+     * Who the invoice is billed to: the stay's guest, the event's client or the
+     * restaurant customer. Load stay.guest, facilityBooking and kitchenOrder first.
+     */
+    public function getBilledToAttribute(): ?string
+    {
+        return match (true) {
+            (bool) $this->facility_booking_id => $this->facilityBooking?->client_name,
+            (bool) $this->kitchen_order_id => $this->kitchenOrder?->customer_name ?: 'Walk-in customer',
+            default => $this->stay?->guest?->name,
+        };
+    }
+
+    public function getBilledToPhoneAttribute(): ?string
+    {
+        return match (true) {
+            (bool) $this->facility_booking_id => $this->facilityBooking?->contact_phone,
+            (bool) $this->kitchen_order_id => null,
+            default => $this->stay?->guest?->phone,
+        };
+    }
+
+    /**
+     * "Booking #12", "Event EVT-00003" or "Order KO-00007".
+     */
+    public function getSourceLabelAttribute(): string
+    {
+        return match (true) {
+            (bool) $this->facility_booking_id => 'Event ' . sprintf('EVT-%05d', $this->facility_booking_id),
+            (bool) $this->kitchen_order_id => 'Order ' . ($this->kitchenOrder?->order_number ?? '#' . $this->kitchen_order_id),
+            default => 'Booking #' . $this->stay_id,
+        };
+    }
+
+    /**
+     * The page where the folio for this invoice is worked.
+     */
+    public function getSourceUrlAttribute(): ?string
+    {
+        return match (true) {
+            (bool) $this->facility_booking_id => route('events.show', $this->facility_booking_id),
+            (bool) $this->kitchen_order_id => route('kitchen.orders.show', $this->kitchen_order_id),
+            (bool) $this->stay_id => route('stays.show', $this->stay_id),
+            default => null,
+        };
+    }
+
+    public function receiptUrl(Payment $payment): ?string
+    {
+        return match (true) {
+            (bool) $this->facility_booking_id => route('events.receipt', [$this->facility_booking_id, $payment]),
+            (bool) $this->kitchen_order_id => route('kitchen.orders.receipt', [$this->kitchen_order_id, $payment]),
+            (bool) $this->stay_id => route('stays.receipt', [$this->stay_id, $payment]),
+            default => null,
+        };
+    }
+
+    public function getBalanceAttribute(): float
+    {
+        return round((float) $this->total - (float) $this->paid_amount, 2);
+    }
+
+    /**
+     * Status for display: open invoices past their due date show as overdue.
+     */
+    public function getDisplayStatusAttribute(): InvoiceStatus
+    {
+        return in_array($this->status, ['sent', 'partial'], true) && $this->balance > 0 && $this->due_date?->isBefore(today())
+            ? InvoiceStatus::Overdue
+            : InvoiceStatus::from($this->status);
     }
 
     /**
@@ -157,26 +277,5 @@ class Invoice extends Model
     /**
      * Record a payment.
      */
-    public function recordPayment($amount, $method, $receivedBy, $details = null)
-    {
-        $this->paid_amount += $amount;
-        
-        if ($this->paid_amount >= $this->total) {
-            $this->status = 'paid';
-        } elseif ($this->paid_amount > 0) {
-            $this->status = 'partial';
-        }
-        
-        $this->save();
-        
-        // Create payment record
-        return Payment::create([
-            'invoice_id' => $this->id,
-            'payment_reference' => Payment::generatePaymentReference(),
-            'amount' => $amount,
-            'method' => $method,
-            'payment_details' => $details,
-            'received_by' => $receivedBy,
-        ]);
-    }
+    // Payments are recorded through App\Services\BillingService::recordPayment()
 }

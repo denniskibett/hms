@@ -1,61 +1,66 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# HMS — Hotel Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 12 + Tailwind CSS + Alpine.js system for running a hotel: rooms, bookings, front desk, billing, and back-office modules.
 
-## About Laravel
+## Requirements
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2+ (developed on 8.5)
+- MySQL 8+ (the schema uses MySQL generated columns; SQLite is not supported)
+- Composer, Node.js 20+
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+composer install
+npm install
+cp .env.example .env          # defaults to MySQL database "hms" on 127.0.0.1, user root
+php artisan key:generate
+php artisan migrate --seed    # creates roles, departments and admin@hotel.com / password
+npm run dev                   # Vite dev server (keep running)
+php artisan serve --port=8001
+```
 
-## Learning Laravel
+## Tests
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Tests run against a separate MySQL database, `hms_test` (see `phpunit.xml`). Create it once:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```sql
+CREATE DATABASE hms_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Then `php artisan test`. The first test builds the schema and takes a few minutes.
 
-## Laravel Sponsors
+## Roles
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Access is by role (`app/Http/Middleware/EnsureUserHasRole.php`, applied in `routes/web.php`). Admins can do everything.
 
-### Premium Partners
+| Role | Can use |
+|---|---|
+| receptionist | Guests, bookings, check-in/out, payments, rooms, facilities, tasks |
+| housekeeping | Rooms (status), tasks |
+| manager | Everything except users and system settings |
+| finance | Finance, invoices, payments, reports, stay payments |
+| kitchen / procurement / hr | Their own modules and tasks |
+| guest | Their own dashboard and profile |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## How modules are built
 
-## Contributing
+Each module follows the same pattern ("five files"): migration → model (+ enum for statuses) → controller → `index` / `show` views → reusable partials (create/edit in modals for simple forms, a page for complex ones). Rooms (`app/Http/Controllers/RoomController.php`) is the reference module.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Business rules that span modules live in two services only:
 
-## Code of Conduct
+- `app/Services/BookingService.php` — availability (row-locked), booking, changes, check-in/out, cancellation
+- `app/Services/BillingService.php` — invoices (VAT + Tourism Levy, prices tax-inclusive by default), payments, voids
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Pricing
 
-## Security Vulnerabilities
+Rates are per room type and meal plan (RO, BB, HB, FB, AI), either per room (optionally by number of adults) or per person with a child rate. Without a rate, the room type's base rate is charged per room. The price agreed at booking is stored on the booking.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Billing settings live under `system.settings.billing`: `prices_include_tax`, `vat_percent`, `tourism_levy_percent`, `child_rate_percent`, `kra_pin`.
 
-## License
+## Useful commands
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan hms:sync-invoices          # rebuild every stay's invoice from its rooms/services
+php artisan hms:sync-invoices --stay=12
+```

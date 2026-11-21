@@ -1,5 +1,5 @@
 <!-- Availability Check Modal -->
-<div x-show="isAvailabilityModalOpen" x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5 overflow-y-auto" x-cloak>
+<div x-show="isAvailabilityModalOpen" x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5 overflow-y-auto" x-cloak>
     <div class="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="closeModal()"></div>
     
     <div class="relative w-full max-w-2xl rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10 max-h-[90vh] overflow-y-auto" @click.outside="closeModal()">
@@ -135,9 +135,7 @@
                                         </p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">
                                             Floor <span x-text="room.floor"></span>
-                                            <template x-if="room.wing">
-                                                • <span x-text="room.wing"></span> Wing
-                                            </template>
+                                            <span x-show="room.wing">• <span x-text="room.wing"></span> Wing</span>
                                         </p>
                                     </div>
                                     <div>
@@ -149,8 +147,8 @@
                                             <span x-show="!room.is_available && room.next_available_date">
                                                 Available from <span x-text="formatDisplayDate(room.next_available_date)"></span>
                                             </span>
-                                            <span x-show="!room.is_available && !room.next_available_date">
-                                                Not Available
+                                            <span x-show="!room.is_available && !room.next_available_date"
+                                                  x-text="['maintenance', 'out_of_order'].includes(room.status) ? room.status_label : 'Not Available'">
                                             </span>
                                         </span>
                                     </div>
@@ -166,7 +164,7 @@
         <div class="flex w-full items-center justify-end gap-3 mt-8">
             <button type="button"
                     @click="closeModal()"
-                    class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 sm:w-auto">
+                    class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200 sm:w-auto">
                 Close
             </button>
         </div>

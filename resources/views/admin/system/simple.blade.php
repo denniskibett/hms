@@ -29,31 +29,22 @@ use Illuminate\Support\Facades\Storage;
                     {{ $system->maintenance_mode ? 'Disable Maintenance' : 'Enable Maintenance' }}
                 </button>
                 
-                <a href="{{ route('system.clear-cache') }}" 
-                   class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-3.5 text-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">
-                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    Clear Cache
-                </a>
+                <form action="{{ route('system.clear-cache') }}" method="POST">
+                    @csrf
+                    <button type="submit"
+                       class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-3.5 text-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700">
+                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Clear Cache
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Success Message -->
-    @if(session('success'))
-    <div class="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-800">
-        <div class="flex items-center">
-            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-green-800 dark:text-green-300">{{ session('success') }}</span>
-        </div>
-    </div>
-    @endif
-
     <!-- Main Settings Container -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="bg-white rounded-xl shadow-xs border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200 dark:border-gray-700">
             <div class="flex space-x-1 overflow-x-auto px-4">
@@ -78,6 +69,16 @@ use Illuminate\Support\Facades\Storage;
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
                     </svg>
                     Colors
+                </button>
+                <button type="button" onclick="switchTab('billing')" data-tab="billing" 
+                        class="tab-button inline-flex items-center px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
+                    <i class="fas fa-percent mr-2 text-xs"></i>
+                    Billing &amp; taxes
+                </button>
+                <button type="button" onclick="switchTab('payments')" data-tab="payments" 
+                        class="tab-button inline-flex items-center px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
+                    <i class="fas fa-mobile-screen-button mr-2 text-xs"></i>
+                    Payments
                 </button>
                 <button type="button" onclick="switchTab('notifications')" data-tab="notifications" 
                         class="tab-button inline-flex items-center px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300">
@@ -139,7 +140,7 @@ use Illuminate\Support\Facades\Storage;
                             @endif
 
                             <div class="flex-1">
-                                <input type="file" name="logo" accept="image/*"
+                                <input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp"
                                        class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
                             </div>
                         </div>
@@ -152,10 +153,10 @@ use Illuminate\Support\Facades\Storage;
                         </label>
                         <div class="flex items-center gap-4">
                             @if($system->favicon)
-                                <img src="{{ asset('images/logo/' . basename($system->favicon)) }}" alt="Favicon" class="h-8 w-8 rounded">
+                                <img src="{{ asset('images/logo/' . basename($system->favicon)) }}" alt="Favicon" class="h-8 w-8 rounded-sm">
                             @endif
                             <div class="flex-1">
-                                <input type="file" name="favicon" accept="image/*"
+                                <input type="file" name="favicon" accept=".png,.ico"
                                        class="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
                             </div>
                         </div>
@@ -291,7 +292,7 @@ use Illuminate\Support\Facades\Storage;
                             </div>
                         </div>
                         <div class="mt-4 flex items-center">
-                            <div class="w-10 h-10 rounded mr-3" style="background-color: {{ old('primary_color', $system->primary_color) }}"></div>
+                            <div class="w-10 h-10 rounded-sm mr-3" style="background-color: {{ old('primary_color', $system->primary_color) }}"></div>
                             <span class="text-sm text-gray-600 dark:text-gray-400">Primary Color Preview</span>
                         </div>
                     </div>
@@ -312,11 +313,88 @@ use Illuminate\Support\Facades\Storage;
                             </div>
                         </div>
                         <div class="mt-4 flex items-center">
-                            <div class="w-10 h-10 rounded mr-3" style="background-color: {{ old('secondary_color', $system->secondary_color) }}"></div>
+                            <div class="w-10 h-10 rounded-sm mr-3" style="background-color: {{ old('secondary_color', $system->secondary_color) }}"></div>
                             <span class="text-sm text-gray-600 dark:text-gray-400">Secondary Color Preview</span>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Billing Tab -->
+            <div id="billing-tab" class="tab-content hidden space-y-6">
+                <p class="text-sm text-gray-500">Tax rates used on every invoice and receipt. Confirm them with your accountant.</p>
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">VAT %</span>
+                        <input type="number" step="0.01" min="0" max="50" name="vat_percent" value="{{ old('vat_percent', SystemHelper::vatPercent()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Tourism / catering levy %</span>
+                        <input type="number" step="0.01" min="0" max="20" name="tourism_levy_percent" value="{{ old('tourism_levy_percent', SystemHelper::tourismLevyPercent()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Child rate, % of adult</span>
+                        <input type="number" step="1" min="0" max="100" name="child_rate_percent" value="{{ old('child_rate_percent', SystemHelper::childRatePercent()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">KRA PIN (shown on invoices)</span>
+                        <input type="text" name="kra_pin" maxlength="20" value="{{ old('kra_pin', SystemHelper::kraPin()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200 uppercase"></label>
+                    <label class="block"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Annual leave days</span>
+                        <input type="number" min="0" max="60" name="annual_leave_days" value="{{ old('annual_leave_days', SystemHelper::annualLeaveDays()) }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                </div>
+                <label class="flex items-center gap-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+                    <input type="hidden" name="prices_include_tax" value="0">
+                    <input type="checkbox" name="prices_include_tax" value="1" @checked(old('prices_include_tax', SystemHelper::pricesIncludeTax())) class="h-5 w-5 rounded border-gray-300">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Room and menu prices already include VAT and levy (invoices show the tax inside the price)</span>
+                </label>
+
+                @php $etimsCfg = \App\Services\Etims\Etims::config(); @endphp
+                <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">KRA eTIMS</h3>
+                        <label class="flex items-center gap-2 text-sm"><input type="hidden" name="etims_enabled" value="0"><input type="checkbox" name="etims_enabled" value="1" @checked(! empty($etimsCfg['enabled'])) class="h-5 w-5 rounded border-gray-300"> On</label>
+                    </div>
+                    <p class="text-sm text-gray-500">Each fully paid invoice is sent to KRA and printed with its eTIMS signature and QR code. Uses the KRA PIN above.
+                        Device: {{ ! empty($etimsCfg['cmc_key']) ? 'registered' : 'not registered yet' }}.</p>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</span><select name="etims_environment" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"><option value="sandbox" @selected(($etimsCfg['environment'] ?? 'sandbox') === 'sandbox')>Sandbox (testing)</option><option value="production" @selected(($etimsCfg['environment'] ?? '') === 'production')>Production</option></select></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Branch ID</span><input type="text" name="etims_bhf_id" maxlength="3" value="{{ $etimsCfg['bhf_id'] ?? '00' }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Device serial (from KRA)</span><input type="text" name="etims_device_serial" value="{{ $etimsCfg['device_serial'] ?? '' }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    </div>
+                    <p class="text-xs text-gray-500">Save first, then register the device:</p>
+                    <button type="submit" form="etims-init" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Register device with KRA</button>
+                </section>
+            </div>
+
+            <!-- Payments Tab -->
+            @php
+                $pg = \App\Services\Payments\PaymentGateways::class;
+                $sharet = $pg::config('sharet');
+                $mpesa = $pg::config('mpesa');
+                $saved = fn ($p, $k) => $pg::hasSecret($p, $k) ? 'Saved. Leave blank to keep it' : '';
+            @endphp
+            <div id="payments-tab" class="tab-content hidden space-y-8">
+                <section class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">Sharet Pay</h3>
+                        <label class="flex items-center gap-2 text-sm"><input type="hidden" name="sharet_enabled" value="0"><input type="checkbox" name="sharet_enabled" value="1" @checked(! empty($sharet['enabled'])) class="h-5 w-5 rounded border-gray-300"> On</label>
+                    </div>
+                    <p class="text-sm text-gray-500">Pay links for M-Pesa and card. In Sharet, point the webhook to <code class="rounded bg-gray-100 px-1">{{ route('webhooks.sharet') }}</code>.</p>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">API key (sk_…)</span><input type="password" name="sharet_api_key" autocomplete="off" placeholder="{{ $saved('sharet', 'api_key') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook secret</span><input type="password" name="sharet_webhook_secret" autocomplete="off" placeholder="{{ $saved('sharet', 'webhook_secret') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label class="md:col-span-2"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">API address</span><input type="url" name="sharet_base_url" value="{{ $sharet['base_url'] ?? \App\Services\Payments\SharetPay::DEFAULT_BASE_URL }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    </div>
+                </section>
+                <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">M-Pesa (Daraja)</h3>
+                        <label class="flex items-center gap-2 text-sm"><input type="hidden" name="mpesa_enabled" value="0"><input type="checkbox" name="mpesa_enabled" value="1" @checked(! empty($mpesa['enabled'])) class="h-5 w-5 rounded border-gray-300"> On</label>
+                    </div>
+                    <p class="text-sm text-gray-500">Sends a PIN prompt to the guest's phone. Keys come from the Safaricom developer portal (Daraja). Callbacks arrive automatically.</p>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</span><select name="mpesa_environment" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"><option value="sandbox" @selected(($mpesa['environment'] ?? 'sandbox') === 'sandbox')>Sandbox (testing)</option><option value="production" @selected(($mpesa['environment'] ?? '') === 'production')>Production</option></select></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Account type</span><select name="mpesa_type" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"><option value="paybill" @selected(($mpesa['type'] ?? 'paybill') === 'paybill')>Paybill</option><option value="till" @selected(($mpesa['type'] ?? '') === 'till')>Till (Buy Goods)</option></select></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Business shortcode</span><input type="text" inputmode="numeric" name="mpesa_shortcode" value="{{ $mpesa['shortcode'] ?? '' }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Till number (Buy Goods only)</span><input type="text" inputmode="numeric" name="mpesa_till_number" value="{{ $mpesa['till_number'] ?? '' }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Consumer key</span><input type="password" name="mpesa_consumer_key" autocomplete="off" placeholder="{{ $saved('mpesa', 'consumer_key') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Consumer secret</span><input type="password" name="mpesa_consumer_secret" autocomplete="off" placeholder="{{ $saved('mpesa', 'consumer_secret') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label class="md:col-span-3"><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Passkey</span><input type="password" name="mpesa_passkey" autocomplete="off" placeholder="{{ $saved('mpesa', 'passkey') }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    </div>
+                </section>
             </div>
 
             <!-- Notifications Tab -->
@@ -473,6 +551,7 @@ use Illuminate\Support\Facades\Storage;
                 </div>
             </div>
         </form>
+        <form id="etims-init" method="POST" action="{{ route('system.etims.initialise') }}" class="hidden">@csrf</form>
     </div>
 </div>
 

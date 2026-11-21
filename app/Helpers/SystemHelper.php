@@ -117,7 +117,8 @@ class SystemHelper
         $settings = self::settings();
         
         if (str_contains($key, '.')) {
-            $keys = explode('.', $key);
+            // "settings.about_us" and "about_us" both mean settings JSON → about_us
+            $keys = explode('.', preg_replace('/^settings\./', '', $key));
             $value = $settings->settings ?? [];
             
             foreach ($keys as $k) {
@@ -151,14 +152,27 @@ class SystemHelper
         });
 
         if ($icon) {
-            return $system->logo_icon ? asset('images/logo/' . basename($system->logo_icon)) : asset('images/logo/logo-icon.svg');
+            return $system->logo_icon ? self::uploadUrl($system->logo_icon, 'images/logo/') : asset('images/logo/logo-icon.svg');
         }
 
         if ($dark) {
-            return $system->logo_dark ? asset('images/logo/' . basename($system->logo_dark)) : asset('images/logo/logo-dark.svg');
+            return $system->logo_dark ? self::uploadUrl($system->logo_dark, 'images/logo/') : asset('images/logo/logo-dark.svg');
         }
 
-        return $system->logo ? asset('images/logo/' . basename($system->logo)) : asset('images/logo/logo.svg');
+        return $system->logo ? self::uploadUrl($system->logo, 'images/logo/') : asset('images/logo/logo.svg');
+    }
+
+    /**
+     * Uploads are stored on the public disk (storage/app/public/system/...);
+     * older installs kept them in public/images/logo. Serve whichever exists.
+     */
+    public static function uploadUrl(string $path, string $legacyDir): string
+    {
+        if (is_file(public_path($legacyDir . basename($path)))) {
+            return asset($legacyDir . basename($path));
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
 
@@ -196,8 +210,8 @@ class SystemHelper
     {
         $settings = self::settings();
 
-        // Get the about_us JSON field
-        $aboutUs = $settings->about_us ?? null;
+        // Read from the JSON `settings.about_us` column (matches how settings() seeds it)
+        $aboutUs = self::get('settings.about_us', null);
 
         // Decode if it's stored as a JSON string
         if (is_string($aboutUs)) {
@@ -254,18 +268,67 @@ class SystemHelper
         return self::get('secondary_color', '#08B1BA');
     }
 
+    /**
+     * Hex colour as "r g b" for CSS variables used by Tailwind (rgb(var(--x) / alpha)).
+     */
+    public static function rgb(?string $hex, string $fallback = '58 87 232'): string
+    {
+        if (! preg_match('/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i', (string) $hex, $m)) {
+            return $fallback;
+        }
+
+        return implode(' ', array_map('hexdec', array_slice($m, 1)));
+    }
+
 
     public static function contactEmail()
     {
         return self::get('contact_email');
     }
 
-    public static function socials()
+    /**
+     * Get social media links as a flat `network => url` map.
+     *
+     * Handles both storage shapes:
+     *   - flat:   {"facebook":"https://...","twitter":"https://..."}
+     *   - nested: {"facebook":{"url":"https://...","label":"Facebook"}, ...}
+     *
+     * Always returns string => string, so views can safely render {{ $url }}.
+     */
+    public static function socials(): array
     {
         $system = System::first();
-        
-        // Decode JSON into an array, fallback to empty array
-        return $system && $system->socials ? json_decode($system->socials, true) : [];
+
+        if (! $system || ! $system->socials) {
+            return [];
+        }
+
+        $decoded = json_decode($system->socials, true);
+
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        $flat = [];
+
+        foreach ($decoded as $network => $value) {
+            // Case 1: value is a plain URL string
+            if (is_string($value)) {
+                if (filter_var($value, FILTER_VALIDATE_URL)) {
+                    $flat[$network] = $value;
+                }
+                continue;
+            }
+
+            // Case 2: value is an array like ['url' => '...', 'label' => '...']
+            if (is_array($value) && isset($value['url']) && is_string($value['url'])) {
+                if (filter_var($value['url'], FILTER_VALIDATE_URL)) {
+                    $flat[$network] = $value['url'];
+                }
+            }
+        }
+
+        return $flat;
     }
 
 
@@ -373,18 +436,79 @@ class SystemHelper
         return config('services.google.analytics_id');
     }
 
-    public static function twoFactorAuthEnabled()
-    {
-        $settings = System::settings()->settings ?? [];
+    /*
+     * Billing settings (system.settings.billing). Defaults follow common Kenyan practice;
+     * confirm the tax rates with your accountant.
+     */
 
-        return $settings['security']['two_factor_auth'] ?? false;
+    // Children sharing with adults pay this % of the adult per-person rate
+    public static function childRatePercent(): float
+    {
+        return (float) self::get('billing.child_rate_percent', 50);
+    }
+
+    public static function vatPercent(): float
+    {
+        return (float) self::get('billing.vat_percent', 16);
+    }
+
+    public static function tourismLevyPercent(): float
+    {
+        return (float) self::get('billing.tourism_levy_percent', 2);
+    }
+
+    public static function kraPin(): ?string
+    {
+        return self::get('billing.kra_pin') ?: null;
+    }
+
+    // true (hotel's choice, 2026-10-20): rates already include VAT and levy;
+    // the invoice/receipt shows how much of the price is tax
+    public static function pricesIncludeTax(): bool
+    {
+        return (bool) self::get('billing.prices_include_tax', true);
+    }
+
+    /**
+     * Payroll setting (payroll.<key>). Defaults are the Kenyan rates in force
+     * in 2025; confirm them with your accountant / KRA and override in settings.
+     */
+    public static function payroll(string $key): mixed
+    {
+        $defaults = [
+            // Monthly PAYE bands: [upper limit of band (null = no limit), rate %]
+            'paye_bands' => [[24000, 10], [32333, 25], [500000, 30], [800000, 32.5], [null, 35]],
+            'personal_relief' => 2400,
+            'nssf_rate' => 6,
+            'nssf_upper_limit' => 72000,
+            'shif_rate' => 2.75,
+            'shif_minimum' => 300,
+            'housing_levy_rate' => 1.5,
+            // Overtime: basic ÷ monthly hours × multiplier per hour
+            'monthly_hours' => 195,
+            'overtime_multiplier' => 1.5,
+        ];
+
+        return self::get("payroll.{$key}", $defaults[$key] ?? null);
+    }
+
+    // Employment Act: at least 21 working days of annual leave a year
+    public static function annualLeaveDays(): int
+    {
+        return (int) self::get('hr.annual_leave_days', 21);
+    }
+
+    public static function twoFactorAuthEnabled(): bool
+    {
+        return (bool) self::get('settings.security.two_factor_auth', false);
     }
 
     public static function services()
     {
         $settings = self::settings();
 
-        $services = $settings->services ?? null;
+        // Read from the JSON `settings.services` column (matches how settings() seeds it)
+        $services = self::get('settings.services', null);
 
         if (is_string($services)) {
             $services = json_decode($services, true);

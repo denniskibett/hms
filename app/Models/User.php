@@ -15,6 +15,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'dob',
         'bio',
         'avatar',
         'country',
@@ -65,12 +66,40 @@ class User extends Authenticatable
         return $this->hasOne(StaffProfile::class);
     }
 
+    public function guestProfile()
+    {
+        return $this->hasOne(Guest::class, 'user_id');
+    }
+
     /**
      * Stays created by this user (for guests).
      */
     public function stays()
     {
         return $this->hasMany(Stay::class, 'guest_id');
+    }
+
+    /**
+     * Upcoming and in-house stays (guest dashboard).
+     */
+    public function currentStays()
+    {
+        return $this->stays()
+            ->active()
+            ->whereDate('departure_date', '>=', today())
+            ->with(['roomAllocations.room.roomType', 'invoices'])
+            ->orderBy('arrival_date');
+    }
+
+    /**
+     * Finished and cancelled stays (guest dashboard).
+     */
+    public function pastStays()
+    {
+        return $this->stays()
+            ->whereIn('status', ['checked_out', 'cancelled'])
+            ->with(['roomAllocations.room.roomType', 'invoices.payments'])
+            ->orderByDesc('arrival_date');
     }
 
     /**
@@ -275,23 +304,28 @@ class User extends Authenticatable
      */
     public function hasRole($role)
     {
-        if (is_array($role)) {
-            return $this->roles()->whereIn('name', $role)->exists();
-        }
-        
-        return $this->roles()->where('name', $role)->exists();
+        // Uses the loaded relation so repeated checks in one request cost one query
+        return $this->loadMissing('roles')->roles->pluck('name')
+            ->intersect((array) $role)
+            ->isNotEmpty();
     }
 
 
     public function hasAnyRole(array $roles)
     {
-        return $this->roles()->whereIn('name', $roles)->exists();
+        return $this->hasRole($roles);
     }
 
 
     public function isGuest()
     {
         return $this->hasRole('guest');
+    }
+
+    // Staff = any role other than guest
+    public function isStaff()
+    {
+        return $this->loadMissing('roles')->roles->pluck('name')->diff(['guest'])->isNotEmpty();
     }
 
     public function isAdmin()

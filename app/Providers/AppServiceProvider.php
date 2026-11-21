@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use App\Models\System;
 use App\Helpers\SystemHelper;
 use PragmaRX\Countries\Package\Countries; 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Admins pass every policy / authorize() check
+        Gate::before(function ($user) {
+            return $user->hasRole('admin') ? true : null;
+        });
+
         // Clear cache on system update
         System::updated(function ($system) {
             SystemHelper::clearCache();
