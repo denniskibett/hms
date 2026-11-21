@@ -15,7 +15,7 @@ class SystemHelper
     {
         return Cache::rememberForever('system_settings', function () {
             return System::firstOrCreate([], [
-                'name' => config('app.name', 'Laravel'),
+                'name' => self::defaultName(),
                 'slogan' => 'Your trusted application',
                 'timezone' => config('app.timezone', 'UTC'),
                 'date_format' => 'd-m-Y',
@@ -137,10 +137,17 @@ class SystemHelper
 
     public static function appName()
     {
-        // A fresh white-label install never shows the framework's name.
-        $fallback = config('app.name');
+        $name = self::get('name');
 
-        return self::get('name') ?: ($fallback && $fallback !== 'Laravel' ? $fallback : 'Hotel');
+        return $name && $name !== 'Laravel' ? $name : self::defaultName();
+    }
+
+    /** The name a fresh white-label install starts with: APP_NAME, but never the framework's own name. */
+    public static function defaultName(): string
+    {
+        $name = config('app.name');
+
+        return $name && $name !== 'Laravel' ? $name : 'Hotel';
     }
 
     public static function slogan()

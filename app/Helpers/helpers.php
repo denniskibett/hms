@@ -14,7 +14,7 @@ if (!function_exists('system_settings')) {
             if (!$settings) {
                 // Create default settings if none exist
                 $settings = System::create([
-                    'name' => config('app.name', 'Laravel'),
+                    'name' => \App\Helpers\SystemHelper::defaultName(),
                     'timezone' => config('app.timezone', 'UTC'),
                     'currency' => 'USD',
                     'currency_symbol' => '$',
@@ -29,7 +29,7 @@ if (!function_exists('system_settings')) {
         } catch (\Exception $e) {
             // Fallback to config values if database isn't ready
             if ($key === 'name') {
-                return config('app.name', 'Laravel');
+                return \App\Helpers\SystemHelper::defaultName();
             }
             if ($key === 'timezone') {
                 return config('app.timezone', 'UTC');

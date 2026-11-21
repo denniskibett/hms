@@ -31,6 +31,8 @@
     @endif
 @endsection
 
+@section('document-footer', 'Payslip: confidential to the employee named above.')
+
 @section('content')
     <section class="grid grid-cols-2 gap-6 py-6 text-sm">
         <div>

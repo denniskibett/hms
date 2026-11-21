@@ -221,7 +221,7 @@
                         <dt class="font-medium text-gray-800 dark:text-white/90">Room charges</dt>
                         <dd class="font-bold text-gray-800 dark:text-white/90" x-text="quote ? money(quote.total) : '—'"></dd>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Before taxes. The invoice adds VAT and Tourism Levy.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ SystemHelper::pricesIncludeTax() ? 'Includes VAT and Tourism Levy (shown on the invoice).' : 'Before taxes. The invoice adds VAT and Tourism Levy.' }}</p>
                 </dl>
 
                 <p x-show="loading" class="mt-3 text-xs text-gray-500"><i class="fas fa-spinner fa-spin"></i> Updating price…</p>

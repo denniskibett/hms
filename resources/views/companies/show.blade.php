@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-@include('partials.page-header', ['title' => $company->name])
+@include('partials.page-header', ['title' => 'Company', 'crumbs' => ['Companies' => route('companies.index')]])
 
 <div class="space-y-6" x-data="{ dialog: @js(old('amount') !== null ? 'pay' : ($errors->any() ? 'edit' : null)) }">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

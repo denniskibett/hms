@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-@include('partials.page-header', ['title' => $item->name])
+@include('partials.page-header', ['title' => 'Stock item', 'crumbs' => ['Inventory' => route('inventory.index')]])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

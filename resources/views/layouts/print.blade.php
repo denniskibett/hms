@@ -33,9 +33,6 @@
                     <p class="text-sm text-gray-500">
                         {{ collect([SystemHelper::contactPhone(), SystemHelper::contactEmail(), SystemHelper::kraPin() ? 'KRA PIN ' . SystemHelper::kraPin() : null])->filter()->join(' · ') }}
                     </p>
-                    @if (SystemHelper::get('billing.kra_pin'))
-                        <p class="text-sm text-gray-500">KRA PIN: {{ SystemHelper::get('billing.kra_pin') }}</p>
-                    @endif
                 </div>
             </div>
             <div class="text-right">
@@ -48,7 +45,11 @@
         @include('partials.etims-block', ['invoice' => $invoice ?? ($payment->invoice ?? null)])
 
         <footer class="mt-10 border-t border-gray-200 pt-4 text-center text-xs text-gray-500">
-            Thank you for staying with {{ SystemHelper::appName() }}.
+            @hasSection('document-footer')
+                @yield('document-footer')
+            @else
+                Thank you for staying with {{ SystemHelper::appName() }}.
+            @endif
         </footer>
     </main>
 </body>

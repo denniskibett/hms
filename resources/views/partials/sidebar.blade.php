@@ -278,6 +278,7 @@
                     All Rooms
                   </a>
                 </li>
+                @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist']))
                 <li>
                   <a
                     href="{{ route('room-types.index') }}"
@@ -287,6 +288,8 @@
                     Room Types
                   </a>
                 </li>
+                @endif
+                @if (auth()->user()->hasAnyRole(['admin', 'manager', 'receptionist']))
                 <li>
                   <a
                     href="{{ route('facilities.index') }}"
@@ -296,6 +299,7 @@
                     Facilities
                   </a>
                 </li>
+                @endif
               </ul>
             </div>
             <!-- Dropdown Menu End -->
@@ -583,6 +587,7 @@
                 :class="sidebarToggle ? 'lg:hidden' : 'flex'"
                 class="flex flex-col gap-1 mt-2 menu-dropdown pl-9"
               >
+                @if (auth()->user()->hasAnyRole(['admin', 'manager', 'hr']))
                 <li>
                   <a
                     href="{{ route('hr.staff.index') }}"
@@ -592,6 +597,8 @@
                     Staff
                   </a>
                 </li>
+                @endif
+                @if (auth()->user()->hasAnyRole(['admin', 'manager', 'hr']))
                 <li>
                   <a
                     href="{{ route('hr.rota.index') }}"
@@ -601,6 +608,7 @@
                     Rota
                   </a>
                 </li>
+                @endif
                 <li>
                   <a
                     href="{{ route('hr.payroll.index') }}"
@@ -610,6 +618,7 @@
                     Payroll
                   </a>
                 </li>
+                @if (auth()->user()->hasAnyRole(['admin', 'manager', 'hr']))
                 <li>
                   <a
                     href="{{ route('hr.leave.index') }}"
@@ -619,6 +628,7 @@
                     Leave
                   </a>
                 </li>
+                @endif
               </ul>
             </div>
             <!-- Dropdown Menu End -->

@@ -9,7 +9,7 @@
 @endphp
 
 @section('content')
-@include('partials.page-header', ['title' => $user->name])
+@include('partials.page-header', ['title' => 'Employee', 'crumbs' => ['HR' => route('hr.staff.index')]])
 
 <div class="space-y-6" x-data="{ leaveOpen: @js($errors->has('end_date') && old('reason') !== null), terminateOpen: false }">
     <!-- Header -->
