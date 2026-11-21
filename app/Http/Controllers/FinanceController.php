@@ -21,7 +21,7 @@ class FinanceController extends Controller
         $stats = [
             'collected_today' => (float) (clone $collected)->whereDate('received_at', today())->sum('amount'),
             'collected_month' => (float) (clone $collected)->where('received_at', '>=', $monthStart)->sum('amount'),
-            'outstanding' => (float) Invoice::unpaid()->sum('due_amount'),
+            'outstanding' => (float) Invoice::receivable()->sum('due_amount'),
             'overdue' => (float) Invoice::overdue()->sum('due_amount'),
             'in_house' => (float) Invoice::unpaid()->whereHas('stay', fn ($q) => $q->inHouse())->sum('due_amount'),
         ];

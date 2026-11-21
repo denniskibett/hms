@@ -234,7 +234,7 @@ class ReportController extends Controller
 
     private function debtors(Carbon $from, Carbon $to): array
     {
-        $invoices = Invoice::unpaid()->with(['stay.guest', 'facilityBooking', 'kitchenOrder'])->orderBy('due_date')->get();
+        $invoices = Invoice::receivable()->with(['stay.guest', 'facilityBooking', 'kitchenOrder', 'company'])->orderBy('due_date')->get();
         $buckets = ['Not yet due' => 0.0, '1–30 days' => 0.0, '31–60 days' => 0.0, '61–90 days' => 0.0, 'Over 90 days' => 0.0];
         $bucketOf = function (Invoice $i) {
             $late = $i->due_date && $i->due_date->isPast() ? (int) $i->due_date->diffInDays(today()) : 0;

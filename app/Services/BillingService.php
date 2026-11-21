@@ -49,7 +49,7 @@ class BillingService
         return DB::transaction(function () use ($stay) {
             $invoice = $stay->invoices()->where('status', '!=', 'cancelled')->lockForUpdate()->oldest('id')->first();
 
-            if ($stay->state === StayStatus::Cancelled) {
+            if (in_array($stay->state, [StayStatus::Cancelled, StayStatus::NoShow], true)) {
                 if ($invoice && $this->paidTotal($invoice) <= 0) {
                     $invoice->update(['status' => 'cancelled']);
                 }
@@ -58,6 +58,7 @@ class BillingService
             }
 
             $invoice ??= $this->newInvoice(['stay_id' => $stay->id], $stay->departure_date);
+            $this->billTo($invoice, $stay->company, $stay->departure_date);
 
             $invoice->items()->whereIn('source_type', self::SYNCED_SOURCES)->delete();
 
@@ -112,7 +113,7 @@ class BillingService
                 ]);
             }
 
-            $invoice->update(['due_date' => $stay->departure_date]);
+            $this->billTo($invoice, $stay->company, $stay->departure_date);
 
             return $this->recalculate($invoice);
         });
@@ -137,6 +138,7 @@ class BillingService
             }
 
             $invoice ??= $this->newInvoice(['facility_booking_id' => $booking->id], $booking->end_date);
+            $this->billTo($invoice, $booking->company, $booking->end_date);
 
             $invoice->items()->where('source_type', 'facility')->delete();
 
@@ -151,7 +153,7 @@ class BillingService
                 ]);
             }
 
-            $invoice->update(['due_date' => $booking->end_date]);
+            $this->billTo($invoice, $booking->company, $booking->end_date);
             $invoice = $this->recalculate($invoice);
 
             if ((float) $invoice->total < $this->paidTotal($invoice)) {
@@ -418,6 +420,20 @@ class BillingService
     /**
      * @param  array  $owner  ['stay_id' => …] or ['facility_booking_id' => …]
      */
+    /**
+     * Bill the guest (due when they leave) or a company account (due on its terms).
+     */
+    private function billTo(Invoice $invoice, ?\App\Models\Company $company, $endDate): void
+    {
+        $dueDate = $company
+            ? \Carbon\Carbon::parse($endDate)->addDays($company->payment_terms_days)
+            : $endDate;
+
+        if ((int) $invoice->company_id !== (int) $company?->id || ! $invoice->due_date?->isSameDay($dueDate)) {
+            $invoice->update(['company_id' => $company?->id, 'due_date' => $dueDate]);
+        }
+    }
+
     private function newInvoice(array $owner, $dueDate): Invoice
     {
         $invoice = Invoice::create($owner + [

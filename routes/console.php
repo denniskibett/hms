@@ -33,3 +33,16 @@ Artisan::command('etims:retry', function () {
     $this->info("Signed {$sent} invoice(s).");
 })->purpose('Send paid invoices that KRA eTIMS has not signed yet');
 \Illuminate\Support\Facades\Schedule::command('etims:retry')->hourly()->withoutOverlapping();
+
+// Close yesterday if nobody did it by hand
+Artisan::command('hotel:night-audit {date?}', function (?string $date = null) {
+    $day = $date ? \Carbon\Carbon::parse($date) : today()->subDay();
+    if (! $date && \App\Models\NightAudit::whereDate('business_date', $day)->exists()) {
+        $this->info($day->toDateString() . ' was already closed by hand.');
+
+        return;
+    }
+    $record = app(\App\Services\NightAudit::class)->run($day);
+    $this->info('Closed ' . $record->business_date->toDateString() . ': ' . $record->figure('rooms_sold') . ' rooms sold, ' . count($record->figure('no_shows', [])) . ' no-show(s).');
+})->purpose('Night audit: mark no-shows, list overstays and keep the day\'s figures');
+\Illuminate\Support\Facades\Schedule::command('hotel:night-audit')->dailyAt('03:00')->withoutOverlapping();

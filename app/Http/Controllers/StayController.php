@@ -242,6 +242,7 @@ class StayController extends Controller
     {
         $data = $request->validate([
             'stay_id' => ['nullable', 'integer'],
+            'company_id' => ['nullable', 'integer'],
             'arrival_date' => ['required', 'date'],
             'departure_date' => ['required', 'date'],
             'meal_plan' => ['required', Rule::enum(MealPlan::class)],
@@ -304,6 +305,7 @@ class StayController extends Controller
         return [
             'stay' => $stay,
             'guests' => $guests,
+            'companies' => \App\Models\Company::active()->orderBy('name')->get(['id', 'name', 'rate_discount_percent']),
             'rooms' => $rooms,
             'lines' => old('rooms', $lines ?? $stay->roomAllocations->map(fn ($a) => [
                 'room_id' => $a->room_id,
@@ -319,6 +321,7 @@ class StayController extends Controller
     {
         return $request->validate([
             'guest_id' => ['required', 'exists:users,id'],
+            'company_id' => ['nullable', 'integer', Rule::exists('companies', 'id')->where('is_active', true)],
             'arrival_date' => ['required', 'date'],
             'departure_date' => ['required', 'date', 'after:arrival_date'],
             'meal_plan' => ['required', Rule::enum(MealPlan::class)],

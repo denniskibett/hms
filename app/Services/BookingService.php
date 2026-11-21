@@ -7,6 +7,7 @@ use App\Enums\MealPlan;
 use App\Enums\RoomStatus;
 use App\Enums\StayStatus;
 use App\Exceptions\BookingException;
+use App\Models\Company;
 use App\Models\Room;
 use App\Models\RoomAllocation;
 use App\Models\Stay;
@@ -46,13 +47,18 @@ class BookingService
             ->pluck('id')
             ->flip();
 
-        $lines = collect($data['rooms'] ?? [])->map(function (array $line) use ($rooms, $availableIds, $mealPlan, $nights) {
+        $company = filled($data['company_id'] ?? null) ? Company::find($data['company_id']) : null;
+
+        $lines = collect($data['rooms'] ?? [])->map(function (array $line) use ($rooms, $availableIds, $mealPlan, $nights, $company) {
             $room = $rooms[$line['room_id']] ?? null;
             if (! $room) {
                 return null;
             }
 
             $quote = $room->roomType->quote($mealPlan, (int) $line['adults'], (int) ($line['children'] ?? 0), $room);
+            if ($company) {
+                $quote['nightly'] = $company->applyRate($quote['nightly']);   // negotiated company rate
+            }
             $nightly = filled($line['rate'] ?? null) ? round((float) $line['rate'], 2) : $quote['nightly'];
 
             return [
@@ -103,6 +109,7 @@ class BookingService
 
             $stay = Stay::create([
                 'guest_id' => $data['guest_id'],
+                'company_id' => $data['company_id'] ?? null,
                 // A walk-in is saved as confirmed, then checked in below
                 'status' => ($status === StayStatus::Reserved ? StayStatus::Reserved : StayStatus::Booked)->value,
                 'arrival_date' => $arrival,
@@ -115,7 +122,8 @@ class BookingService
             ]);
 
             $this->saveAllocations($stay, $lines, $arrival, $departure);
-            $this->billing->syncStayInvoice($stay);
+            $invoice = $this->billing->syncStayInvoice($stay);
+            $this->assertWithinCredit($stay, $invoice);
 
             $this->core->log($by->id, 'stay_created', "Stay #{$stay->id} created", ['stay_id' => $stay->id]);
 
@@ -179,6 +187,7 @@ class BookingService
 
             $stay->update([
                 'guest_id' => $data['guest_id'] ?? $stay->guest_id,
+                'company_id' => array_key_exists('company_id', $data) ? ($data['company_id'] ?: null) : $stay->company_id,
                 'arrival_date' => $arrival,
                 'departure_date' => $departure,
                 'meal_plan' => $data['meal_plan'] ?? $stay->meal_plan->value,
@@ -190,7 +199,8 @@ class BookingService
 
             $stay->roomAllocations()->delete();
             $this->saveAllocations($stay, $lines, $arrival, $departure);
-            $this->billing->syncStayInvoice($stay->fresh());
+            $stay = $stay->fresh();
+            $this->assertWithinCredit($stay, $this->billing->syncStayInvoice($stay));
 
             $this->core->log($by->id, 'stay_updated', "Stay #{$stay->id} updated", ['stay_id' => $stay->id]);
 
@@ -412,8 +422,44 @@ class BookingService
      */
     public function outstandingBalance(Stay $stay): float
     {
-        return round($stay->invoices()->where('status', '!=', 'cancelled')->get()
+        // Billed to a company: the guest owes nothing at the desk, the company pays on its statement
+        return round($stay->invoices()->where('status', '!=', 'cancelled')->whereNull('company_id')->get()
             ->sum(fn ($invoice) => max($invoice->balance, 0)), 2);
+    }
+
+    /**
+     * A company with a credit limit can't run up more than that across its open invoices.
+     */
+    private function assertWithinCredit(Stay $stay, ?\App\Models\Invoice $invoice): void
+    {
+        $company = $stay->company;
+        if (! $company || ! $company->hasCreditLimit() || ! $invoice) {
+            return;
+        }
+
+        $total = round($company->balance($invoice->id) + max($invoice->balance, 0), 2);
+        if ($total > (float) $company->credit_limit) {
+            throw new BookingException(sprintf(
+                '%s would owe %s %s, over its credit limit of %s. Take a deposit, raise the limit, or bill the guest.',
+                $company->name, SystemHelper::currencyCode(), number_format($total, 2), number_format((float) $company->credit_limit, 2)
+            ));
+        }
+    }
+
+    /**
+     * Night audit: the guest never arrived. Their unpaid invoice is cancelled; anything already paid stays for a decision.
+     */
+    public function markNoShow(Stay $stay, ?User $by = null): Stay
+    {
+        $this->assertTransition($stay, StayStatus::NoShow);
+
+        return DB::transaction(function () use ($stay, $by) {
+            $stay->update(['status' => StayStatus::NoShow->value]);
+            $this->billing->syncStayInvoice($stay->fresh());
+            $this->core->log($by?->id, 'stay_no_show', "Stay #{$stay->id} marked no-show", ['stay_id' => $stay->id]);
+
+            return $stay->fresh();
+        });
     }
 
     private function assertTransition(Stay $stay, StayStatus $to): void

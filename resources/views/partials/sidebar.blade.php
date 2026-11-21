@@ -213,6 +213,24 @@
                 </li>
                 <li>
                   <a
+                    href="{{ route('companies.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'companies' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Company accounts
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="{{ route('night-audits.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'night-audits' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Night audit
+                  </a>
+                </li>
+                <li>
+                  <a
                     href="{{ route('events.index') }}"
                     class="menu-dropdown-item group"
                     :class="page === 'events.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
@@ -451,6 +469,24 @@
                     :class="page === 'payments.index' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
                   >
                     Payments
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="{{ route('companies.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'companies' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Company accounts
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="{{ route('night-audits.index') }}"
+                    class="menu-dropdown-item group"
+                    :class="page === 'night-audits' ? 'menu-dropdown-item-active' : 'menu-dropdown-item-inactive'"
+                  >
+                    Night audit
                   </a>
                 </li>
                 
