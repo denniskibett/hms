@@ -4,9 +4,9 @@
     <div class="hero-media" style="background-image:url('{{ $image }}')" role="img" aria-label="{{ $alt ?? '' }}"></div>
     <div class="hero-shade"></div>
     <div class="relative mx-auto w-full max-w-[1240px] px-4 pb-14 pt-36 md:px-6 {{ $tall ? 'md:pb-20' : '' }}">
-        @isset($eyebrow)
+        @if (! empty($eyebrow))
             <p class="mb-3 text-sm font-semibold uppercase tracking-[.16em] text-amber-glow" data-reveal="left">{{ $eyebrow }}</p>
-        @endisset
+        @endif
         <h1 class="max-w-4xl font-display text-4xl font-bold leading-[1.08] text-white {{ $tall ? 'md:text-7xl' : 'md:text-6xl' }}" data-split>{{ $title }}</h1>
         @isset($text)
             <p class="mt-5 max-w-2xl text-lg leading-relaxed text-white/95 md:text-xl" data-reveal="up" style="--delay:.5s">{{ $text }}</p>

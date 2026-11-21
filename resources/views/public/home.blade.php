@@ -33,9 +33,10 @@
     @component('public.partials.hero', [
         'image' => asset('images/site/exterior.jpg'),
         'alt' => SystemHelper::appName(),
-        'eyebrow' => SystemHelper::slogan(),
+        // A short slogan sits above the heading; a long one becomes the paragraph under it
+        'eyebrow' => mb_strlen((string) SystemHelper::slogan()) <= 48 ? SystemHelper::slogan() : null,
         'title' => $about['subtitle'] ?? SystemHelper::appName(),
-        'text' => SystemHelper::metaDescription() ?: ($about['extra'] ?? null),
+        'text' => mb_strlen((string) SystemHelper::slogan()) > 48 ? SystemHelper::slogan() : (SystemHelper::metaDescription() ?: ($about['extra'] ?? null)),
         'tall' => true,
     ])
         <div class="mt-9 max-w-5xl rounded-xl bg-white p-4 shadow-2xl shadow-black/20 md:p-5" data-reveal="up" style="--delay:.8s">
