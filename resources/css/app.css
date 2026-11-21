@@ -141,18 +141,18 @@ layer(base);
   --color-danger: #ef4444;
 
   /* Brand scale follows the hotel's main colour (Settings › Colors) */
-  --color-brand-25: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 4%, white);
-  --color-brand-50: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 7%, white);
-  --color-brand-100: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 14%, white);
-  --color-brand-200: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 28%, white);
-  --color-brand-300: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 48%, white);
-  --color-brand-400: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 72%, white);
-  --color-brand-500: rgb(var(--color-primary-rgb, 168 85 8));
-  --color-brand-600: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 88%, black);
-  --color-brand-700: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 76%, black);
-  --color-brand-800: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 62%, black);
-  --color-brand-900: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 50%, black);
-  --color-brand-950: color-mix(in srgb, rgb(var(--color-primary-rgb, 168 85 8)) 32%, black);
+  --color-brand-25: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 4%, white);
+  --color-brand-50: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 7%, white);
+  --color-brand-100: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 14%, white);
+  --color-brand-200: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 28%, white);
+  --color-brand-300: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 48%, white);
+  --color-brand-400: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 72%, white);
+  --color-brand-500: rgb(var(--color-primary-rgb, 255 140 0));
+  --color-brand-600: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 88%, black);
+  --color-brand-700: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 76%, black);
+  --color-brand-800: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 62%, black);
+  --color-brand-900: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 50%, black);
+  --color-brand-950: color-mix(in srgb, rgb(var(--color-primary-rgb, 255 140 0)) 32%, black);
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -809,9 +809,9 @@ span.flatpickr-weekday,
 @theme {
   --font-display: Cinzel, Georgia, serif;
   --font-inter: Inter, ui-sans-serif, system-ui, sans-serif;
-  --color-clay: #A85508;
-  --color-clay-dark: #93470A;
-  --color-clay-text: #9A4E00;
+  --color-clay: #FF8C00;          /* the logo's orange */
+  --color-clay-dark: #E07800;
+  --color-clay-text: #B35F00;     /* deeper logo orange for small text on white */
   --color-amber-glow: #F5891F;
   --color-cream: #FFF7ED;
   --color-cream-line: #FCE3C6;

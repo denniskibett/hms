@@ -36,7 +36,7 @@
     {{-- Theme colours from System Settings as "r g b", so Tailwind opacity modifiers (bg-primary/10) work --}}
     <style>
         :root {
-            --color-primary-rgb: {{ SystemHelper::rgb(SystemHelper::primaryColor(), '168 85 8') }};
+            --color-primary-rgb: {{ SystemHelper::rgb(SystemHelper::primaryColor(), '255 140 0') }};
             --color-secondary-rgb: {{ SystemHelper::rgb(SystemHelper::secondaryColor(), '8 177 186') }};
         }
     </style>
