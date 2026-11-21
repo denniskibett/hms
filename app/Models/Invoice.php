@@ -85,6 +85,11 @@ class Invoice extends Model
     /**
      * Payments for this invoice.
      */
+    public function etimsReceipt()
+    {
+        return $this->hasOne(EtimsReceipt::class);
+    }
+
     public function payments()
     {
         return $this->hasMany(Payment::class);

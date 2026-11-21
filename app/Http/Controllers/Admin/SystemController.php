@@ -147,6 +147,21 @@ class SystemController extends Controller
             ]);
         }
 
+        // KRA eTIMS (the communication key comes from "Initialise device", not this form)
+        if ($request->has('etims_enabled')) {
+            $request->validate([
+                'etims_environment' => 'nullable|in:sandbox,production',
+                'etims_bhf_id' => 'nullable|string|max:3',
+                'etims_device_serial' => 'nullable|string|max:60',
+            ]);
+            $settings['etims'] = array_merge($settings['etims'] ?? [], [
+                'enabled' => $request->boolean('etims_enabled'),
+                'environment' => $request->input('etims_environment', 'sandbox'),
+                'bhf_id' => $request->input('etims_bhf_id') ?: '00',
+                'device_serial' => trim((string) $request->input('etims_device_serial')),
+            ]);
+        }
+
         // Online payments (secrets encrypted; blank keeps the saved value)
         if ($request->has('sharet_enabled')) {
             $request->validate([
@@ -188,6 +203,30 @@ class SystemController extends Controller
         Cache::forget('system_settings');
 
         return redirect()->route('system.index')->with('success', 'Settings updated successfully!');
+    }
+
+    /**
+     * Register this install with KRA eTIMS and keep the communication key (encrypted).
+     */
+    public function initialiseEtims(\App\Services\Etims\Etims $etims)
+    {
+        if (! SystemHelper::kraPin() || empty(\App\Services\Etims\Etims::config()['device_serial'])) {
+            return back()->with('error', 'Save the KRA PIN and the eTIMS device serial first.');
+        }
+
+        try {
+            $key = $etims->initialise();
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $system = System::settings();
+        $settings = $system->settings ?? [];
+        $settings['etims']['cmc_key'] = \Illuminate\Support\Facades\Crypt::encryptString($key);
+        $system->update(['settings' => $settings]);
+        Cache::forget('system_settings');
+
+        return back()->with('success', 'eTIMS device registered with KRA.');
     }
 
     public function clearCache()

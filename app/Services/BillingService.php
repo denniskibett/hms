@@ -244,6 +244,12 @@ class BillingService
             'status' => $status,
         ]);
 
+        // Fully paid: send the sale to KRA eTIMS once the transaction commits (no-op when eTIMS is off)
+        if ($status === 'paid' && \App\Services\Etims\Etims::enabled()) {
+            $invoiceId = $invoice->id;
+            DB::afterCommit(fn () => app(\App\Services\Etims\Etims::class)->submit(Invoice::find($invoiceId)));
+        }
+
         return $invoice->fresh(['items', 'payments']);
     }
 

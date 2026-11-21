@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.3",
         "alcohol/iso4217": "^4.5",
+        "bacon/bacon-qr-code": "^3.0",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "pragmarx/countries": "^1.0",

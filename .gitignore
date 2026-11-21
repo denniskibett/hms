@@ -28,3 +28,6 @@ Thumbs.db
 
 # Local scratch
 tree.txt
+
+# Hand-applied schema changes for live are tracked
+!database/schema/*.sql

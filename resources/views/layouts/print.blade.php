@@ -45,6 +45,8 @@
 
         @yield('content')
 
+        @include('partials.etims-block', ['invoice' => $invoice ?? ($payment->invoice ?? null)])
+
         <footer class="mt-10 border-t border-gray-200 pt-4 text-center text-xs text-gray-500">
             Thank you for staying with {{ SystemHelper::appName() }}.
         </footer>

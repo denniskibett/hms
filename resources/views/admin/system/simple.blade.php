@@ -340,6 +340,23 @@ use Illuminate\Support\Facades\Storage;
                     <input type="checkbox" name="prices_include_tax" value="1" @checked(old('prices_include_tax', SystemHelper::pricesIncludeTax())) class="h-5 w-5 rounded border-gray-300">
                     <span class="text-sm text-gray-700 dark:text-gray-300">Room and menu prices already include VAT and levy (invoices show the tax inside the price)</span>
                 </label>
+
+                @php $etimsCfg = \App\Services\Etims\Etims::config(); @endphp
+                <section class="space-y-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-gray-800 dark:text-white">KRA eTIMS</h3>
+                        <label class="flex items-center gap-2 text-sm"><input type="hidden" name="etims_enabled" value="0"><input type="checkbox" name="etims_enabled" value="1" @checked(! empty($etimsCfg['enabled'])) class="h-5 w-5 rounded border-gray-300"> On</label>
+                    </div>
+                    <p class="text-sm text-gray-500">Each fully paid invoice is sent to KRA and printed with its eTIMS signature and QR code. Uses the KRA PIN above.
+                        Device: {{ ! empty($etimsCfg['cmc_key']) ? 'registered' : 'not registered yet' }}.</p>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Environment</span><select name="etims_environment" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"><option value="sandbox" @selected(($etimsCfg['environment'] ?? 'sandbox') === 'sandbox')>Sandbox (testing)</option><option value="production" @selected(($etimsCfg['environment'] ?? '') === 'production')>Production</option></select></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Branch ID</span><input type="text" name="etims_bhf_id" maxlength="3" value="{{ $etimsCfg['bhf_id'] ?? '00' }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                        <label><span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Device serial (from KRA)</span><input type="text" name="etims_device_serial" value="{{ $etimsCfg['device_serial'] ?? '' }}" class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200"></label>
+                    </div>
+                    <p class="text-xs text-gray-500">Save first, then register the device:</p>
+                    <button type="submit" form="etims-init" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Register device with KRA</button>
+                </section>
             </div>
 
             <!-- Payments Tab -->
@@ -534,6 +551,7 @@ use Illuminate\Support\Facades\Storage;
                 </div>
             </div>
         </form>
+        <form id="etims-init" method="POST" action="{{ route('system.etims.initialise') }}" class="hidden">@csrf</form>
     </div>
 </div>
 

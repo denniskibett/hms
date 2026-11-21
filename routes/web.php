@@ -326,6 +326,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', [SystemController::class, 'index'])->name('index');
             Route::put('/update', [SystemController::class, 'update'])->name('update');
             Route::post('/clear-cache', [SystemController::class, 'clearCache'])->name('clear-cache');
+            Route::post('/etims/initialise', [SystemController::class, 'initialiseEtims'])->middleware('throttle:5,1')->name('etims.initialise');
             Route::post('/toggle-maintenance', [SystemController::class, 'toggleMaintenance'])->name('toggle-maintenance');
         });
     });
