@@ -89,7 +89,7 @@
         <div class="border-t border-line">
             <div class="mx-auto flex max-w-[1240px] flex-wrap justify-between gap-3 px-4 py-5 text-xs md:px-6">
                 <span>© {{ now()->year }} {{ SystemHelper::appName() }}. Prices in {{ SystemHelper::currencyCode() }}{{ SystemHelper::pricesIncludeTax() ? ', including taxes' : '' }}.</span>
-                <span>Payments by Sharet Pay</span>
+                <span>Built and managed by <a href="https://imaginenation.co.ke" target="_blank" rel="noopener" class="font-semibold text-clay-text hover:text-clay">IMAGINE-NATION AGENCY LTD</a></span>
             </div>
         </div>
     </footer>

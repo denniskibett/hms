@@ -64,7 +64,7 @@
             <label class="site-label">Adults<select name="adults" class="site-field">@foreach (range(1, max((int) $type->capacity, 1) + 1) as $n)<option value="{{ $n }}" @selected($n === 2)>{{ $n }}</option>@endforeach</select></label>
             <button type="submit" class="site-btn">Check availability</button>
         </form>
-        <p class="text-[13px] text-muted">Pay with M-Pesa or card through Sharet Pay, or pay at the hotel.</p>
+        <p class="text-[13px] text-muted">Nothing is charged now. Pay at the hotel by M-Pesa, card or cash.</p>
     </aside>
 </div>
 

@@ -851,12 +851,11 @@ span.flatpickr-weekday,
 .site-nav a::after { content: ''; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: #F5891F; transform: scaleX(0); transform-origin: left; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
 .site-nav a:hover::after, .site-nav a[aria-current="page"]::after { transform: scaleX(1); }
 
-/* Logo: brand colours by default, all white over a photo until the header turns solid */
+/* Logo: brand colours at every scroll position; a soft glow keeps it readable over photos */
 .site-logo svg { width: 100%; height: 100%; display: block; }
 .site-logo .logo-ink { fill: var(--color-ink); transition: fill .35s ease; }
 .site-logo .logo-accent { fill: var(--color-amber-glow); transition: fill .35s ease; }
-.site-header.on-dark:not(.is-solid) .site-logo .logo-ink,
-.site-header.on-dark:not(.is-solid) .site-logo .logo-accent { fill: #FFFFFF; }
+.site-header.on-dark:not(.is-solid) .site-logo svg { filter: drop-shadow(0 0 10px rgb(255 255 255 / .85)) drop-shadow(0 0 2px rgb(255 255 255 / .9)); }
 
 /* Scroll progress bar */
 .site-progress { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 60; background: linear-gradient(90deg, #A85508, #F5891F); transform-origin: left; transform: scaleX(var(--progress, 0)); }
