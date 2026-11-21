@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/index.js'])
     <style>
-        :root { --color-primary-rgb: {{ SystemHelper::rgb(SystemHelper::primaryColor(), '168 85 8') }}; }
+        :root { --color-primary-rgb: {{ SystemHelper::rgb(SystemHelper::primaryColor(), '255 140 0') }}; }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 font-outfit text-gray-800 antialiased">
