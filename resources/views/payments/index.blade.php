@@ -10,15 +10,11 @@
 @endphp
 
 @section('content')
-    <div x-data="{ pageName: `Payments` }" class="print:hidden">
-        @include('partials.breadcrumb')
-    </div>
+    @include('partials.page-header', ['title' => 'Payments', 'sub' => 'Collections for ' . ($period)])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Payments</h2>
-            <p class="text-gray-600 dark:text-gray-400">Collections for {{ $period }}</p>
         </div>
         <button type="button" onclick="window.print()"
                 class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 print:hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3">

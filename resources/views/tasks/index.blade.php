@@ -10,15 +10,11 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Tasks` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Tasks', 'sub' => 'Room cleaning, maintenance and other jobs'])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Tasks</h2>
-            <p class="text-gray-600 dark:text-gray-400">Room cleaning, maintenance and other jobs</p>
         </div>
         <div class="flex flex-wrap gap-2">
             @if ($isManager)

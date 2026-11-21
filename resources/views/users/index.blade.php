@@ -11,15 +11,11 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Users` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Users', 'sub' => 'Who can sign in, and what they can do'])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Users</h2>
-            <p class="text-gray-600 dark:text-gray-400">Who can sign in, and what they can do</p>
         </div>
         <button type="button" @click="$dispatch('open-user-form')" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-primary/90">
             <i class="fas fa-user-plus"></i> New Account

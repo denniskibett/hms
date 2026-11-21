@@ -13,9 +13,9 @@
         'blank' => ['id' => null, 'name' => '', 'start_time' => '06:00', 'end_time' => '14:00', 'type' => 'morning', 'is_active' => true],
      ]))"
      @open-shift-form.window="open()" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="close()"></div>
-        <div class="relative w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
+    <div x-show="isOpen" x-transition.opacity x-cloak class="slideover">
+        <div class="fixed inset-0 modal-overlay" @click="close()"></div>
+        <div class="slideover-panel space-y-4">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Shifts</h4>
 
             <ul class="divide-y divide-gray-100 text-sm dark:divide-gray-800">

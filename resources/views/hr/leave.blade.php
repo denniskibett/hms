@@ -5,9 +5,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Leave` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Leave'])
 
 <div class="space-y-6" x-data="{ leaveOpen: @js($errors->any() && old('reason') !== null) }">
     @include('hr.partials.header', [

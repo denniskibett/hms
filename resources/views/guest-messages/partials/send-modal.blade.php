@@ -7,12 +7,12 @@
     $canEmail = (bool) $messageGuest->email;
 @endphp
 
-<div x-show="messageOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5">
-    <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="messageOpen = false"></div>
+<div x-show="messageOpen" x-cloak x-transition.opacity class="slideover">
+    <div class="fixed inset-0 modal-overlay" @click="messageOpen = false"></div>
 
     <form method="POST" action="{{ route('guest-messages.store') }}"
           x-data="{ body: @js(old('body', '')), email: @js(in_array('email', old('channels', []))) }"
-          class="relative w-full max-w-lg rounded-2xl bg-white p-6 dark:bg-gray-900">
+          class="slideover-panel">
         @csrf
         <input type="hidden" name="guest_id" value="{{ $messageGuest->id }}">
         @isset($messageStay)

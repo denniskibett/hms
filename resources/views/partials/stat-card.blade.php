@@ -19,14 +19,14 @@
     $tag = isset($href) ? 'a' : 'div';
 @endphp
 <{{ $tag }} @isset($href) href="{{ $href }}" @endisset
-    class="block rounded-2xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 {{ isset($href) ? 'transition hover:border-gray-200 hover:shadow-theme-sm dark:hover:border-gray-700' : '' }}">
-    <div class="flex items-center justify-between">
-        <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $label }}</p>
-            <h4 class="text-2xl font-bold {{ ($tone ?? 'primary') === 'gray' ? 'text-gray-800 dark:text-white/90' : $textClass }}">{{ $value }}</h4>
-        </div>
-        <div class="rounded-full p-3 {{ $bgClass }}">
+    class="block rounded-2xl border border-gray-200 bg-white p-5 {{ isset($href) ? 'transition hover:border-gray-300 hover:shadow-theme-sm' : '' }}">
+    <div class="flex items-center gap-4">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl {{ $bgClass }}">
             <i class="fas {{ $icon }} text-lg {{ $textClass }}"></i>
+        </div>
+        <div class="min-w-0">
+            <p class="truncate text-sm text-gray-500">{{ $label }}</p>
+            <h4 class="mt-0.5 text-2xl font-bold {{ ($tone ?? 'primary') === 'error' && (float) preg_replace('/[^\d.]/', '', (string) $value) > 0 ? 'text-error-600' : 'text-gray-800' }}">{{ $value }}</h4>
         </div>
     </div>
 </{{ $tag }}>

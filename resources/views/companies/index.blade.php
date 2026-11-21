@@ -3,13 +3,11 @@
 @php $money = fn ($v) => SystemHelper::currencySymbol() . ' ' . number_format((float) $v, 2); @endphp
 
 @section('content')
-<div x-data="{ pageName: `Company accounts` }">@include('partials.breadcrumb')</div>
+@include('partials.page-header', ['title' => 'Company accounts', 'sub' => 'Companies whose staff stay or hold events here and pay later on a statement.'])
 
 <div class="space-y-6" x-data="{ open: @js($errors->any()) }">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800">Company accounts</h2>
-            <p class="text-gray-600">Companies whose staff stay or hold events here and pay later on a statement.</p>
         </div>
         @if (auth()->user()->hasAnyRole(['admin', 'manager', 'finance']))
             <button type="button" @click="open = true" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600"><i class="fas fa-plus"></i> Add company</button>
@@ -47,13 +45,13 @@
     </div>
     {{ $companies->links() }}
 
-    <div x-show="open" x-cloak class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="open = false">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs" @click="open = false"></div>
-        <form method="POST" action="{{ route('companies.store') }}" class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6">
+    <div x-show="open" x-cloak class="slideover" @keydown.escape.window="open = false">
+        <div class="fixed inset-0 modal-overlay" @click="open = false"></div>
+        <form method="POST" action="{{ route('companies.store') }}" class="slideover-panel">
             @csrf
             <h3 class="mb-4 text-lg font-semibold text-gray-800">Add company</h3>
             @if ($errors->any())<div class="mb-4 rounded-lg bg-error-50 p-3 text-sm text-error-700">@foreach ($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>@endif
-            @include('companies.partials.form')
+            @include('companies.partials.form', ['company' => null])
             <div class="mt-6 flex justify-end gap-3">
                 <button type="button" @click="open = false" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
                 <button class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600">Save company</button>

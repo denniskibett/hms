@@ -6,17 +6,13 @@
 @php
 use Illuminate\Support\Facades\Storage;
 @endphp
-<div x-data="{ pageName: 'System Settings' }">
-    @include('partials.breadcrumb', ['pageName' => 'System Settings'])
-</div>
+@include('partials.page-header', ['title' => 'System Settings', 'sub' => 'Manage your application configuration'])
     
 <div class="container mx-auto px-4 py-6">
     <!-- Header with Actions -->
     <div class="mb-8">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">System Settings</h1>
-                <p class="text-gray-600 dark:text-gray-300 mt-2">Manage your application configuration</p>
             </div>
             
             <!-- Action Buttons -->

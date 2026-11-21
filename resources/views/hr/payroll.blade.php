@@ -22,9 +22,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Payroll` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Payroll'])
 
 <div class="space-y-6">
     @include('hr.partials.header', ['title' => 'Payroll', 'subtitle' => 'Monthly pay with PAYE, NSSF, SHA and Housing Levy'])

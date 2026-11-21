@@ -12,10 +12,10 @@
 
 <div x-data="orderForm(@js(['menu' => $menu, 'inHouse' => $inHouse, 'currency' => $currency]))"
      @open-order-form.window="open()" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-3 sm:p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
+    <div x-show="isOpen" x-transition.opacity x-cloak class="slideover">
+        <div class="fixed inset-0 modal-overlay" @click="close()"></div>
 
-        <div class="relative flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white dark:bg-gray-900">
+        <div class="slideover-panel slideover-xl !p-0 flex flex-col overflow-hidden">
             <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-800">
                 <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">New Order</h4>
                 <button type="button" @click="close()" class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-400">
@@ -270,7 +270,7 @@ document.addEventListener('alpine:init', () => {
                     window.formDrafts.clear(this.draftKey);
                     this.close();
                     if (data.receipt_url) window.open(data.receipt_url, '_blank');
-                    window.location.reload();
+                    (window.hmsRefresh || (() => location.reload()))();
                     return;
                 }
                 if (response.status === 422 && data.errors) this.errors = data.errors;

@@ -8,15 +8,11 @@
 @endphp
 
 @section('content')
-    <div x-data="{ pageName: `Finance` }">
-        @include('partials.breadcrumb')
-    </div>
+    @include('partials.page-header', ['title' => 'Finance', 'sub' => 'Takings, balances owed and tax for ' . ($month)])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Finance</h2>
-            <p class="text-gray-600 dark:text-gray-400">Takings, balances owed and tax for {{ $month }}</p>
         </div>
         <div class="flex gap-3">
             <a href="{{ route('payments.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3">

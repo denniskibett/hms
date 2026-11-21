@@ -9,9 +9,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: @js('Booking #' . $stay->id) }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Booking'])
 
 <div class="space-y-6" x-data="{ cancelOpen: false, messageOpen: {{ $errors->has('body') || $errors->has('channels') ? 'true' : 'false' }} }">
     @if (session('receipt_url'))

@@ -11,14 +11,12 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Kitchen` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Kitchen'])
 
 {{-- Refresh every 30 s so new orders appear, unless a dialog is open --}}
 <div class="space-y-6"
      x-data
-     x-init="setInterval(() => { if (!document.body.classList.contains('overflow-hidden')) window.location.reload() }, 30000)">
+     x-init="$el._tick = setInterval(() => { if (!$el.isConnected) return clearInterval($el._tick); if (!document.body.classList.contains('overflow-hidden') && !document.querySelector('.slideover:not([style*=none])')) (window.hmsRefresh || (() => location.reload()))() }, 30000)">
     @include('kitchen.partials.header', ['title' => 'Kitchen', 'subtitle' => 'Orders waiting to be prepared, cooked and served. Refreshes every 30 seconds.'])
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

@@ -1,9 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="{ pageName: `New Booking` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'New Booking'])
 
 <div class="space-y-6">
     <div>

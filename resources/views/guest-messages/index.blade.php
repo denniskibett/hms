@@ -7,14 +7,10 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Guest Messages` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Guest Messages', 'sub' => 'Every SMS and email sent to guests: automatic ones (booking confirmed, welcome, receipts) and ones typed by staff.'])
 
 <div class="space-y-6">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Guest Messages</h2>
-        <p class="text-gray-600 dark:text-gray-400">Every SMS and email sent to guests: automatic ones (booking confirmed, welcome, receipts) and ones typed by staff.</p>
     </div>
 
     @if (GuestMessage::inTestMode())

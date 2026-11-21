@@ -8,9 +8,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: @js('Room ' . $room->room_number) }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Room'])
 
 <div class="space-y-6" x-data="rooms(@js(['roomTypes' => $roomTypes]))">
     <!-- Header -->

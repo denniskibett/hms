@@ -5,9 +5,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Stock Movements` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Stock Movements'])
 
 <div class="space-y-6">
     @include('inventory.partials.header', ['title' => 'Stock Movements', 'subtitle' => 'Everything received, issued, written off or counted', 'hideNew' => true])

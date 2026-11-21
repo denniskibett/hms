@@ -16,10 +16,10 @@
                     'reference' => '', 'supplier_id' => '', 'purchase_order_id' => '', 'department_id' => ''],
      ]))"
      @open-expense-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
+    <div x-show="isOpen" x-transition.opacity x-cloak class="slideover">
+        <div class="fixed inset-0 modal-overlay" @click="close()"></div>
         <form x-data="{ orders: @js($openOrders), get supplierOrders() { return this.orders.filter(o => String(o.supplier_id) === String(form.supplier_id)); } }"
-              @submit.prevent="submit()" class="relative max-h-[92vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-3xl bg-white p-6 lg:p-8 dark:bg-gray-900">
+              @submit.prevent="submit()" class="slideover-panel space-y-5">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90" x-text="form.category === 'supplier_payment' ? 'Pay a Supplier' : 'Record an Expense'"></h4>
             @include('facilities.partials.form-errors')
 

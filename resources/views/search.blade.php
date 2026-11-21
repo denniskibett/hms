@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@include('partials.page-header', ['title' => 'Search'])
 <div class="mx-auto max-w-4xl">
-    <h2 class="text-xl font-semibold text-gray-800">Search</h2>
-    <form method="GET" action="{{ route('search') }}" class="mt-4">
+    <form method="GET" action="{{ route('search') }}">
         <input type="search" name="q" value="{{ $q }}" autofocus placeholder="Guest name, phone, booking number, room or invoice" class="h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10">
     </form>
 

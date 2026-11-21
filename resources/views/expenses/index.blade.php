@@ -20,15 +20,11 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Expenses` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Expenses', 'sub' => 'Money paid out: running costs and supplier payments'])
 
 <div class="space-y-6" x-data x-init="@js($payFor) && $nextTick(() => $dispatch('open-expense-form', @js($payFor)))">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Expenses</h2>
-            <p class="text-gray-600 dark:text-gray-400">Money paid out: running costs and supplier payments</p>
         </div>
         <div class="flex flex-wrap gap-2">
             <button type="button" @click="$dispatch('open-expense-form', { category: 'supplier_payment' })" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"><i class="fas fa-truck"></i> Pay a supplier</button>

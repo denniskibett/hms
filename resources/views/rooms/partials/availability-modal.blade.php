@@ -1,8 +1,8 @@
 <!-- Availability Check Modal -->
-<div x-show="isAvailabilityModalOpen" x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5 overflow-y-auto" x-cloak>
-    <div class="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="closeModal()"></div>
+<div x-show="isAvailabilityModalOpen" x-transition.opacity class="slideover" x-cloak>
+    <div class="fixed inset-0 modal-overlay" @click="closeModal()"></div>
     
-    <div class="relative w-full max-w-2xl rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10 max-h-[90vh] overflow-y-auto" @click.outside="closeModal()">
+    <div class="slideover-panel" @click.outside="closeModal()">
         
         <!-- Close Button -->
         <button @click="closeModal()" class="group absolute right-3 top-3 z-999 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-gray-200 text-gray-500 transition-colors hover:bg-gray-300 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 sm:right-6 sm:top-6 sm:h-11 sm:w-11">

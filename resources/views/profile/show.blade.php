@@ -2,9 +2,7 @@
 
 @section('content')
 <!-- Breadcrumb Start -->
-<div x-data="{ pageName: 'Profile' }">
-    @include('partials.breadcrumb', ['pageName' => 'Profile'])
-</div>
+@include('partials.page-header', ['title' => 'Profile'])
 <!-- Breadcrumb End -->
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-200" 
@@ -14,7 +12,7 @@
     <!-- Success Message -->
     <div id="success-message" 
          class="hidden fixed top-20 right-5 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transition-all duration-300"
-         x-data="{ show: false }"
+         x-data="{ show: false, message: '' }"
          x-show="show"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 translate-y-2"
@@ -22,8 +20,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 translate-y-0"
          x-transition:leave-end="opacity-0 translate-y-2"
-         @profile-updated.window="show = true; setTimeout(() => show = false, 3000)"
-         @profile-updated.window="message = $event.detail.message">
+         @profile-updated.window="message = $event.detail?.message || 'Saved.'; show = true; setTimeout(() => show = false, 3000)">
         <div class="flex items-center gap-2">
             <i class="fas fa-check-circle"></i>
             <span x-text="message"></span>
@@ -240,7 +237,7 @@
     </div>
 
     <!-- Modal Overlay -->
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300"
+    <div class="slideover modal-overlay"
          x-show="modalOpen"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
@@ -252,14 +249,14 @@
          @keydown.escape.window="closeModal">
         
         <!-- Personal Information Modal -->
-        <div class="w-full max-w-lg transform rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl transition-all duration-300"
+        <div class="slideover-panel"
              x-show="activeModal === 'personalInfoModal'"
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-start="opacity-0 translate-x-8"
              x-transition:enter-end="opacity-100 translate-y-0"
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-4">
+             x-transition:leave-end="opacity-0 translate-x-8">
             <div class="mb-6 flex items-center justify-between">
                 <h3 class="text-xl font-semibold">Edit Personal Information</h3>
                 <button @click="closeModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -319,14 +316,14 @@
         </div>
 
         <!-- Address Modal -->
-        <div class="w-full max-w-lg transform rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl transition-all duration-300"
+        <div class="slideover-panel"
              x-show="activeModal === 'addressModal'"
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-start="opacity-0 translate-x-8"
              x-transition:enter-end="opacity-100 translate-y-0"
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-4">
+             x-transition:leave-end="opacity-0 translate-x-8">
             <div class="mb-6 flex items-center justify-between">
                 <h3 class="text-xl font-semibold">Edit Address Information</h3>
                 <button @click="closeModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -390,14 +387,14 @@
         </div>
 
         <!-- Avatar Modal -->
-        <div class="w-full max-w-md transform rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl transition-all duration-300"
+        <div class="slideover-panel"
              x-show="activeModal === 'avatarModal'"
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-start="opacity-0 translate-x-8"
              x-transition:enter-end="opacity-100 translate-y-0"
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-4">
+             x-transition:leave-end="opacity-0 translate-x-8">
             <div class="mb-6 flex items-center justify-between">
                 <h3 class="text-xl font-semibold">Update Profile Picture</h3>
                 <button @click="closeModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -451,14 +448,14 @@
         </div>
 
         <!-- Social Media Modal -->
-        <div class="w-full max-w-lg transform rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl transition-all duration-300"
+        <div class="slideover-panel"
              x-show="activeModal === 'socialModal'"
              x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-4"
+             x-transition:enter-start="opacity-0 translate-x-8"
              x-transition:enter-end="opacity-100 translate-y-0"
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-4">
+             x-transition:leave-end="opacity-0 translate-x-8">
             <div class="mb-6 flex items-center justify-between">
                 <h3 class="text-xl font-semibold">Edit Social Media Links</h3>
                 <button @click="closeModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">

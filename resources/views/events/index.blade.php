@@ -7,16 +7,12 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Events` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Conferences & Events', 'sub' => 'Venue bookings, packages and event billing'])
 
 <div class="space-y-6" x-data x-init="@js($openFor) && $nextTick(() => $dispatch('open-event-form', { facility_id: @js($openFor) }))">
     <!-- Header -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Conferences &amp; Events</h2>
-            <p class="text-gray-600 dark:text-gray-400">Venue bookings, packages and event billing</p>
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('facilities.index') }}"

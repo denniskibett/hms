@@ -9,9 +9,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: @js($supplier->name) }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => $supplier->name])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

@@ -262,11 +262,11 @@ layer(base);
 }
 
 @utility menu-item-icon-active {
-  @apply fill-brand-500 dark:fill-brand-400;
+  @apply fill-brand-500 text-brand-500 dark:fill-brand-400;
 }
 
 @utility menu-item-icon-inactive {
-  @apply fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300;
+  @apply fill-gray-500 text-gray-500 group-hover:fill-gray-700 group-hover:text-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300;
 }
 
 @utility menu-item-arrow {
@@ -900,3 +900,31 @@ span.flatpickr-weekday,
   .hero-media, .scroll-cue, .blob { animation: none !important; }
   .lift, .lift img { transition: none !important; }
 }
+
+/* ---- Staff screens: background page changes (resources/js/spa.js) ---- */
+#spa-progress { position: sticky; top: 0; height: 3px; margin-bottom: -3px; z-index: 99998; pointer-events: none; overflow: hidden; }
+#spa-progress i { display: block; height: 100%; width: 0; opacity: 0; background: var(--color-brand-500); }
+html.spa-loading #spa-progress i { opacity: 1; width: 80%; transition: width 8s cubic-bezier(.08,.7,.2,1), opacity .15s; }
+html.spa-done #spa-progress i { opacity: 0; width: 100%; transition: width .2s ease-out, opacity .25s .2s; }
+#app-content { transition: opacity .15s ease; }
+html.spa-loading #app-content { opacity: .55; pointer-events: none; }
+
+/* ---- Every modal / slide-over backdrop: one look, dark at 70% opacity (no blur), as in scharge. ---- */
+.modal-overlay { background-color: rgb(16 24 40 / 0.7); }
+
+/* ---- Form slide-overs: panels come in from the right, full height. ---- */
+.slideover { position: fixed; inset: 0; margin: 0 !important; z-index: 99999; display: flex; justify-content: flex-end; }
+.slideover-panel {
+  position: relative; height: 100%; width: 100%; max-width: min(36rem, calc(100% - 2rem));
+  overflow-y: auto; background: #fff; box-shadow: -12px 0 40px rgb(16 24 40 / .18);
+  padding: 1.5rem; animation: slideover-in .28s cubic-bezier(.22,.8,.25,1);
+}
+@media (min-width: 640px) { .slideover-panel { padding: 2rem; } }
+.slideover-panel.slideover-lg { max-width: min(48rem, calc(100% - 2rem)); }
+.slideover-panel.slideover-xl { max-width: min(64rem, calc(100% - 2rem)); }
+@keyframes slideover-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.modal-overlay { animation: overlay-in .2s ease; }
+@keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .slideover-panel, .modal-overlay, #spa-progress i, #app-content { animation: none !important; transition: none !important; } }
+/* Date pickers must open above slide-overs. */
+.flatpickr-calendar { z-index: 100000 !important; }

@@ -154,7 +154,7 @@ document.addEventListener('alpine:init', () => {
             const data = await this.send(this.url('destroy', room.id), 'DELETE');
             if (data) {
                 this.showToast(data.message, 'success');
-                setTimeout(() => window.location.href = this.urls.index, 800);
+                setTimeout(() => (window.spaVisit ? spaVisit(this.urls.index) : (location.href = this.urls.index)), 800);
             }
         },
 
@@ -229,7 +229,7 @@ document.addEventListener('alpine:init', () => {
 
         reloadSoon(message) {
             this.showToast(message || 'Saved', 'success');
-            setTimeout(() => window.location.reload(), 800);
+            setTimeout(() => (window.hmsRefresh || (() => location.reload()))(), 800);
         },
 
         isoDate(daysFromToday) {

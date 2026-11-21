@@ -2,16 +2,12 @@
 
 @section('content')
     <!-- Breadcrumb Start -->
-    <div x-data="{ pageName: `Rooms Types Management`}">
-        @include('partials.breadcrumb')
-    </div>
+    @include('partials.page-header', ['title' => 'Room Types', 'sub' => 'Manage room types and their configurations'])
     <!-- Breadcrumb End -->
-<div class="p-6 space-y-6" x-data="roomTypeManagement()">
+<div class="space-y-6" x-data="roomTypeManagement()">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Room Types</h2>
-            <p class="text-gray-600 dark:text-gray-400">Manage room types and their configurations</p>
         </div>
         
         <div class="flex items-center gap-3">
@@ -267,12 +263,12 @@
                                     <i class="fas fa-eye text-xs"></i>
                                     View
                                 </a>
-                                <button @click="openEditModal(@json($roomType))"
+                                <button @click="openEditModal(@js($roomType))"
                                         class="inline-flex items-center gap-1 rounded-lg bg-blue-100 px-2.5 py-1 text-xs font-medium text-primary hover:bg-blue-200 dark:bg-primary/15 dark:text-blue-400">
                                     <i class="fas fa-edit text-xs"></i>
                                     Edit
                                 </button>
-                                <button @click="openDeleteModal(@json($roomType))"
+                                <button @click="openDeleteModal(@js($roomType))"
                                         class="inline-flex items-center gap-1 rounded-lg bg-red-100 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-400">
                                     <i class="fas fa-trash text-xs"></i>
                                     Delete
@@ -305,13 +301,15 @@
         </div>
         @endif
     </div>
+    @include('room-types.partials.modal-form')
+    @include('room-types.partials.delete-modal')
 </div>
 
 <!-- Create/Edit Room Type Modal -->
-@include('room-types.partials.modal-form')
+
 
 <!-- Delete Confirmation Modal -->
-@include('room-types.partials.delete-modal')
+
 
 <script>
 document.addEventListener('alpine:init', () => {
@@ -463,7 +461,7 @@ document.addEventListener('alpine:init', () => {
                     this.showToast(`Room type ${this.formData.id ? 'updated' : 'created'} successfully`, 'success');
                     this.closeModal();
                     setTimeout(() => {
-                        window.location.reload();
+                        (window.hmsRefresh || (() => location.reload()))();
                     }, 1500);
                 } else {
                     this.showToast(data.message || 'Error saving room type', 'error');
@@ -493,7 +491,7 @@ document.addEventListener('alpine:init', () => {
                     this.showToast('Room type deleted successfully', 'success');
                     this.closeModal();
                     setTimeout(() => {
-                        window.location.reload();
+                        (window.hmsRefresh || (() => location.reload()))();
                     }, 1500);
                 } else {
                     const data = await response.json();
@@ -514,7 +512,7 @@ document.addEventListener('alpine:init', () => {
             if (this.filters.bed_type) params.append('bed_type', this.filters.bed_type);
             if (this.filters.min_capacity) params.append('min_capacity', this.filters.min_capacity);
             
-            window.location.href = '/room-types?' + params.toString();
+            (window.spaVisit ? spaVisit('/room-types?' + params.toString()) : (location.href = '/room-types?' + params.toString()));
         },
         
         clearFilters() {
@@ -522,7 +520,7 @@ document.addEventListener('alpine:init', () => {
                 bed_type: '',
                 min_capacity: ''
             };
-            window.location.href = '/room-types';
+            (window.spaVisit ? spaVisit('/room-types') : (location.href = '/room-types'));
         },
         
         // Search function
@@ -535,7 +533,7 @@ document.addEventListener('alpine:init', () => {
                 params.delete('search');
             }
             
-            window.location.href = '/room-types?' + params.toString();
+            (window.spaVisit ? spaVisit('/room-types?' + params.toString()) : (location.href = '/room-types?' + params.toString()));
         },
         
         // Helper functions

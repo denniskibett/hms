@@ -13,9 +13,9 @@
         'blank' => ['id' => null, 'name' => '', 'sort_order' => 0, 'is_active' => true],
      ]))"
      @open-category-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
-        <form @submit.prevent="submit()" class="relative w-full max-w-md space-y-5 rounded-3xl bg-white p-6 lg:p-8 dark:bg-gray-900">
+    <div x-show="isOpen" x-transition.opacity x-cloak class="slideover">
+        <div class="fixed inset-0 modal-overlay" @click="close()"></div>
+        <form @submit.prevent="submit()" class="slideover-panel space-y-5">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90" x-text="form.id ? 'Edit Category' : 'New Category'"></h4>
             @include('facilities.partials.form-errors')
             <div>

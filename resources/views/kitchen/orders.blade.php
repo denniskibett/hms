@@ -6,9 +6,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Orders` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Orders'])
 
 <div class="space-y-6">
     @include('kitchen.partials.header', ['title' => 'Orders', 'subtitle' => 'Every restaurant and room-service order'])

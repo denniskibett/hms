@@ -168,12 +168,12 @@
         @endif
 
         <!-- Dialogs -->
-        <div x-show="dialog" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="dialog = null">
-            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="dialog = null"></div>
+        <div x-show="dialog" x-cloak x-transition.opacity class="slideover" @keydown.escape.window="dialog = null">
+            <div class="fixed inset-0 modal-overlay" @click="dialog = null"></div>
 
             @if ($balance > 0)
                 <form x-show="dialog === 'pay'" method="POST" action="{{ route("{$routePrefix}.payments.store", $owner) }}" x-data="{ method: @js(old('method', 'cash')) }"
-                      class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+                      class="slideover-panel">
                     @csrf
                     <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Record payment</h4>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Balance on {{ $invoice->invoice_number }}: <strong>{{ $money($balance) }}</strong></p>

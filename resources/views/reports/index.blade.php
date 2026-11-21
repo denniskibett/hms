@@ -1,14 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="{ pageName: `Reports` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Reports', 'sub' => 'Pick a report; each can be printed or downloaded for Excel.'])
 
 <div class="space-y-6">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Reports</h2>
-        <p class="text-gray-600 dark:text-gray-400">Pick a report; each can be printed or downloaded for Excel.</p>
     </div>
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

@@ -5,10 +5,7 @@
     <main>
       {{-- <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6"> --}}
         <!-- Breadcrumb Start -->
-        <div x-data="{ pageName: `Calendar`}">
-          @include('partials.breadcrumb')
-
-        </div>
+        @include('partials.page-header', ['title' => 'Calendar'])
         <!-- Breadcrumb End -->
 
         <div

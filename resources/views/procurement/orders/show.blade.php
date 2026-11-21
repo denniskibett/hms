@@ -17,9 +17,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: @js($order->po_number) }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Purchase order'])
 
 <div class="space-y-6" x-data="{ reason: null }">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -173,9 +171,9 @@
     </div>
 
     <!-- Send back / cancel reason -->
-    <div x-show="reason" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="reason = null">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="reason = null"></div>
-        <form method="POST" action="{{ route('purchase-orders.status', $order) }}" class="relative w-full max-w-md space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
+    <div x-show="reason" x-cloak x-transition.opacity class="slideover" @keydown.escape.window="reason = null">
+        <div class="fixed inset-0 modal-overlay" @click="reason = null"></div>
+        <form method="POST" action="{{ route('purchase-orders.status', $order) }}" class="slideover-panel space-y-4">
             @csrf
             <input type="hidden" name="status" :value="reason">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90" x-text="reason === 'cancelled' ? 'Cancel this order?' : 'Send back for changes'"></h4>

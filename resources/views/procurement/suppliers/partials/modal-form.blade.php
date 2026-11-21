@@ -11,9 +11,9 @@
         'blank' => ['id' => null, 'name' => '', 'contact_person' => '', 'phone' => '', 'email' => '', 'kra_pin' => '', 'address' => '', 'payment_terms' => '', 'notes' => '', 'status' => 'active'],
      ]))"
      @open-supplier-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
-        <form @submit.prevent="submit()" class="relative max-h-[92vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-3xl bg-white p-6 lg:p-8 dark:bg-gray-900">
+    <div x-show="isOpen" x-transition.opacity x-cloak class="slideover">
+        <div class="fixed inset-0 modal-overlay" @click="close()"></div>
+        <form @submit.prevent="submit()" class="slideover-panel space-y-5">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90" x-text="form.id ? 'Edit Supplier' : 'New Supplier'"></h4>
             @include('facilities.partials.form-errors')
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">

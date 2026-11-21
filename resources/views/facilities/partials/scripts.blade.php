@@ -92,8 +92,8 @@ document.addEventListener('alpine:init', () => {
                 if (response.ok && data.success !== false) {
                     window.formDrafts.clear(this.draftKey);
                     this.close();
-                    if (data.url && method !== 'PUT') window.location.href = data.url;
-                    else window.location.reload();
+                    if (data.url && method !== 'PUT') (window.spaVisit ? spaVisit(data.url) : (location.href = data.url));
+                    else (window.hmsRefresh || (() => location.reload()))();
                     return;
                 }
                 if (response.status === 422 && data.errors) this.errors = data.errors;
