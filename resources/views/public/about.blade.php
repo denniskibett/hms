@@ -1,38 +1,37 @@
 @extends('layouts.public')
 
 @section('title', 'About')
+@section('header_on_dark', '1')
 
-@php
-    $about = SystemHelper::aboutUs();
-    $money = fn ($v) => SystemHelper::currencySymbol() . ' ' . number_format((float) $v);
-@endphp
+@php $about = SystemHelper::aboutUs(); @endphp
 
 @section('content')
-<section class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 py-16 lg:grid-cols-2">
-    <div>
-        <p class="text-sm font-semibold uppercase tracking-wider text-primary">{{ $about['title'] ?? 'About us' }}</p>
-        <h1 class="mt-2 text-4xl font-bold text-gray-900">{{ $about['subtitle'] ?? SystemHelper::appName() }}</h1>
-        <p class="mt-6 text-gray-600">{{ $about['description'] ?? '' }}</p>
-        @if (! empty($about['extra']))<p class="mt-4 text-gray-600">{{ $about['extra'] }}</p>@endif
-        <a href="{{ route('book') }}" class="mt-8 inline-block rounded-lg bg-primary px-6 py-3 font-semibold text-white hover:bg-primary/90">Book a stay</a>
-    </div>
-    <div class="grid grid-cols-2 gap-4">
-        <img src="{{ asset('twh/img/about/about-p1.jpg') }}" alt="" class="h-72 w-full rounded-2xl object-cover">
-        <img src="{{ asset('twh/img/about/about-p2.jpg') }}" alt="" class="mt-12 h-72 w-full rounded-2xl object-cover">
-    </div>
-</section>
+    @include('public.partials.hero', [
+        'image' => asset('images/site/exterior.jpg'),
+        'eyebrow' => $about['title'] ?? 'About us',
+        'title' => $about['subtitle'] ?? SystemHelper::appName(),
+    ])
 
-@if ($roomTypes->isNotEmpty())
-    <section class="mx-auto max-w-7xl px-6">
-        <h2 class="text-2xl font-bold text-gray-900">Rooms</h2>
-        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            @foreach ($roomTypes as ['type' => $type, 'from' => $from])
-                <div class="rounded-2xl border border-gray-100 p-5">
-                    <p class="font-semibold text-gray-900">{{ $type->name }}</p>
-                    <p class="text-sm text-gray-500">Sleeps {{ $type->capacity }} · from {{ $money($from) }} a night, B&amp;B</p>
-                </div>
-            @endforeach
+    <section id="after-hero" class="mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-12 px-4 py-20 md:px-6 lg:grid-cols-2">
+        <div>
+            <p class="text-lg leading-relaxed text-muted" data-reveal="left">{{ $about['description'] ?? '' }}</p>
+            @if (! empty($about['extra']))<p class="mt-4 text-lg leading-relaxed text-muted" data-reveal="left" style="--delay:.15s">{{ $about['extra'] }}</p>@endif
+            <a href="{{ route('book') }}" class="site-btn mt-8" data-reveal="up">Book a room</a>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <img src="{{ asset('images/site/lobby.jpg') }}" alt="The lounge" class="h-72 w-full rounded-xl object-cover" data-reveal="down" loading="lazy">
+            <img src="{{ asset('images/site/garden.jpg') }}" alt="The gardens" class="mt-12 h-72 w-full rounded-xl object-cover" data-reveal="up" loading="lazy">
         </div>
     </section>
-@endif
+
+    @if ($roomTypes->isNotEmpty())
+        <section class="mx-auto max-w-[1240px] px-4 pb-24 md:px-6">
+            <h2 class="site-h2 mb-8" data-split>Our rooms</h2>
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" data-stagger=".1" data-effect="up">
+                @foreach ($roomTypes->take(4) as $i => ['type' => $type, 'from' => $from])
+                    @include('public.partials.room-card', compact('type', 'from', 'i'))
+                @endforeach
+            </div>
+        </section>
+    @endif
 @endsection

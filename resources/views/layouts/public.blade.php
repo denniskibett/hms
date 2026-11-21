@@ -7,92 +7,91 @@
     <title>@yield('title', SystemHelper::appName()) · {{ SystemHelper::appName() }}</title>
     <meta name="description" content="{{ SystemHelper::metaDescription() ?: SystemHelper::slogan() }}">
     <link rel="icon" href="{{ SystemHelper::faviconUrl() }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    @vite(['resources/css/app.css', 'resources/js/index.js'])
-
-    <style>
-        :root {
-            --color-primary-rgb: {{ SystemHelper::rgb(SystemHelper::primaryColor(), '58 87 232') }};
-            --color-secondary-rgb: {{ SystemHelper::rgb(SystemHelper::secondaryColor(), '8 177 186') }};
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/js/index.js', 'resources/js/site.js'])
 </head>
 @php
     $nav = [
-        'home' => 'Home',
-        'book' => 'Rooms & Booking',
+        'stay' => 'Rooms',
+        'dining' => 'Dining & bar',
+        'events' => 'Events',
         'about' => 'About',
         'contact' => 'Contact',
     ];
     $phone = SystemHelper::contactPhone();
     $email = SystemHelper::contactEmail();
+    // Pages that open with a photo banner start with a white header text.
+    $onDark = trim($__env->yieldContent('header_on_dark')) === '1';
 @endphp
-<body class="bg-white font-outfit text-gray-700 antialiased" x-data="{ menu: false }">
-    <!-- Top bar -->
-    <div class="hidden bg-gray-900 text-sm text-gray-300 md:block">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-2">
-            <div class="flex gap-6">
-                @if ($phone)<a href="tel:{{ $phone }}" class="hover:text-white"><i class="fas fa-phone mr-2"></i>{{ $phone }}</a>@endif
-                @if ($email)<a href="mailto:{{ $email }}" class="hover:text-white"><i class="fas fa-envelope mr-2"></i>{{ $email }}</a>@endif
-            </div>
-            <a href="{{ route('login') }}" class="hover:text-white"><i class="fas fa-user mr-2"></i>Staff &amp; guest sign in</a>
-        </div>
-    </div>
+<body class="bg-sand font-inter text-ink antialiased" x-data="{ menu: false }">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-md focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
+    <div class="site-progress" aria-hidden="true"></div>
 
-    <!-- Header -->
-    <header class="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-            <a href="{{ route('home') }}" class="flex items-center gap-3">
-                <img src="{{ SystemHelper::logoUrl() }}" alt="{{ SystemHelper::appName() }}" class="h-10 w-auto">
+    <header class="site-header fixed inset-x-0 top-0 z-50 {{ $onDark ? 'on-dark' : '' }}" :class="menu && 'is-solid'">
+        <div class="mx-auto flex max-w-[1240px] items-center justify-between gap-4 px-4 py-3 md:px-6">
+            <a href="{{ route('home') }}" class="flex shrink-0 items-center" aria-label="{{ SystemHelper::appName() }} home">
+                <span class="transition hover:scale-105">@include('public.partials.logo', ['class' => 'h-16 w-16 md:h-[72px] md:w-[72px]'])</span>
             </a>
-            <nav class="hidden items-center gap-8 lg:flex">
+            <nav aria-label="Main" class="site-nav hidden items-center gap-7 text-[15px] font-medium lg:flex">
                 @foreach ($nav as $route => $label)
-                    <a href="{{ route($route) }}" class="text-sm font-medium {{ request()->routeIs($route) ? 'text-primary' : 'text-gray-700 hover:text-primary' }}">{{ $label }}</a>
+                    <a href="{{ route($route) }}" @if (request()->routeIs($route . '*')) aria-current="page" @endif class="py-2 text-ink">{{ $label }}</a>
                 @endforeach
-                <a href="{{ route('book') }}" class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90">Book a Stay</a>
             </nav>
-            <button type="button" @click="menu = !menu" class="text-2xl text-gray-700 lg:hidden" aria-label="Menu"><i class="fas" :class="menu ? 'fa-times' : 'fa-bars'"></i></button>
+            <div class="hidden items-center gap-3 lg:flex">
+                <a href="{{ route('login') }}" class="px-2 py-3 text-[15px] font-medium">Sign in</a>
+                <a href="{{ route('book') }}" class="site-btn !py-3 text-[15px]">Book a room</a>
+            </div>
+            <button type="button" @click="menu = !menu" class="flex h-11 w-11 items-center justify-center rounded-md text-2xl lg:hidden" :aria-expanded="menu" aria-label="Menu">
+                <i class="fa-solid" :class="menu ? 'fa-xmark' : 'fa-bars'"></i>
+            </button>
         </div>
-        <nav x-show="menu" x-cloak x-transition class="border-t border-gray-100 px-6 py-4 lg:hidden">
+        <nav x-show="menu" x-cloak x-transition.origin.top class="border-t border-line bg-white px-4 py-4 text-ink lg:hidden" aria-label="Mobile">
             @foreach ($nav as $route => $label)
-                <a href="{{ route($route) }}" class="block py-2 font-medium {{ request()->routeIs($route) ? 'text-primary' : 'text-gray-700' }}">{{ $label }}</a>
+                <a href="{{ route($route) }}" class="block py-3 text-lg font-medium {{ request()->routeIs($route . '*') ? 'text-clay' : '' }}">{{ $label }}</a>
             @endforeach
-            <a href="{{ route('login') }}" class="block py-2 text-gray-500">Sign in</a>
-            <a href="{{ route('book') }}" class="mt-2 block rounded-lg bg-primary px-5 py-3 text-center font-semibold text-white">Book a Stay</a>
+            <a href="{{ route('login') }}" class="block py-3 text-muted">Sign in</a>
+            <a href="{{ route('book') }}" class="site-btn mt-2 w-full">Book a room</a>
         </nav>
     </header>
 
-    <main>
+    <main id="main" class="{{ $onDark ? '' : 'pt-24' }}">
         @yield('content')
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-20 bg-gray-900 text-gray-400">
-        <div class="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-14 md:grid-cols-3">
-            <div>
-                <p class="text-lg font-semibold text-white">{{ SystemHelper::appName() }}</p>
-                <p class="mt-2 text-sm">{{ SystemHelper::slogan() }}</p>
+    <footer class="relative overflow-hidden border-t border-line bg-white text-sm text-muted">
+        <div class="mx-auto grid max-w-[1240px] grid-cols-1 gap-10 px-4 py-14 md:grid-cols-4 md:px-6" data-stagger=".1">
+            <div class="md:col-span-2">
+                @include('public.partials.logo', ['class' => 'h-24 w-24'])
+                <p class="mt-3 max-w-sm">{{ SystemHelper::slogan() }}</p>
                 <div class="mt-4 flex gap-4 text-lg">
                     @foreach (SystemHelper::socials() as $network => $url)
                         @continue(! is_string($url) || $url === '')
-                        <a href="{{ $url }}" target="_blank" rel="noopener" class="hover:text-white" aria-label="{{ ucfirst($network) }}"><i class="fab fa-{{ $network }}"></i></a>
+                        <a href="{{ $url }}" target="_blank" rel="noopener" class="text-muted transition hover:-translate-y-0.5 hover:text-clay" aria-label="{{ ucfirst($network) }}"><i class="fa-brands fa-{{ $network }}"></i></a>
                     @endforeach
                 </div>
             </div>
-            <div class="text-sm">
-                <p class="mb-3 font-semibold text-white">Contact</p>
-                @if (SystemHelper::address())<p class="mb-2"><i class="fas fa-map-marker-alt mr-2"></i>{{ SystemHelper::address() }}</p>@endif
-                @if ($phone)<p class="mb-2"><i class="fas fa-phone mr-2"></i><a href="tel:{{ $phone }}" class="hover:text-white">{{ $phone }}</a></p>@endif
-                @if ($email)<p><i class="fas fa-envelope mr-2"></i><a href="mailto:{{ $email }}" class="hover:text-white">{{ $email }}</a></p>@endif
+            <div>
+                <p class="mb-3 font-semibold text-ink">Contact</p>
+                @if (SystemHelper::address())<p class="mb-2">{{ SystemHelper::address() }}</p>@endif
+                @if ($phone)<p class="mb-2"><a href="tel:{{ $phone }}" class="text-muted hover:text-clay">{{ $phone }}</a></p>@endif
+                @if ($email)<p><a href="mailto:{{ $email }}" class="text-muted hover:text-clay">{{ $email }}</a></p>@endif
             </div>
-            <div class="text-sm">
-                <p class="mb-3 font-semibold text-white">Visit</p>
+            <div>
+                <p class="mb-3 font-semibold text-ink">Visit</p>
                 @foreach ($nav as $route => $label)
-                    <a href="{{ route($route) }}" class="mb-2 block hover:text-white">{{ $label }}</a>
+                    <a href="{{ route($route) }}" class="mb-2 block text-muted hover:text-clay">{{ $label }}</a>
                 @endforeach
             </div>
         </div>
-        <p class="border-t border-gray-800 py-5 text-center text-xs">© {{ now()->year }} {{ SystemHelper::appName() }}. Prices in {{ SystemHelper::currencySymbol() }}, including VAT and Tourism Levy.</p>
+        <div class="border-t border-line">
+            <div class="mx-auto flex max-w-[1240px] flex-wrap justify-between gap-3 px-4 py-5 text-xs md:px-6">
+                <span>© {{ now()->year }} {{ SystemHelper::appName() }}. Prices in {{ SystemHelper::currencyCode() }}{{ SystemHelper::pricesIncludeTax() ? ', including taxes' : '' }}.</span>
+                <span>Payments by Sharet Pay</span>
+            </div>
+        </div>
     </footer>
 </body>
 </html>

@@ -47,6 +47,10 @@ Route::post('/book', [FrontController::class, 'submitBooking'])
     ->middleware('throttle:5,1')
     ->name('book.submit');
 Route::get('/book/thanks', [FrontController::class, 'thanks'])->name('book.thanks');
+Route::get('/stay', [FrontController::class, 'rooms'])->name('stay');
+Route::get('/stay/{roomType}', [FrontController::class, 'room'])->name('stay.show');
+Route::get('/dining', [FrontController::class, 'dining'])->name('dining');
+Route::get('/events-and-conferences', [FrontController::class, 'events'])->name('events');
 Route::get('/about', [FrontController::class, 'about'])->name('about');
 Route::get('/contact', [FrontController::class, 'contact'])->name('contact');
 Route::post('/contact', [FrontController::class, 'submitContact'])

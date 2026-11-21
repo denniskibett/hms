@@ -8,6 +8,7 @@ use App\Models\BookingRequest;
 use App\Models\Facility;
 use App\Models\FacilityPackage;
 use App\Models\GuestMessage;
+use App\Models\MenuCategory;
 use App\Models\Room;
 use App\Models\RoomType;
 use Carbon\Carbon;
@@ -33,6 +34,48 @@ class FrontController extends Controller
         ]);
     }
 
+    public function rooms(): View
+    {
+        return view('public.rooms', ['roomTypes' => $this->roomTypeCards()]);
+    }
+
+    public function room(RoomType $roomType): View
+    {
+        $adults = min(2, max((int) $roomType->capacity, 1));
+        $plans = collect(MealPlan::cases())->map(fn (MealPlan $plan) => [
+            'plan' => $plan,
+            'nightly' => $roomType->quote($plan, $adults)['nightly'],
+        ]);
+
+        return view('public.room', [
+            'type' => $roomType,
+            'plans' => $plans,
+            'others' => $this->roomTypeCards()->reject(fn ($card) => $card['type']->is($roomType))->take(3),
+        ]);
+    }
+
+    /**
+     * The restaurant and bar menu, straight from the kitchen's menu.
+     */
+    public function dining(): View
+    {
+        $menu = MenuCategory::active()->ordered()
+            ->with(['activeItems' => fn ($q) => $q->with('variants')->orderBy('name')])
+            ->get()
+            ->filter(fn ($category) => $category->activeItems->isNotEmpty())
+            ->values();
+
+        return view('public.dining', ['menu' => $menu]);
+    }
+
+    public function events(): View
+    {
+        return view('public.events', [
+            'venues' => Facility::available()->orderByDesc('capacity')->get(),
+            'packages' => FacilityPackage::active()->orderBy('price')->get(),
+        ]);
+    }
+
     public function about(): View
     {
         return view('public.about', ['roomTypes' => $this->roomTypeCards()]);
@@ -48,15 +91,20 @@ class FrontController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:100',
             'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:30',
+            'topic' => 'nullable|string|max:60',
             'message' => 'required|string|max:5000',
             'website' => 'prohibited', // spam trap, hidden from people
         ]);
 
         try {
-            Mail::raw("From: {$data['name']} <{$data['email']}>\n\n{$data['message']}", function ($mail) use ($data) {
+            $lines = "From: {$data['name']} <{$data['email']}>"
+                . (! empty($data['phone']) ? "\nPhone: {$data['phone']}" : '')
+                . (! empty($data['topic']) ? "\nAbout: {$data['topic']}" : '');
+            Mail::raw("{$lines}\n\n{$data['message']}", function ($mail) use ($data) {
                 $mail->to(SystemHelper::contactEmail() ?: config('mail.from.address'))
                     ->replyTo($data['email'], $data['name'])
-                    ->subject('Website enquiry from ' . $data['name']);
+                    ->subject((! empty($data['topic']) ? $data['topic'] . ': ' : 'Website enquiry from ') . $data['name']);
             });
         } catch (\Throwable $e) {
             Log::error('Contact form mail failed', ['error' => $e->getMessage()]);
