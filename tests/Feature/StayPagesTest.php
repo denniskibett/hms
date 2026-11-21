@@ -139,8 +139,29 @@ class StayPagesTest extends TestCase
         // Can't cancel someone who is in house
         $this->actingAs($receptionist)->post(route('stays.cancel', $stay))->assertSessionHas('error');
 
+        // The folio isn't paid: check-out is refused
+        $this->actingAs($receptionist)->post(route('stays.check-out', $stay))->assertSessionHas('error');
+        $this->assertSame(StayStatus::CheckedIn, $stay->fresh()->state);
+
+        // A receptionist can't let them leave owing money
+        $this->actingAs($receptionist)->post(route('stays.check-out', $stay), ['unpaid_reason' => 'Company pays'])->assertSessionHas('error');
+
+        // Once paid in full, the receptionist can check them out
+        $invoice = $stay->fresh()->invoices()->first();
+        app(\App\Services\BillingService::class)->recordPayment($invoice, ['amount' => $invoice->balance, 'method' => 'cash'], $receptionist);
         $this->actingAs($receptionist)->post(route('stays.check-out', $stay))->assertSessionHas('success');
         $this->assertSame(StayStatus::CheckedOut, $stay->fresh()->state);
+    }
+
+    public function test_a_manager_can_check_out_an_unpaid_stay_with_a_reason(): void
+    {
+        $stay = $this->makeStay(['arrival_date' => today()->toDateString()]);
+        $manager = $this->userWithRole('manager');
+        $this->actingAs($manager)->post(route('stays.check-in', $stay))->assertSessionHas('success');
+
+        $this->actingAs($manager)->post(route('stays.check-out', $stay), ['unpaid_reason' => 'Company will pay on statement'])->assertSessionHas('success');
+        $this->assertSame(StayStatus::CheckedOut, $stay->fresh()->state);
+        $this->assertDatabaseHas('audit_trails', ['action' => 'check_out_unpaid']);
     }
 
     public function test_cancel_then_only_a_manager_can_delete(): void

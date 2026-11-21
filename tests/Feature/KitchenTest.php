@@ -139,7 +139,7 @@ class KitchenTest extends TestCase
     public function test_only_checked_in_guests_can_be_charged_and_room_charges_are_not_paid_now(): void
     {
         $stay = $this->checkedInStay();
-        app(BookingService::class)->checkOut($stay, $this->clerk);
+        app(BookingService::class)->checkOut($stay, $this->clerk, 'Test: settled elsewhere');
 
         $this->actingAs($this->chef)->postJson(route('kitchen.orders.store'), [
             'type' => 'room_service', 'stay_id' => $stay->id, 'charge_to_room' => true,

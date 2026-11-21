@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\SystemHelper;
 use App\Enums\MealPlan;
 use App\Enums\RoomStatus;
 use App\Enums\StayStatus;
@@ -235,12 +236,15 @@ class BookingService
     /**
      * Check out. Leaving early shortens the stay to today (minimum one night)
      * so the rooms become bookable again and only nights used are charged.
+     *
+     * The guest can't leave owing money: the folio must be settled, unless a
+     * manager lets them go with a reason (logged), e.g. a company will pay.
      */
-    public function checkOut(Stay $stay, User $by): Stay
+    public function checkOut(Stay $stay, User $by, ?string $unpaidReason = null): Stay
     {
         $this->assertTransition($stay, StayStatus::CheckedOut);
 
-        return DB::transaction(function () use ($stay, $by) {
+        return DB::transaction(function () use ($stay, $by, $unpaidReason) {
             $departure = $stay->departure_date->copy();
             $leavingEarly = today()->lt($departure);
 
@@ -264,6 +268,17 @@ class BookingService
             // Early departure: bill only the nights used
             if ($leavingEarly) {
                 $this->billing->syncStayInvoice($stay->fresh());
+            }
+
+            $owing = $this->outstandingBalance($stay);
+            if ($owing > 0 && blank($unpaidReason)) {
+                throw new BookingException(sprintf(
+                    'Stay #%d still owes %s %s. Take payment before check-out, or a manager can check the guest out with a reason.',
+                    $stay->id, SystemHelper::currencyCode(), number_format($owing, 2)
+                ));
+            }
+            if ($owing > 0) {
+                $this->core->log($by->id, 'check_out_unpaid', "Stay #{$stay->id} checked out owing " . number_format($owing, 2) . ": {$unpaidReason}", ['stay_id' => $stay->id, 'balance' => $owing, 'reason' => $unpaidReason]);
             }
 
             $this->core->log($by->id, 'check_out', "Stay #{$stay->id} checked out" . ($leavingEarly ? ' early' : ''), ['stay_id' => $stay->id]);
@@ -390,6 +405,15 @@ class BookingService
                 'guest_notes' => $line['guest_notes'] ?? null,
             ]);
         }
+    }
+
+    /**
+     * What the guest still owes across the stay's open invoices.
+     */
+    public function outstandingBalance(Stay $stay): float
+    {
+        return round($stay->invoices()->where('status', '!=', 'cancelled')->get()
+            ->sum(fn ($invoice) => max($invoice->balance, 0)), 2);
     }
 
     private function assertTransition(Stay $stay, StayStatus $to): void

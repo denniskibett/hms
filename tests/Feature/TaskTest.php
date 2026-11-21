@@ -65,7 +65,7 @@ class TaskTest extends TestCase
             'rooms' => [['room_id' => $this->room->id, 'adults' => 1, 'children' => 0]],
         ], $this->manager);
         $bookings->checkIn($stay, $this->manager);
-        $bookings->checkOut($stay->fresh(), $this->manager);
+        $bookings->checkOut($stay->fresh(), $this->manager, 'Test: settled elsewhere');
 
         $this->assertSame(RoomStatus::Cleaning, $this->room->fresh()->status);
         $task = Task::sole();

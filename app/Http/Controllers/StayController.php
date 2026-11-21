@@ -218,7 +218,14 @@ class StayController extends Controller
 
     public function checkOut(Request $request, Stay $stay): RedirectResponse
     {
-        return $this->runAction(fn () => $this->bookings->checkOut($stay, $request->user()), "Stay #{$stay->id} checked out. Rooms sent for cleaning.");
+        $reason = $request->validate(['unpaid_reason' => ['nullable', 'string', 'max:500']])['unpaid_reason'] ?? null;
+
+        // Only a manager or finance can let a guest leave with a balance
+        if ($reason !== null && ! $request->user()->hasAnyRole(['manager', 'finance', 'admin'])) {
+            return back()->with('error', 'Only a manager or finance can check out a guest who still owes money.');
+        }
+
+        return $this->runAction(fn () => $this->bookings->checkOut($stay, $request->user(), $reason), "Stay #{$stay->id} checked out. Rooms sent for cleaning.");
     }
 
     public function cancel(Request $request, Stay $stay): RedirectResponse

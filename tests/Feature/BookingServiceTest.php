@@ -223,7 +223,7 @@ class BookingServiceTest extends TestCase
         $stay = $this->bookings->create($this->booking([$room], 0, 1, ['status' => 'checked_in']), $this->clerk);
         $this->travelTo(today()->addDay()->setTime(10, 0));
 
-        $stay = $this->bookings->checkOut($stay, $this->clerk);
+        $stay = $this->bookings->checkOut($stay, $this->clerk, 'Test: settled elsewhere');
 
         $this->assertSame(StayStatus::CheckedOut, $stay->state);
         $this->assertSame(RoomStatus::Cleaning, $room->fresh()->status);
@@ -236,7 +236,7 @@ class BookingServiceTest extends TestCase
         $stay = $this->bookings->create($this->booking([$room], 0, 5, ['status' => 'checked_in']), $this->clerk);
         $this->travelTo(today()->addDays(2)->setTime(9, 0));
 
-        $stay = $this->bookings->checkOut($stay, $this->clerk);
+        $stay = $this->bookings->checkOut($stay, $this->clerk, 'Test: settled elsewhere');
 
         $this->assertSame(2, $stay->nights);
         $this->assertSame(10000.0, $stay->room_charges);
@@ -272,7 +272,7 @@ class BookingServiceTest extends TestCase
             }
         }
 
-        $stay = $this->bookings->checkOut($stay, $this->clerk);
+        $stay = $this->bookings->checkOut($stay, $this->clerk, 'Test: settled elsewhere');
 
         $this->expectException(BookingException::class);
         $this->bookings->update($stay, $this->booking([$this->room()]), $this->clerk);

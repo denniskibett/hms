@@ -114,7 +114,7 @@ class BillingTest extends TestCase
         $stay = $this->book(0, 5, 'checked_in');
         $this->travelTo(today()->addDays(2)->setTime(10, 0));
 
-        $this->bookings->checkOut($stay, $this->clerk);
+        $this->bookings->checkOut($stay, $this->clerk, 'Test: settled elsewhere');
 
         $this->assertSame('10000.00', $this->invoice($stay)->total);
     }

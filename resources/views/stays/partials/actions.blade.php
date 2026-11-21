@@ -25,15 +25,34 @@
     @endif
 
     @if ($state->canTransitionTo(StayStatus::CheckedOut))
-        <form method="POST" action="{{ route('stays.check-out', $stay) }}"
-              onsubmit="return confirm(@js($stay->departure_date->gt(today())
-                  ? "This guest is leaving early (booked until {$stay->departure_date->toFormattedDateString()}). The stay will be shortened to today. Check out?"
-                  : 'Check out this stay?'))">
-            @csrf
-            <button type="submit" class="{{ $btn }} bg-warning-500 text-white hover:bg-warning-600">
-                <i class="fas fa-sign-out-alt"></i> Check Out
-            </button>
-        </form>
+        @php $owing = app(\App\Services\BookingService::class)->outstandingBalance($stay); @endphp
+        @if ($owing > 0)
+            <span class="{{ $btn }} cursor-not-allowed border border-warning-200 bg-warning-50 text-warning-700" title="Take payment on the folio first">
+                <i class="fas fa-sign-out-alt"></i> Owes {{ SystemHelper::currencyCode() }} {{ number_format($owing, 2) }}
+            </span>
+            @if (auth()->user()->hasAnyRole(['manager', 'finance', 'admin']))
+                <form method="POST" action="{{ route('stays.check-out', $stay) }}" x-data="{ open: false }" class="flex items-center gap-2">
+                    @csrf
+                    <button type="button" x-show="!open" @click="open = true" class="{{ $btn }} border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Check out unpaid…</button>
+                    <template x-if="open">
+                        <span class="flex items-center gap-2">
+                            <input type="text" name="unpaid_reason" required maxlength="500" placeholder="Reason, e.g. company will pay" class="h-10 w-64 rounded-lg border border-gray-300 px-3 text-sm">
+                            <button type="submit" class="{{ $btn }} bg-warning-500 text-white hover:bg-warning-600">Check out</button>
+                        </span>
+                    </template>
+                </form>
+            @endif
+        @else
+            <form method="POST" action="{{ route('stays.check-out', $stay) }}"
+                  onsubmit="return confirm(@js($stay->departure_date->gt(today())
+                      ? "This guest is leaving early (booked until {$stay->departure_date->toFormattedDateString()}). The stay will be shortened to today. Check out?"
+                      : 'Check out this stay?'))">
+                @csrf
+                <button type="submit" class="{{ $btn }} bg-warning-500 text-white hover:bg-warning-600">
+                    <i class="fas fa-sign-out-alt"></i> Check Out
+                </button>
+            </form>
+        @endif
     @endif
 
     @if ($state->isEditable())
