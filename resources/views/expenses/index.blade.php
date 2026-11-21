@@ -61,7 +61,7 @@
         <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="No., description, ref." class="{{ $inputClass }}">
         <div class="flex items-center gap-2">
             <button type="submit" class="h-10 flex-1 rounded-lg bg-primary px-3 text-sm font-medium text-white hover:bg-primary/90">Show</button>
-            <label class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400"><input type="checkbox" name="void" value="1" @checked($filters['void'] ?? false) class="rounded border-gray-300"> Void</label>
+            <label class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400"><input type="checkbox" name="void" value="1" @checked($filters['void'] ?? false) class="rounded-sm border-gray-300"> Void</label>
         </div>
     </form>
 
@@ -102,8 +102,8 @@
                                         <button type="button" @click="voiding = !voiding" class="text-xs text-error-500 hover:underline">Void</button>
                                         <form x-show="voiding" x-cloak method="POST" action="{{ route('expenses.void', $expense) }}" class="mt-2 flex gap-1">
                                             @csrf
-                                            <input type="text" name="reason" required maxlength="255" placeholder="Why?" class="h-8 w-32 rounded border border-gray-300 px-2 text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-                                            <button type="submit" class="rounded bg-error-500 px-2 text-xs text-white">Void</button>
+                                            <input type="text" name="reason" required maxlength="255" placeholder="Why?" class="h-8 w-32 rounded-sm border border-gray-300 px-2 text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+                                            <button type="submit" class="rounded-sm bg-error-500 px-2 text-xs text-white">Void</button>
                                         </form>
                                     @endif
                                 </td>

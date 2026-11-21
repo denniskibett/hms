@@ -19,7 +19,7 @@
             <p class="text-gray-600 dark:text-gray-400">Takings, balances owed and tax for {{ $month }}</p>
         </div>
         <div class="flex gap-3">
-            <a href="{{ route('payments.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03]">
+            <a href="{{ route('payments.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3">
                 <i class="fas fa-cash-register"></i> Today's cash-up
             </a>
             <a href="{{ route('invoices.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-primary/90">

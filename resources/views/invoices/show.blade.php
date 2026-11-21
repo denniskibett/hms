@@ -32,7 +32,7 @@
         </div>
         @if ($frontOffice && $invoice->source_url)
             <a href="{{ $invoice->source_url }}"
-               class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03]">
+               class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3">
                 <i class="fas fa-calendar-check"></i> Open {{ $event ? 'Event' : ($order ? 'Order' : 'Booking') }}
             </a>
         @endif

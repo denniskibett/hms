@@ -46,7 +46,7 @@
                 <i class="fas fa-filter mr-1"></i> Filter
             </button>
             @if (array_filter($filters))
-                <a href="{{ route('invoices.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                <a href="{{ route('invoices.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                     Clear
                 </a>
             @endif

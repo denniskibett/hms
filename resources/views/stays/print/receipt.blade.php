@@ -12,7 +12,7 @@
     <p class="text-sm font-medium">{{ $payment->payment_reference }}</p>
     <p class="text-sm text-gray-500">{{ $payment->received_at?->format('d M Y, H:i') }}</p>
     @if ($payment->status !== 'completed')
-        <p class="mt-1 inline-block rounded bg-error-50 px-2 py-0.5 text-xs font-semibold uppercase text-error-700">Voided</p>
+        <p class="mt-1 inline-block rounded-sm bg-error-50 px-2 py-0.5 text-xs font-semibold uppercase text-error-700">Voided</p>
     @endif
 @endsection
 

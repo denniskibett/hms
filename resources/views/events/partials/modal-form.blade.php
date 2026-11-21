@@ -21,7 +21,7 @@
         'currency' => $currency,
      ]))"
      @open-event-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5">
+    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
         <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
 
         <div class="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-6 lg:p-10 dark:bg-gray-900">
@@ -118,7 +118,7 @@
                                     <option :value="p.id" x-text="`${p.name} – ${money(p.price)}`"></option>
                                 </template>
                             </select>
-                            <button type="button" @click="addLine()" class="h-9 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">+ Other</button>
+                            <button type="button" @click="addLine()" class="h-9 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">+ Other</button>
                         </div>
                     </div>
 
@@ -178,7 +178,7 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-3">
-                    <button type="button" @click="close()" class="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">Cancel</button>
+                    <button type="button" @click="close()" class="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3">Cancel</button>
                     <button type="submit" :disabled="isLoading" :class="{ 'cursor-not-allowed opacity-50': isLoading }"
                             class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-primary/90">
                         <i class="fas fa-spinner fa-spin" x-show="isLoading" x-cloak></i>

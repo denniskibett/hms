@@ -75,7 +75,7 @@
                      class="rounded-2xl border border-gray-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
                     <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
                         <label class="flex items-center gap-2 text-sm font-medium text-gray-800 dark:text-white/90">
-                            <input type="checkbox" name="auto[{{ $key }}]" value="1" @checked(GuestMessage::autoSends($key)) @disabled(! $canEditTemplates) class="rounded border-gray-300">
+                            <input type="checkbox" name="auto[{{ $key }}]" value="1" @checked(GuestMessage::autoSends($key)) @disabled(! $canEditTemplates) class="rounded-sm border-gray-300">
                             {{ $template['label'] }}
                         </label>
                         <span class="text-xs text-gray-500" x-text="`${text.length} characters · ${Math.max(1, Math.ceil(text.length / 153))} SMS`"></span>

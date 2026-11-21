@@ -250,7 +250,7 @@ document.addEventListener('alpine:init', () => {
             const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
 
             const toast = document.createElement('div');
-            toast.className = `custom-toast fixed top-4 right-4 z-[99999] flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-white shadow-lg transition-opacity duration-300 ${colours[type] ?? colours.info}`;
+            toast.className = `custom-toast fixed top-4 right-4 z-99999 flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-white shadow-lg transition-opacity duration-300 ${colours[type] ?? colours.info}`;
             toast.innerHTML = `<i class="fas ${icons[type] ?? icons.info}"></i>`;
             toast.append(document.createTextNode(message));
             document.body.appendChild(toast);

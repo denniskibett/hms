@@ -27,7 +27,7 @@
                 <th class="px-5 py-3 font-medium text-gray-700 dark:text-gray-400"></th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/[0.03]">
+        <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/3">
             @forelse ($stays as $stay)
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                     <td class="whitespace-nowrap px-5 py-3">

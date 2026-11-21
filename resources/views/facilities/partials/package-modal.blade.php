@@ -15,7 +15,7 @@
         'blank' => ['id' => null, 'facility_id' => '', 'name' => '', 'price' => '', 'charge_basis' => 'per_person', 'inclusions' => '', 'is_active' => true],
      ]))"
      @open-package-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5">
+    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
         <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
 
         <div class="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-6 lg:p-10 dark:bg-gray-900">
@@ -61,7 +61,7 @@
                     <textarea x-model="form.inclusions" rows="3" maxlength="2000" class="{{ str_replace('h-11', '', $inputClass) }}" placeholder="e.g. 10 o'clock tea, buffet lunch, 4 o'clock tea, mineral water, stationery"></textarea>
                 </div>
                 <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400">
-                    <input type="checkbox" x-model="form.is_active" class="h-4 w-4 rounded border-gray-300 text-primary">
+                    <input type="checkbox" x-model="form.is_active" class="h-4 w-4 rounded-sm border-gray-300 text-primary">
                     Active (can be sold on new events)
                 </label>
 
@@ -70,7 +70,7 @@
                         <button type="button" x-show="form.id" @click="destroy()" class="text-sm text-error-500 hover:underline">Delete package</button>
                     </div>
                     <div class="flex gap-3">
-                        <button type="button" @click="close()" class="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">Cancel</button>
+                        <button type="button" @click="close()" class="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3">Cancel</button>
                         <button type="submit" :disabled="isLoading" :class="{ 'cursor-not-allowed opacity-50': isLoading }"
                                 class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-primary/90">
                             <i class="fas fa-spinner fa-spin" x-show="isLoading" x-cloak></i>

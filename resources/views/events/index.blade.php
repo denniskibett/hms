@@ -20,7 +20,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('facilities.index') }}"
-               class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+               class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/3">
                 <i class="fas fa-building"></i> Venues &amp; Packages
             </a>
             <button type="button" @click="$dispatch('open-event-form')"
@@ -64,7 +64,7 @@
                 @endforeach
             </select>
             @if (array_filter($filters))
-                <a href="{{ route('events.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Clear</a>
+                <a href="{{ route('events.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">Clear</a>
             @endif
         </div>
     </form>

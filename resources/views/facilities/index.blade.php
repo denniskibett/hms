@@ -25,7 +25,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('events.index') }}"
-               class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+               class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/3">
                 <i class="fas fa-calendar-alt"></i> Events
             </a>
             @if ($isManager)
@@ -119,7 +119,7 @@
             </div>
             @if ($isManager)
                 <button type="button" @click="$dispatch('open-package-form')"
-                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                     <i class="fas fa-plus"></i> New Package
                 </button>
             @endif
@@ -142,7 +142,7 @@
                                 <p class="font-medium text-gray-800 dark:text-white/90">
                                     {{ $package->name }}
                                     @unless ($package->is_active)
-                                        <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">inactive</span>
+                                        <span class="ml-1 rounded-sm bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">inactive</span>
                                     @endunless
                                 </p>
                                 @if ($package->inclusions)

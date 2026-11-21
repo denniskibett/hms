@@ -17,7 +17,7 @@
                     'can_repeat' => true, 'recurrence_pattern' => '', 'recurrence_interval' => 1, 'recurrence_end_date' => ''],
      ]))"
      @open-task-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5">
+    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
         <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
         <form x-data="{ types: @js($types) }" @submit.prevent="submit()" class="relative max-h-[92vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-3xl bg-white p-6 lg:p-8 dark:bg-gray-900">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90" x-text="form.id ? 'Edit Task' : 'New Task'"></h4>
@@ -83,12 +83,12 @@
             </div>
 
             <label x-show="form.room_id" class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                <input type="checkbox" x-model="form.blocks_room" class="h-4 w-4 rounded border-gray-300 text-primary">
+                <input type="checkbox" x-model="form.blocks_room" class="h-4 w-4 rounded-sm border-gray-300 text-primary">
                 Take the room out of service until this is done
             </label>
 
             <!-- Repeat (only on the first task of a series) -->
-            <fieldset x-show="form.can_repeat" class="rounded-lg bg-gray-50 p-4 dark:bg-white/[0.03]">
+            <fieldset x-show="form.can_repeat" class="rounded-lg bg-gray-50 p-4 dark:bg-white/3">
                 <legend class="sr-only">Repeat</legend>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>

@@ -26,7 +26,7 @@
     </ul>
 
     @if ($order->special_instructions)
-        <p class="mt-2 rounded bg-warning-50 px-2 py-1 text-xs text-warning-700 dark:bg-warning-500/10 dark:text-warning-400">
+        <p class="mt-2 rounded-sm bg-warning-50 px-2 py-1 text-xs text-warning-700 dark:bg-warning-500/10 dark:text-warning-400">
             <i class="fas fa-exclamation-circle"></i> {{ $order->special_instructions }}
         </p>
     @endif

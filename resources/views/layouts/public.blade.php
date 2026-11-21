@@ -40,7 +40,7 @@
     </div>
 
     <!-- Header -->
-    <header class="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur">
+    <header class="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
             <a href="{{ route('home') }}" class="flex items-center gap-3">
                 <img src="{{ SystemHelper::logoUrl() }}" alt="{{ SystemHelper::appName() }}" class="h-10 w-auto">

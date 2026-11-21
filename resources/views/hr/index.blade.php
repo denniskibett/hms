@@ -108,7 +108,7 @@
     </div>
 
     <!-- Departments -->
-    <div x-show="departmentsOpen" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5" @keydown.escape.window="departmentsOpen = false"
+    <div x-show="departmentsOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="departmentsOpen = false"
          x-data="{
             name: '', error: '',
             async send(url, method, body = null) {
@@ -119,7 +119,7 @@
                 this.error = data.errors ? Object.values(data.errors)[0][0] : (data.message || 'Something went wrong.');
             },
          }">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="departmentsOpen = false"></div>
+        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="departmentsOpen = false"></div>
         <div class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Departments</h4>
             <ul class="mt-4 divide-y divide-gray-100 text-sm dark:divide-gray-800">

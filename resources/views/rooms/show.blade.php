@@ -29,7 +29,7 @@
         <div class="flex flex-wrap items-center gap-3 print:hidden">
             @if ($canManage)
                 <button type="button" @click="openEditModal(@js($roomJs))"
-                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03]">
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3">
                     <i class="fas fa-edit"></i> Edit
                 </button>
             @endif
@@ -194,14 +194,14 @@
                                 @click="changeStatus(@js($roomJs), @js($status->value))"
                                 :disabled="isLoading"
                                 @disabled($room->status === $status)
-                                class="rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed {{ $room->status === $status ? $status->badgeClasses() . ' ring-2 ring-current' : 'border border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]' }}">
+                                class="rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed {{ $room->status === $status ? $status->badgeClasses() . ' ring-2 ring-current' : 'border border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3' }}">
                             {{ $status->label() }}
                         </button>
                     @endforeach
                 </div>
                 <div class="border-t border-gray-100 px-5 py-4 dark:border-gray-800">
                     <button type="button" onclick="window.print()"
-                            class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                            class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                         <i class="fas fa-print"></i> Print
                     </button>
                 </div>

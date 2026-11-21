@@ -25,7 +25,7 @@
         
         <div class="flex items-center gap-3">
             <button @click="openEditModal()"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-white">
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3 dark:hover:text-white">
                 <i class="fas fa-edit"></i> Edit Room Type
             </button>
             <a href="{{ route('rooms.index', ['room_type_id' => $roomType->id]) }}"
@@ -167,7 +167,7 @@
                                     View Details
                                 </a>
                                 @if($room->currentStay)
-                                <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                                <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-sm">
                                     Occupied
                                 </span>
                                 @endif
@@ -253,7 +253,7 @@
                 <div class="p-5">
                     <div class="space-y-3">
                         <a href="{{ route('rooms.index', ['room_type_id' => $roomType->id, 'create' => 1]) }}"
-                           class="flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-white">
+                           class="flex items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3 dark:hover:text-white">
                             <span class="flex items-center gap-2">
                                 <i class="fas fa-plus-circle"></i>
                                 Add New Room
@@ -262,7 +262,7 @@
                         </a>
                         
                         <button @click="openEditModal()"
-                                class="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-white">
+                                class="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3 dark:hover:text-white">
                             <span class="flex items-center gap-2">
                                 <i class="fas fa-edit"></i>
                                 Edit Room Type
@@ -271,7 +271,7 @@
                         </button>
                         
                         <button @click="duplicateRoomType()"
-                                class="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-white">
+                                class="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3 dark:hover:text-white">
                             <span class="flex items-center gap-2">
                                 <i class="fas fa-copy"></i>
                                 Duplicate Room Type
@@ -280,7 +280,7 @@
                         </button>
                         
                         <button @click="printRoomTypeDetails()"
-                                class="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-white">
+                                class="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3 dark:hover:text-white">
                             <span class="flex items-center gap-2">
                                 <i class="fas fa-print"></i>
                                 Print Details
@@ -565,7 +565,7 @@ function roomTypeShow() {
             
             // Create new toast
             const toast = document.createElement('div');
-            toast.className = `custom-toast fixed top-4 right-4 px-4 py-3 rounded-lg text-white text-sm shadow-lg z-[99999] transition-all duration-300 ${
+            toast.className = `custom-toast fixed top-4 right-4 px-4 py-3 rounded-lg text-white text-sm shadow-lg z-99999 transition-all duration-300 ${
                 type === 'success' ? 'bg-green-500' : 
                 type === 'error' ? 'bg-red-500' : 
                 type === 'warning' ? 'bg-yellow-500' : 

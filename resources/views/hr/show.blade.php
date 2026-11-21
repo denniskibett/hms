@@ -139,8 +139,8 @@
     @if ($staff->is_active)
         @include('hr.partials.leave-modal', ['fixedStaff' => $staff])
 
-        <div x-show="terminateOpen" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5" @keydown.escape.window="terminateOpen = false">
-            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="terminateOpen = false"></div>
+        <div x-show="terminateOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="terminateOpen = false">
+            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="terminateOpen = false"></div>
             <form method="POST" action="{{ route('hr.staff.terminate', $staff) }}" class="relative w-full max-w-md space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
                 @csrf
                 <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">{{ $user->name }} is leaving</h4>

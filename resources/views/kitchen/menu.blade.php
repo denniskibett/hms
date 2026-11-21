@@ -43,7 +43,7 @@
                 <h3 class="text-lg font-medium text-gray-800 dark:text-white/90">
                     {{ $category->name }}
                     @unless ($category->is_active)
-                        <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">hidden</span>
+                        <span class="ml-1 rounded-sm bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">hidden</span>
                     @endunless
                 </h3>
                 <button type="button" @click="$dispatch('open-category-form', @js($category->formData()))" class="text-sm text-gray-500 hover:text-primary"><i class="fas fa-edit"></i> Edit</button>
@@ -55,7 +55,7 @@
                             <p class="font-medium text-gray-800 dark:text-white/90">
                                 {{ $dish->name }}
                                 @unless ($dish->is_active)
-                                    <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">hidden</span>
+                                    <span class="ml-1 rounded-sm bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">hidden</span>
                                 @endunless
                             </p>
                             @if ($dish->description)<p class="text-xs text-gray-500 dark:text-gray-400">{{ $dish->description }}</p>@endif

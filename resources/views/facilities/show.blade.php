@@ -28,7 +28,7 @@
         <div class="flex flex-wrap gap-2">
             @if ($isManager)
                 <button type="button" @click="$dispatch('open-venue-form', @js($facility->formData()))"
-                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/3">
                     <i class="fas fa-edit"></i> Edit Venue
                 </button>
             @endif

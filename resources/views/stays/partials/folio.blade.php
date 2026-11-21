@@ -26,7 +26,7 @@
     $charges = $invoice ? round((float) $invoice->items->sum(fn ($i) => (float) $i->quantity * (float) $i->unit_price), 2) : 0;
     $inputClass = 'h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90';
     $labelClass = 'mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400';
-    $secondaryButton = 'inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]';
+    $secondaryButton = 'inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3';
     // Reopen the dialog that failed validation
     $openDialog = old('amount') !== null ? 'pay' : (old('unit_price') !== null ? 'charge' : (old('discount_amount') !== null ? 'discount' : null));
 @endphp
@@ -77,7 +77,7 @@
                         <td class="px-5 py-2 text-gray-700 dark:text-gray-300">
                             {{ $item->description }}
                             @if ($item->source_type === 'other')
-                                <span class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">extra</span>
+                                <span class="ml-1 rounded-sm bg-gray-100 px-1.5 py-0.5 text-[10px] uppercase text-gray-500 dark:bg-gray-800 dark:text-gray-400">extra</span>
                             @endif
                         </td>
                         <td class="whitespace-nowrap px-5 py-2 text-right text-gray-500 dark:text-gray-400">{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }} × {{ number_format((float) $item->unit_price, 2) }}</td>
@@ -159,8 +159,8 @@
         @endif
 
         <!-- Dialogs -->
-        <div x-show="dialog" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5" @keydown.escape.window="dialog = null">
-            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="dialog = null"></div>
+        <div x-show="dialog" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="dialog = null">
+            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="dialog = null"></div>
 
             @if ($balance > 0)
                 <form x-show="dialog === 'pay'" method="POST" action="{{ route("{$routePrefix}.payments.store", $owner) }}" x-data="{ method: @js(old('method', 'cash')) }"
@@ -196,7 +196,7 @@
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3">
-                        <button type="button" @click="dialog = null" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Cancel</button>
+                        <button type="button" @click="dialog = null" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">Cancel</button>
                         <button type="submit" class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90">Save payment</button>
                     </div>
                 </form>
@@ -236,7 +236,7 @@
                 </div>
 
                 <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" @click="dialog = null" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Cancel</button>
+                    <button type="button" @click="dialog = null" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">Cancel</button>
                     <button type="submit" class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90">Add charge</button>
                 </div>
             </form>
@@ -263,7 +263,7 @@
                     </div>
 
                     <div class="mt-6 flex justify-end gap-3">
-                        <button type="button" @click="dialog = null" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">Cancel</button>
+                        <button type="button" @click="dialog = null" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">Cancel</button>
                         <button type="submit" class="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90">Save discount</button>
                     </div>
                 </form>

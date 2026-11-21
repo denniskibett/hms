@@ -12,7 +12,7 @@
 
 <div x-data="orderForm(@js(['menu' => $menu, 'inHouse' => $inHouse, 'currency' => $currency]))"
      @open-order-form.window="open()" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-3 sm:p-5">
+    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-3 sm:p-5">
         <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
 
         <div class="relative flex max-h-[94vh] w-full max-w-6xl flex-col overflow-hidden rounded-3xl bg-white dark:bg-gray-900">
@@ -115,14 +115,14 @@
                         </div>
 
                         <!-- Billing -->
-                        <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/[0.03]">
+                        <div class="rounded-lg bg-gray-50 p-4 dark:bg-white/3">
                             <label x-show="form.stay_id" class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                <input type="checkbox" x-model="form.charge_to_room" class="h-4 w-4 rounded border-gray-300 text-primary">
+                                <input type="checkbox" x-model="form.charge_to_room" class="h-4 w-4 rounded-sm border-gray-300 text-primary">
                                 Charge to the guest's room (paid at check-out)
                             </label>
                             <div x-show="!form.charge_to_room" class="space-y-3" :class="form.stay_id ? 'mt-3' : ''">
                                 <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                    <input type="checkbox" x-model="payNow" class="h-4 w-4 rounded border-gray-300 text-primary">
+                                    <input type="checkbox" x-model="payNow" class="h-4 w-4 rounded-sm border-gray-300 text-primary">
                                     Paid now
                                 </label>
                                 <div x-show="payNow" class="grid grid-cols-2 gap-3">

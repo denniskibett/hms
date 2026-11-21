@@ -1,6 +1,6 @@
 {{-- Cancel booking dialog. Opened by setting cancelOpen = true in the parent x-data. --}}
-<div x-show="cancelOpen" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5">
-    <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="cancelOpen = false"></div>
+<div x-show="cancelOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5">
+    <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="cancelOpen = false"></div>
 
     <form method="POST" action="{{ route('stays.cancel', $stay) }}"
           class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
@@ -17,7 +17,7 @@
 
         <div class="mt-6 flex justify-end gap-3">
             <button type="button" @click="cancelOpen = false"
-                    class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                    class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                 Keep booking
             </button>
             <button type="submit" class="rounded-lg bg-error-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-error-600">

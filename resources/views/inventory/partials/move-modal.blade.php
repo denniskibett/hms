@@ -28,8 +28,8 @@
         show(detail) { this.item = detail; this.action = detail.action ?? 'out'; this.open = true; },
      }"
      @open-move.window="show($event.detail)" @keydown.escape.window="open = false">
-    <div x-show="open" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="open = false"></div>
+    <div x-show="open" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5">
+        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="open = false"></div>
         <form method="POST" :action="@js(route('inventory.move', ':id')).replace(':id', item.id)" class="relative w-full max-w-md space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
             @csrf
             <input type="hidden" name="item_id" :value="item.id">

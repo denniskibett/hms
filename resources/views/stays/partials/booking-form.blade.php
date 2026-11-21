@@ -64,7 +64,7 @@
                                     @endforeach
                                 </select>
                                 <button type="button" @click="$dispatch('open-guest-form')" title="Register a new guest"
-                                        class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                                        class="inline-flex shrink-0 items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                                     <i class="fas fa-user-plus"></i> New
                                 </button>
                             </div>
@@ -218,7 +218,7 @@
                         {{ $isNew ? 'Save Booking' : 'Save Changes' }}
                     </button>
                     <a href="{{ $isNew ? route('stays.index') : route('stays.show', $stay) }}"
-                       class="w-full rounded-lg border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                       class="w-full rounded-lg border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                         Cancel
                     </a>
                 </div>

@@ -18,7 +18,7 @@
             <!-- Filter Dropdown -->
             <div class="relative" x-data="{ open: false }">
                 <button @click="open = !open" type="button"
-                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03] dark:hover:text-white">
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3 dark:hover:text-white">
                     <i class="fas fa-filter"></i>
                     Filter
                     <i class="fas fa-chevron-down text-xs"></i>
@@ -163,7 +163,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/[0.03]">
+                <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/3">
                     @forelse($roomTypes as $roomType)
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                         <td class="px-5 py-4">
@@ -545,7 +545,7 @@ document.addEventListener('alpine:init', () => {
             
             // Create new toast
             const toast = document.createElement('div');
-            toast.className = `custom-toast fixed top-4 right-4 px-4 py-3 rounded-lg text-white text-sm shadow-lg z-[99999] transition-all duration-300 ${
+            toast.className = `custom-toast fixed top-4 right-4 px-4 py-3 rounded-lg text-white text-sm shadow-lg z-99999 transition-all duration-300 ${
                 type === 'success' ? 'bg-green-500' : 
                 type === 'error' ? 'bg-red-500' : 
                 type === 'warning' ? 'bg-yellow-500' : 

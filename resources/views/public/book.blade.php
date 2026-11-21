@@ -4,7 +4,7 @@
 
 @php
     $money = fn ($v) => SystemHelper::currencySymbol() . ' ' . number_format((float) $v);
-    $field = 'h-12 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-primary focus:outline-none';
+    $field = 'h-12 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-primary focus:outline-hidden';
     $searched = $options !== null;
     $chosen = old('room_type_id', request('room_type_id'));
 @endphp
@@ -14,7 +14,7 @@
     <div class="mx-auto max-w-7xl px-6 py-10">
         <h1 class="text-3xl font-bold text-gray-900">Book a stay</h1>
         <p class="mt-1 text-gray-600">Choose your dates to see what's free. We confirm every request by phone or SMS.</p>
-        <div class="mt-6 rounded-2xl bg-white p-5 shadow-sm">
+        <div class="mt-6 rounded-2xl bg-white p-5 shadow-xs">
             @include('public.partials.search-form', ['search' => $search])
         </div>
         @if ($errors->hasAny(['arrival', 'departure']))
@@ -96,7 +96,7 @@
                 </label>
                 <label class="md:col-span-3">
                     <span class="mb-1 block text-sm font-medium text-gray-700">Anything we should know?</span>
-                    <textarea name="message" rows="3" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-primary focus:outline-none" placeholder="Arrival time, airport pick-up, dietary needs…">{{ old('message') }}</textarea>
+                    <textarea name="message" rows="3" maxlength="2000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-primary focus:outline-hidden" placeholder="Arrival time, airport pick-up, dietary needs…">{{ old('message') }}</textarea>
                 </label>
             </div>
             <div class="mt-5 flex flex-wrap items-center justify-between gap-3">

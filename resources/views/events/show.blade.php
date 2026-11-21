@@ -7,7 +7,7 @@
     $money = fn ($value) => $currency . ' ' . number_format((float) $value, 2);
     $dateFormat = 'D, ' . SystemHelper::dateFormat();
     $status = $event->status;
-    $buttonClass = 'inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]';
+    $buttonClass = 'inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/3';
 @endphp
 
 @section('content')
@@ -135,8 +135,8 @@
     </div>
 
     @if ($status->canTransitionTo(FacilityBookingStatus::Cancelled))
-        <div x-show="cancelOpen" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5" @keydown.escape.window="cancelOpen = false">
-            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="cancelOpen = false"></div>
+        <div x-show="cancelOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="cancelOpen = false">
+            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="cancelOpen = false"></div>
             <form method="POST" action="{{ route('events.status', $event) }}" class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
                 @csrf
                 <input type="hidden" name="status" value="cancelled">

@@ -30,7 +30,7 @@
                @class([
                    'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition',
                    'bg-primary text-white' => $tab === $key,
-                   'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.03]' => $tab !== $key,
+                   'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/3' => $tab !== $key,
                ])>
                 {{ $label }}
                 @if (! is_null($tabCounts[$key]))
@@ -70,7 +70,7 @@
             </button>
             @if ($activeFilters->isNotEmpty())
                 <a href="{{ route('stays.index', $tab === 'all' ? [] : ['tab' => $tab]) }}"
-                   class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                   class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                     Clear
                 </a>
             @endif

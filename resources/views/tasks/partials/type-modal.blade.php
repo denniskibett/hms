@@ -13,8 +13,8 @@
         'blank' => ['id' => null, 'name' => '', 'category' => 'cleaning', 'department_id' => '', 'description' => '', 'checklist' => '', 'default_estimated_minutes' => 30, 'requires_room' => false, 'is_active' => true],
      ]))"
      @open-type-form.window="open()" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="close()"></div>
+    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
+        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="close()"></div>
         <div class="relative grid max-h-[92vh] w-full max-w-3xl grid-cols-1 gap-6 overflow-y-auto rounded-2xl bg-white p-6 md:grid-cols-2 dark:bg-gray-900">
             <div>
                 <h4 class="mb-3 text-lg font-medium text-gray-800 dark:text-white/90">Kinds of job</h4>
@@ -51,9 +51,9 @@
                 <textarea x-model="form.checklist" rows="5" maxlength="3000" placeholder="Checklist, one item per line" class="{{ str_replace('h-10', '', $inputClass) }}"></textarea>
                 <div class="grid grid-cols-2 gap-3">
                     <input type="number" x-model.number="form.default_estimated_minutes" min="1" placeholder="Minutes" class="{{ $inputClass }}">
-                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400"><input type="checkbox" x-model="form.requires_room" class="h-4 w-4 rounded border-gray-300 text-primary"> Needs a room</label>
+                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400"><input type="checkbox" x-model="form.requires_room" class="h-4 w-4 rounded-sm border-gray-300 text-primary"> Needs a room</label>
                 </div>
-                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400"><input type="checkbox" x-model="form.is_active" class="h-4 w-4 rounded border-gray-300 text-primary"> In use</label>
+                <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400"><input type="checkbox" x-model="form.is_active" class="h-4 w-4 rounded-sm border-gray-300 text-primary"> In use</label>
                 <div class="flex items-center justify-between">
                     <button type="button" x-show="form.id" @click="open()" class="text-sm text-gray-500 hover:underline">New instead</button>
                     <div class="ml-auto flex gap-3">

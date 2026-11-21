@@ -21,7 +21,7 @@
             <p class="text-gray-600 dark:text-gray-400">Collections for {{ $period }}</p>
         </div>
         <button type="button" onclick="window.print()"
-                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 print:hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/[0.03]">
+                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 print:hidden dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3">
             <i class="fas fa-print"></i> Print cash-up
         </button>
     </div>
@@ -52,7 +52,7 @@
                 <i class="fas fa-filter mr-1"></i> Filter
             </button>
             @if (array_filter($filters))
-                <a href="{{ route('payments.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                <a href="{{ route('payments.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                     Today
                 </a>
             @endif

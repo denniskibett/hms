@@ -31,7 +31,7 @@
     </div>
 
     <!-- Profile Card -->
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-800 lg:p-6">
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-xs dark:border-gray-800 dark:bg-gray-800 lg:p-6">
         <h3 class="mb-5 text-lg font-semibold lg:mb-7">Profile</h3>
 
         <!-- User Info Section -->

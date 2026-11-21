@@ -111,8 +111,8 @@
     </div>
 
     <!-- Edit a day -->
-    <div x-show="editing" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5" @keydown.escape.window="editing = null">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="editing = null"></div>
+    <div x-show="editing" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="editing = null">
+        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="editing = null"></div>
         <form @submit.prevent="save()" class="relative w-full max-w-md space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90" x-text="title"></h4>
             <p x-show="draft.leave" class="text-sm text-info-600 dark:text-info-400" x-text="'Approved ' + draft.leave + ' leave on this day.'"></p>

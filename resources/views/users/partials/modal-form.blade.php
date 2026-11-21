@@ -25,7 +25,7 @@
         'blank' => ['id' => null, 'name' => '', 'email' => '', 'phone' => '', 'roles' => [], 'status' => 'active', 'password' => ''],
      ]))"
      @open-user-form.window="open($event.detail); form.password = ''" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5">
+    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
         <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
         <form @submit.prevent="submit()" class="relative max-h-[92vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-3xl bg-white p-6 lg:p-8 dark:bg-gray-900">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90" x-text="form.id ? 'Edit Account' : 'New Account'"></h4>
@@ -65,7 +65,7 @@
                     @foreach ($roles as $role)
                         <label class="flex cursor-pointer items-start gap-3 rounded-lg border p-3"
                                :class="form.roles.includes(@js($role)) ? 'border-primary bg-primary/5' : 'border-gray-200 dark:border-gray-700'">
-                            <input type="checkbox" value="{{ $role }}" x-model="form.roles" class="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary">
+                            <input type="checkbox" value="{{ $role }}" x-model="form.roles" class="mt-0.5 h-4 w-4 rounded-sm border-gray-300 text-primary">
                             <span>
                                 <span class="block text-sm font-medium text-gray-800 dark:text-white/90">{{ Str::headline($role) }}</span>
                                 <span class="block text-xs text-gray-500 dark:text-gray-400">{{ $roleHelp[$role] ?? '' }}</span>

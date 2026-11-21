@@ -27,7 +27,7 @@
         <h2 class="mt-2 text-3xl font-bold text-gray-900">Our rooms</h2>
         <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($roomTypes as $i => ['type' => $type, 'from' => $from])
-                <div class="overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+                <div class="overflow-hidden rounded-2xl border border-gray-100 shadow-xs">
                     <img src="{{ asset('twh/img/room/room-' . ($i % 6 + 1) . '.jpg') }}" alt="{{ $type->name }}" class="h-56 w-full object-cover">
                     <div class="p-6">
                         <h3 class="text-xl font-semibold text-gray-900">{{ $type->name }}</h3>
@@ -61,7 +61,7 @@
                     <a href="{{ route('contact') }}" class="mt-6 inline-block rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90">Ask about your event</a>
                 </div>
                 @if ($packages->isNotEmpty())
-                    <ul class="divide-y divide-gray-200 rounded-2xl bg-white p-2 shadow-sm">
+                    <ul class="divide-y divide-gray-200 rounded-2xl bg-white p-2 shadow-xs">
                         @foreach ($packages as $package)
                             <li class="flex items-center justify-between gap-4 px-4 py-4">
                                 <span>

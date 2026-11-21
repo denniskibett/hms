@@ -7,8 +7,8 @@
     $canEmail = (bool) $messageGuest->email;
 @endphp
 
-<div x-show="messageOpen" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5">
-    <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="messageOpen = false"></div>
+<div x-show="messageOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5">
+    <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="messageOpen = false"></div>
 
     <form method="POST" action="{{ route('guest-messages.store') }}"
           x-data="{ body: @js(old('body', '')), email: @js(in_array('email', old('channels', []))) }"
@@ -23,11 +23,11 @@
 
         <div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-700 dark:text-gray-300">
             <label class="flex items-center gap-2 {{ $canSms ? '' : 'opacity-50' }}">
-                <input type="checkbox" name="channels[]" value="sms" @checked($canSms && in_array('sms', old('channels', ['sms']))) @disabled(! $canSms) class="rounded border-gray-300">
+                <input type="checkbox" name="channels[]" value="sms" @checked($canSms && in_array('sms', old('channels', ['sms']))) @disabled(! $canSms) class="rounded-sm border-gray-300">
                 SMS {{ $canSms ? 'to ' . $messageGuest->phone : '(no phone number)' }}
             </label>
             <label class="flex items-center gap-2 {{ $canEmail ? '' : 'opacity-50' }}">
-                <input type="checkbox" name="channels[]" value="email" x-model="email" @disabled(! $canEmail) class="rounded border-gray-300">
+                <input type="checkbox" name="channels[]" value="email" x-model="email" @disabled(! $canEmail) class="rounded-sm border-gray-300">
                 Email {{ $canEmail ? 'to ' . $messageGuest->email : '(no email address)' }}
             </label>
         </div>

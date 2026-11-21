@@ -11,9 +11,9 @@
     <p class="text-sm font-medium">{{ $invoice->invoice_number }}</p>
     <p class="text-sm text-gray-500">Issued {{ $invoice->issue_date?->format('d M Y') }}</p>
     @if ($invoice->status === 'paid')
-        <p class="mt-1 inline-block rounded bg-success-50 px-2 py-0.5 text-xs font-semibold uppercase text-success-700">Paid</p>
+        <p class="mt-1 inline-block rounded-sm bg-success-50 px-2 py-0.5 text-xs font-semibold uppercase text-success-700">Paid</p>
     @elseif ($invoice->status === 'cancelled')
-        <p class="mt-1 inline-block rounded bg-error-50 px-2 py-0.5 text-xs font-semibold uppercase text-error-700">Cancelled</p>
+        <p class="mt-1 inline-block rounded-sm bg-error-50 px-2 py-0.5 text-xs font-semibold uppercase text-error-700">Cancelled</p>
     @endif
 @endsection
 

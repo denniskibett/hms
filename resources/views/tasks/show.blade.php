@@ -210,8 +210,8 @@
     </div>
 
     <!-- Hold / cancel reason -->
-    <div x-show="reason" x-cloak x-transition class="fixed inset-0 z-[99999] flex items-center justify-center p-5" @keydown.escape.window="reason = null">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="reason = null"></div>
+    <div x-show="reason" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="reason = null">
+        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="reason = null"></div>
         <form method="POST" action="{{ route('tasks.status', $task) }}" class="relative w-full max-w-md space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
             @csrf
             <input type="hidden" name="status" :value="reason">

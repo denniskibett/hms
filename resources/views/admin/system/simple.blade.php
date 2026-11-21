@@ -44,7 +44,7 @@ use Illuminate\Support\Facades\Storage;
     </div>
 
     <!-- Main Settings Container -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="bg-white rounded-xl shadow-xs border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <!-- Tab Navigation -->
         <div class="border-b border-gray-200 dark:border-gray-700">
             <div class="flex space-x-1 overflow-x-auto px-4">
@@ -143,7 +143,7 @@ use Illuminate\Support\Facades\Storage;
                         </label>
                         <div class="flex items-center gap-4">
                             @if($system->favicon)
-                                <img src="{{ asset('images/logo/' . basename($system->favicon)) }}" alt="Favicon" class="h-8 w-8 rounded">
+                                <img src="{{ asset('images/logo/' . basename($system->favicon)) }}" alt="Favicon" class="h-8 w-8 rounded-sm">
                             @endif
                             <div class="flex-1">
                                 <input type="file" name="favicon" accept=".png,.ico"
@@ -282,7 +282,7 @@ use Illuminate\Support\Facades\Storage;
                             </div>
                         </div>
                         <div class="mt-4 flex items-center">
-                            <div class="w-10 h-10 rounded mr-3" style="background-color: {{ old('primary_color', $system->primary_color) }}"></div>
+                            <div class="w-10 h-10 rounded-sm mr-3" style="background-color: {{ old('primary_color', $system->primary_color) }}"></div>
                             <span class="text-sm text-gray-600 dark:text-gray-400">Primary Color Preview</span>
                         </div>
                     </div>
@@ -303,7 +303,7 @@ use Illuminate\Support\Facades\Storage;
                             </div>
                         </div>
                         <div class="mt-4 flex items-center">
-                            <div class="w-10 h-10 rounded mr-3" style="background-color: {{ old('secondary_color', $system->secondary_color) }}"></div>
+                            <div class="w-10 h-10 rounded-sm mr-3" style="background-color: {{ old('secondary_color', $system->secondary_color) }}"></div>
                             <span class="text-sm text-gray-600 dark:text-gray-400">Secondary Color Preview</span>
                         </div>
                     </div>

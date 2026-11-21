@@ -520,7 +520,7 @@
                             <p>Get the latest updates and offers.</p>
                             <form action="#" class="fn-form">
                                 <input type="text" placeholder="Email">
-                                <button type="submit"><i class="fa fa-send"></i></button>
+                                <button type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i><span class="sr-only">Subscribe</span></button>
                             </form>
                         </div>
                     </div>

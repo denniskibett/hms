@@ -1,7 +1,7 @@
 {{-- Dates and guests; submits to the booking page. @include('public.partials.search-form', ['search' => [...]?]) --}}
 @php
     $search ??= [];
-    $field = 'h-12 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-primary focus:outline-none';
+    $field = 'h-12 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-primary focus:outline-hidden';
 @endphp
 <form method="GET" action="{{ route('book') }}" x-data="{ arrival: @js($search['arrival'] ?? today()->toDateString()) }"
       class="grid grid-cols-2 gap-3 md:grid-cols-6">

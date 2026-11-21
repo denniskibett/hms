@@ -15,7 +15,7 @@
         'blank' => ['id' => null, 'name' => '', 'code' => '', 'capacity' => 50, 'base_rate' => 0, 'description' => '', 'amenities' => [], 'status' => 'available'],
      ]))"
      @open-venue-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5">
+    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
         <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
 
         <div class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 lg:p-10 dark:bg-gray-900">
@@ -64,7 +64,7 @@
                             <button type="button" @click="form.amenities.includes(@js($amenity)) ? form.amenities.splice(form.amenities.indexOf(@js($amenity)), 1) : form.amenities.push(@js($amenity))"
                                     :class="form.amenities.includes(@js($amenity))
                                         ? 'border-primary bg-primary/10 text-primary'
-                                        : 'border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]'"
+                                        : 'border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/3'"
                                     class="rounded-full border px-3 py-1 text-xs font-medium">{{ $amenity }}</button>
                         @endforeach
                     </div>
@@ -80,7 +80,7 @@
                         <button type="button" x-show="form.id" @click="destroy()" class="text-sm text-error-500 hover:underline">Delete venue</button>
                     </div>
                     <div class="flex gap-3">
-                        <button type="button" @click="close()" class="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">Cancel</button>
+                        <button type="button" @click="close()" class="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3">Cancel</button>
                         <button type="submit" :disabled="isLoading" :class="{ 'cursor-not-allowed opacity-50': isLoading }"
                                 class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-primary/90">
                             <i class="fas fa-spinner fa-spin" x-show="isLoading" x-cloak></i>

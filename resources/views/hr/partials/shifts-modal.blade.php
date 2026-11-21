@@ -13,8 +13,8 @@
         'blank' => ['id' => null, 'name' => '', 'start_time' => '06:00', 'end_time' => '14:00', 'type' => 'morning', 'is_active' => true],
      ]))"
      @open-shift-form.window="open()" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-[99999] flex items-center justify-center p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-sm dark:bg-gray-900/80" @click="close()"></div>
+    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center p-5">
+        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="close()"></div>
         <div class="relative w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Shifts</h4>
 
@@ -43,7 +43,7 @@
                     <input type="time" x-model="form.end_time" required class="{{ $inputClass }}">
                 </div>
                 <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-400">
-                    <input type="checkbox" x-model="form.is_active" class="h-4 w-4 rounded border-gray-300 text-primary"> In use
+                    <input type="checkbox" x-model="form.is_active" class="h-4 w-4 rounded-sm border-gray-300 text-primary"> In use
                 </label>
                 <div class="flex items-center justify-between">
                     <div class="flex gap-3">

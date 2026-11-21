@@ -11,7 +11,7 @@
 @endphp
 
 <div x-data="guestForm" @open-guest-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition class="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto p-5" x-cloak>
+    <div x-show="isOpen" x-transition class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5" x-cloak>
         <div class="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
 
         <div class="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 lg:p-10 dark:bg-gray-900">
@@ -106,7 +106,7 @@
                             <button type="button" @click="toggleTag(tag)" x-text="tag"
                                     :class="form.preferences.tags.includes(tag)
                                         ? 'border-primary bg-primary/10 text-primary'
-                                        : 'border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]'"
+                                        : 'border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/3'"
                                     class="rounded-full border px-3 py-1 text-xs font-medium"></button>
                         </template>
                     </div>
@@ -126,7 +126,7 @@
 
                 <div class="flex items-center justify-end gap-3">
                     <button type="button" @click="close()"
-                            class="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]">
+                            class="rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3">
                         Cancel
                     </button>
                     <button type="submit" :disabled="isLoading" :class="{ 'cursor-not-allowed opacity-50': isLoading }"

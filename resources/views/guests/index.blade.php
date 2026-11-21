@@ -58,7 +58,7 @@
                 <i class="fas fa-search mr-1"></i> Search
             </button>
             @if (array_filter($filters))
-                <a href="{{ route('guests.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+                <a href="{{ route('guests.index') }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/3">
                     Clear
                 </a>
             @endif
@@ -76,7 +76,7 @@
                         @endforeach
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/[0.03]">
+                <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-white/3">
                     @forelse ($guests as $guest)
                         @php $stay = $guest->stays->first(); @endphp
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">

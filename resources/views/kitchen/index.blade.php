@@ -24,7 +24,7 @@
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         @foreach ($columns as [$status, $accent])
             @php $list = $orders->get($status->value, collect()); @endphp
-            <div class="rounded-2xl border-t-4 {{ $accent }} bg-gray-50 p-4 dark:bg-white/[0.02]">
+            <div class="rounded-2xl border-t-4 {{ $accent }} bg-gray-50 p-4 dark:bg-white/2">
                 <div class="mb-3 flex items-center justify-between">
                     <h3 class="font-semibold text-gray-800 dark:text-white/90">{{ $status->label() }}</h3>
                     <span class="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $list->count() }}</span>

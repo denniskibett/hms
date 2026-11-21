@@ -3,7 +3,7 @@
 @section('title', 'Contact')
 
 @php
-    $field = 'h-12 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-primary focus:outline-none';
+    $field = 'h-12 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-primary focus:outline-hidden';
 @endphp
 
 @section('content')
@@ -41,7 +41,7 @@
             </label>
             <label class="block">
                 <span class="mb-1 block text-sm font-medium text-gray-700">Message *</span>
-                <textarea name="message" rows="5" required maxlength="5000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-primary focus:outline-none">{{ old('message') }}</textarea>
+                <textarea name="message" rows="5" required maxlength="5000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-primary focus:outline-hidden">{{ old('message') }}</textarea>
             </label>
         </div>
         <button type="submit" class="mt-5 rounded-lg bg-primary px-8 py-3 font-semibold text-white hover:bg-primary/90">Send message</button>

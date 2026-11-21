@@ -24,7 +24,7 @@
     <p class="text-2xl font-bold uppercase tracking-wide text-primary">Payslip</p>
     <p class="text-sm font-medium">{{ $payroll->period_month->format('F Y') }}</p>
     @if ($payroll->status !== 'paid')
-        <p class="mt-1 inline-block rounded bg-warning-50 px-2 py-0.5 text-xs font-semibold uppercase text-warning-700">{{ $payroll->status_label }}</p>
+        <p class="mt-1 inline-block rounded-sm bg-warning-50 px-2 py-0.5 text-xs font-semibold uppercase text-warning-700">{{ $payroll->status_label }}</p>
     @endif
 @endsection
 
