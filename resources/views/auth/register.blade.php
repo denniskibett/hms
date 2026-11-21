@@ -13,17 +13,8 @@
     @vite([
         'resources/css/app.css',
         'resources/js/app.js',
-        'resources/js/bootstrap.js',
         'resources/js/index.js'
     ])
-
-    <!-- Auto-load all JS components -->
-    @php
-        $components = array_diff(scandir(resource_path('js/components')), array('..', '.'));
-    @endphp
-    @foreach ($components as $component)
-        @vite(['resources/js/components/' . $component])
-    @endforeach
   </head>
   <body
     x-data="{ page: 'comingSoon', 'loaded': true, 'darkMode': false, 'stickyMenu': false, 'sidebarToggle': false, 'scrollTop': false }"
