@@ -16,7 +16,7 @@ use Carbon\CarbonInterface;
 /**
  * Night audit: close a business day.
  *
- *  1. Guests due on or before that day who never checked in become no-shows
+ *  1. Guests due since the last closed day who never checked in become no-shows
  *     (their unpaid invoice is cancelled; anything paid stays for a decision).
  *  2. Guests still in house past their departure date are listed (overstays).
  *  3. The day's figures are kept: rooms sold, occupancy, average room rate
@@ -37,9 +37,13 @@ class NightAudit
             throw new \InvalidArgumentException('A day can only be closed once it has started.');
         }
 
-        // 1. No-shows: should have arrived by this date and never checked in
+        // 1. No-shows: due since the last closed day (or on this day, the first time) and never checked in.
+        //    Older forgotten bookings are left alone; they are a one-off clean-up, not this night's work.
+        $lastClosed = NightAuditRecord::whereDate('business_date', '<', $date)->max('business_date');
+        $from = $lastClosed ? Carbon::parse($lastClosed)->addDay() : $date->copy();
         $noShows = Stay::with('guest')
             ->whereIn('status', [StayStatus::Reserved->value, StayStatus::Booked->value])
+            ->whereDate('arrival_date', '>=', $from)
             ->whereDate('arrival_date', '<=', $date)
             ->get()
             ->map(function (Stay $stay) use ($by) {

@@ -165,6 +165,21 @@ class CompanyAndNightAuditTest extends TestCase
         $this->assertTrue($this->room->fresh()->isAvailableForDates(today(), today()->addDay()));
     }
 
+    public function test_first_night_audit_leaves_older_forgotten_bookings_alone(): void
+    {
+        $old = $this->book([], 0, 1);
+        $this->travel(5)->days();
+
+        app(NightAuditService::class)->run(today());
+        $this->assertSame(StayStatus::Booked, $old->fresh()->state);   // arrived 5 days ago: not tonight's job
+
+        // Once days are being closed, a missed day is caught up
+        $later = $this->book([], 1, 2, Room::factory()->create(['room_type_id' => $this->room->room_type_id]));
+        $this->travel(3)->days();
+        app(NightAuditService::class)->run(today());
+        $this->assertSame(StayStatus::NoShow, $later->fresh()->state);
+    }
+
     public function test_scheduled_run_does_not_overwrite_a_day_closed_by_hand(): void
     {
         $manager = $this->userWithRole('manager');
