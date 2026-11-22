@@ -6,17 +6,13 @@
 @php
 use Illuminate\Support\Facades\Storage;
 @endphp
-<div x-data="{ pageName: 'System Settings' }">
-    @include('partials.breadcrumb', ['pageName' => 'System Settings'])
-</div>
+@include('partials.page-header', ['title' => 'System Settings', 'sub' => 'Manage your application configuration'])
     
 <div class="container mx-auto px-4 py-6">
     <!-- Header with Actions -->
     <div class="mb-8">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">System Settings</h1>
-                <p class="text-gray-600 dark:text-gray-300 mt-2">Manage your application configuration</p>
             </div>
             
             <!-- Action Buttons -->
@@ -136,7 +132,7 @@ use Illuminate\Support\Facades\Storage;
                         </label>
                         <div class="flex items-center gap-4">
                             @if($system->logo)
-                                <img src="{{ asset('images/logo/' . basename($system->logo)) }}" alt="Logo" class="h-12 w-auto rounded-lg">
+                                <img src="{{ SystemHelper::uploadUrl($system->logo, 'images/logo/') }}" alt="Logo" class="h-12 w-auto rounded-lg">
                             @endif
 
                             <div class="flex-1">
@@ -153,7 +149,7 @@ use Illuminate\Support\Facades\Storage;
                         </label>
                         <div class="flex items-center gap-4">
                             @if($system->favicon)
-                                <img src="{{ asset('images/logo/' . basename($system->favicon)) }}" alt="Favicon" class="h-8 w-8 rounded-sm">
+                                <img src="{{ SystemHelper::uploadUrl($system->favicon, 'images/logo/') }}" alt="Favicon" class="h-8 w-8 rounded-sm">
                             @endif
                             <div class="flex-1">
                                 <input type="file" name="favicon" accept=".png,.ico"
@@ -204,7 +200,7 @@ use Illuminate\Support\Facades\Storage;
                         <select name="timezone" required
                                 class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200">
                             @foreach($timezones as $tz)
-                                <option value="{{ $tz }}" {{ old('timezone', $system->timezone) == $tz ? 'selected' : '' }}>{{ $tz }}</option>
+                                <option value="{{ $tz }}" {{ old('timezone', $system->timezone ?: 'Africa/Nairobi') == $tz ? 'selected' : '' }}>{{ $tz }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -253,7 +249,7 @@ use Illuminate\Support\Facades\Storage;
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200">
                                 @foreach($currencies as $code => $details)
                                     <option value="{{ $code }}" data-symbol="{{ $details['symbol'] ?? '' }}"
-                                        {{ old('currency', $system->currency) == $code ? 'selected' : '' }}>
+                                        {{ old('currency', $system->currency ?: 'KES') == $code ? 'selected' : '' }}>
                                         {{ $details['name'] }} ({{ $details['symbol'] ?? $code }})
                                     </option>
                                 @endforeach
@@ -265,7 +261,7 @@ use Illuminate\Support\Facades\Storage;
                                 Currency Symbol *
                             </label>
                             <input type="text" id="currency-symbol" name="currency_symbol" 
-                                value="{{ old('currency_symbol', $system->currency_symbol) }}" required
+                                value="{{ old('currency_symbol', $system->currency_symbol ?: SystemHelper::currencySymbol()) }}" required
                                 class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 text-gray-800 dark:text-gray-200">
                         </div>
                     </div>
@@ -658,14 +654,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const currencySelect = document.getElementById('currency-select');
     const symbolInput = document.getElementById('currency-symbol');
 
+    // A new currency suggests its symbol; the currency list has no symbol for some (KES), so use the code then.
+    // The saved symbol is never blanked on page load (that silently blocked saving the settings).
     currencySelect.addEventListener('change', function () {
         const selectedOption = this.options[this.selectedIndex];
-        const symbol = selectedOption.getAttribute('data-symbol') || '';
-        symbolInput.value = symbol;
+        symbolInput.value = selectedOption.getAttribute('data-symbol') || this.value;
     });
-
-    // Trigger once on page load in case of pre-selected currency
-    currencySelect.dispatchEvent(new Event('change'));
 });
 </script>
 

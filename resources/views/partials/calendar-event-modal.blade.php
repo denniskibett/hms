@@ -1,12 +1,12 @@
 <div
-  class="fixed inset-0 items-center justify-center hidden p-5 overflow-y-auto modal z-99999"
+  class="slideover hidden modal"
   id="eventModal"
 >
   <div
-    class="modal-close-btn fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]"
+    class="modal-close-btn fixed inset-0 modal-overlay"
   ></div>
   <div
-    class="modal-dialog modal-dialog-scrollable modal-lg no-scrollbar relative flex w-full max-w-[700px] flex-col overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-11"
+    class="modal-dialog no-scrollbar slideover-panel slideover-lg flex flex-col"
   >
     <!-- close btn -->
     <button

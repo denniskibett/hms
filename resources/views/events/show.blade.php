@@ -11,9 +11,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: @js($event->title) }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Event'])
 
 <div class="space-y-6" x-data="{ cancelOpen: false }">
     @if (session('receipt_url'))
@@ -135,9 +133,9 @@
     </div>
 
     @if ($status->canTransitionTo(FacilityBookingStatus::Cancelled))
-        <div x-show="cancelOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="cancelOpen = false">
-            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="cancelOpen = false"></div>
-            <form method="POST" action="{{ route('events.status', $event) }}" class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+        <div x-show="cancelOpen" x-cloak x-transition.opacity class="slideover" @keydown.escape.window="cancelOpen = false">
+            <div class="fixed inset-0 modal-overlay" @click="cancelOpen = false"></div>
+            <form method="POST" action="{{ route('events.status', $event) }}" class="slideover-panel">
                 @csrf
                 <input type="hidden" name="status" value="cancelled">
                 <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Cancel {{ $event->reference }}?</h4>

@@ -3,7 +3,7 @@
 @php $money = fn ($v) => SystemHelper::currencySymbol() . ' ' . number_format((float) $v, 2); @endphp
 
 @section('content')
-<div x-data="{ pageName: `Night audit` }">@include('partials.breadcrumb')</div>
+@include('partials.page-header', ['title' => 'Night audit'])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

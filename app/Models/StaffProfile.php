@@ -23,6 +23,16 @@ class StaffProfile extends Model
         'terminated' => 'Left',
     ];
 
+    /** statutory: PAYE, NSSF, SHA and housing levy. stipend: a flat amount with no statutory deductions (casuals, interns). */
+    public const PAY_BASES = ['statutory' => 'Salary with statutory deductions', 'stipend' => 'Stipend (no statutory deductions)'];
+
+    public const PAY_METHODS = ['bank' => 'Bank transfer', 'mpesa' => 'M-Pesa'];
+
+    /** The named allowances and deductions on the staff form; each becomes a line on the payslip. */
+    public const ALLOWANCES = ['house' => 'House allowance', 'transport' => 'Transport', 'other' => 'Other allowance'];
+
+    public const DEDUCTIONS = ['loan' => 'Loan / salary advance', 'sacco' => 'SACCO'];
+
     protected $fillable = [
         'user_id',
         'department_id',
@@ -32,6 +42,12 @@ class StaffProfile extends Model
         'nssf_number',
         'shif_number',
         'salary',
+        'pay_basis',
+        'allowances',
+        'deductions',
+        'insurance_premium',
+        'pay_method',
+        'mpesa_phone',
         'hire_date',
         'end_date',
         'contract_period',
@@ -49,7 +65,32 @@ class StaffProfile extends Model
         'end_date' => 'date',
         'salary' => 'decimal:2',
         'contract_period' => 'integer',
+        'allowances' => 'array',
+        'deductions' => 'array',
+        'insurance_premium' => 'decimal:2',
     ];
+
+    /** @return array<int, array{name: string, amount: float}> allowances above zero */
+    public function allowanceLines(): array
+    {
+        return collect($this->allowances ?? [])->filter(fn ($a) => (float) ($a['amount'] ?? 0) > 0)
+            ->map(fn ($a) => ['name' => (string) $a['name'], 'amount' => round((float) $a['amount'], 2)])->values()->all();
+    }
+
+    /** @return array<int, array{name: string, amount: float}> deductions above zero */
+    public function deductionLines(): array
+    {
+        return collect($this->deductions ?? [])->filter(fn ($d) => (float) ($d['amount'] ?? 0) > 0)
+            ->map(fn ($d) => ['name' => (string) $d['name'], 'amount' => round((float) $d['amount'], 2)])->values()->all();
+    }
+
+    /** One named amount from allowances or deductions (for the form). */
+    public function amountFor(string $list, string $key): float
+    {
+        $label = ($list === 'allowances' ? self::ALLOWANCES : self::DEDUCTIONS)[$key] ?? $key;
+
+        return (float) (collect($this->{$list} ?? [])->firstWhere('name', $label)['amount'] ?? 0);
+    }
 
     public function user()
     {
@@ -156,6 +197,15 @@ class StaffProfile extends Model
             'bank_name' => $this->bank_name ?? '',
             'bank_branch' => $this->bank_branch ?? '',
             'account_number' => $this->account_number ?? '',
+            'pay_basis' => $this->pay_basis ?? 'statutory',
+            'pay_method' => $this->pay_method ?? 'bank',
+            'mpesa_phone' => $this->mpesa_phone ?? '',
+            'insurance_premium' => (float) $this->insurance_premium,
+            'house_allowance' => $this->amountFor('allowances', 'house'),
+            'transport_allowance' => $this->amountFor('allowances', 'transport'),
+            'other_allowance' => $this->amountFor('allowances', 'other'),
+            'loan_deduction' => $this->amountFor('deductions', 'loan'),
+            'sacco_deduction' => $this->amountFor('deductions', 'sacco'),
             'emergency_contact' => array_merge(['name' => '', 'phone' => '', 'relationship' => ''], $this->emergency_contact ?? []),
             'notes' => $this->notes ?? '',
         ];

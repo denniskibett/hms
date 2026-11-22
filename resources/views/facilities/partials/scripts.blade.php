@@ -78,22 +78,33 @@ document.addEventListener('alpine:init', () => {
             this.errors = {};
 
             try {
-                const response = await fetch(url, {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: body ? JSON.stringify(body) : null,
-                });
+                // A chosen file (input[type=file][data-field="name"]) sends the form as multipart instead of JSON
+                const files = [...this.$root.querySelectorAll('input[type=file][data-field]')].filter(i => i.files.length);
+                let payload = body ? JSON.stringify(body) : null;
+                const headers = { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content };
+                if (files.length && body) {
+                    payload = new FormData();
+                    const add = (key, value) => {
+                        if (value === null || value === undefined) return;
+                        if (typeof value === 'boolean') return payload.append(key, value ? '1' : '0');
+                        if (typeof value === 'object') return Object.entries(value).forEach(([k, v]) => add(`${key}[${k}]`, v));
+                        payload.append(key, value);
+                    };
+                    Object.entries(body).forEach(([k, v]) => add(k, v));
+                    files.forEach(i => payload.append(i.dataset.field, i.files[0]));
+                    if (method !== 'POST') { payload.append('_method', method); method = 'POST'; }
+                } else {
+                    headers['Content-Type'] = 'application/json';
+                }
+                const response = await fetch(url, { method, headers, body: payload });
                 const data = await response.json().catch(() => ({}));
 
                 if (response.ok && data.success !== false) {
+                    files.forEach(i => (i.value = ''));
                     window.formDrafts.clear(this.draftKey);
                     this.close();
-                    if (data.url && method !== 'PUT') window.location.href = data.url;
-                    else window.location.reload();
+                    if (data.url && method !== 'PUT') (window.spaVisit ? spaVisit(data.url) : (location.href = data.url));
+                    else (window.hmsRefresh || (() => location.reload()))();
                     return;
                 }
                 if (response.status === 422 && data.errors) this.errors = data.errors;

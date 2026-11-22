@@ -3,12 +3,10 @@
 
 @section('content')
 <!-- Breadcrumb Start -->
-<div x-data="{ pageName: 'The {{ $roomType->name }}' }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Room type'])
 <!-- Breadcrumb End -->
 
-<div class="p-6 space-y-6" x-data="roomTypeShow()">
+<div class="space-y-6" x-data="roomTypeShow()">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -412,7 +410,7 @@ function roomTypeShow() {
                     this.showToast('Room type updated successfully', 'success');
                     this.closeModal();
                     setTimeout(() => {
-                        window.location.reload();
+                        (window.hmsRefresh || (() => location.reload()))();
                     }, 1500);
                 } else {
                     this.showToast(data.message || 'Error updating room type', 'error');
@@ -447,7 +445,7 @@ function roomTypeShow() {
                 if (data.success) {
                     this.showToast('Room type duplicated successfully', 'success');
                     setTimeout(() => {
-                        window.location.href = `/room-types/${data.room_type_id}`;
+                        (window.spaVisit ? spaVisit(`/room-types/${data.room_type_id}`) : (location.href = `/room-types/${data.room_type_id}`));
                     }, 1500);
                 } else {
                     this.showToast(data.message || 'Error duplicating room type', 'error');

@@ -3,19 +3,22 @@
 @php
     $money = fn ($value) => number_format((float) $value, 2);
     $staff = $payroll->staffProfile;
-    $earnings = array_filter([
+    $stipend = ! empty($payroll->breakdown['stipend']);
+    // Named lines (house, transport, loan, SACCO) when the payroll has them; otherwise the totals
+    $allowanceLines = collect($payroll->allowanceLines())->mapWithKeys(fn ($l) => [$l['name'] => $l['amount']])->all();
+    $deductionLines = collect($payroll->deductionLines())->mapWithKeys(fn ($l) => [$l['name'] => $l['amount']])->all();
+    $earnings = array_filter(array_merge([
         'Basic salary' => $payroll->basic_salary,
         'Overtime (' . (float) $payroll->overtime_hours . ' h)' => (float) $payroll->overtime_amount ? $payroll->overtime_amount : null,
-        'Allowances' => (float) $payroll->allowances ? $payroll->allowances : null,
+    ], $allowanceLines ?: ['Allowances' => (float) $payroll->allowances ? $payroll->allowances : null], [
         'Bonus' => (float) $payroll->bonuses ? $payroll->bonuses : null,
-    ], fn ($v) => $v !== null);
-    $deductions = array_filter([
+    ]), fn ($v) => $v !== null);
+    $deductions = array_filter(array_merge($stipend ? [] : [
         'PAYE' => $payroll->paye,
         'NSSF' => $payroll->nssf,
         'SHA (SHIF)' => $payroll->shif,
         'Housing Levy' => $payroll->housing_levy,
-        'Other deductions' => (float) $payroll->other_deductions ? $payroll->other_deductions : null,
-    ], fn ($v) => $v !== null);
+    ], $deductionLines ?: ['Other deductions' => (float) $payroll->other_deductions ? $payroll->other_deductions : null]), fn ($v) => $v !== null);
 @endphp
 
 @section('title', 'Payslip ' . $payroll->user->name . ' ' . $payroll->period_month->format('M Y'))
@@ -27,6 +30,8 @@
         <p class="mt-1 inline-block rounded-sm bg-warning-50 px-2 py-0.5 text-xs font-semibold uppercase text-warning-700">{{ $payroll->status_label }}</p>
     @endif
 @endsection
+
+@section('document-footer', 'Payslip: confidential to the employee named above.')
 
 @section('content')
     <section class="grid grid-cols-2 gap-6 py-6 text-sm">
@@ -73,8 +78,15 @@
     @if ($payroll->notes)
         <p class="mt-4 text-sm text-gray-600">{{ $payroll->notes }}</p>
     @endif
+    @unless ($stipend)
+        <div class="mt-4 grid grid-cols-2 gap-8 text-xs text-gray-600">
+            <p>Taxable pay {{ $money($payroll->breakdown['taxable_pay'] ?? 0) }}; tax before relief {{ $money($payroll->breakdown['tax_before_relief'] ?? 0) }};
+               personal relief {{ $money($payroll->breakdown['personal_relief'] ?? SystemHelper::payroll('personal_relief')) }}@if ((float) $payroll->insurance_relief); insurance relief {{ $money($payroll->insurance_relief) }}@endif.</p>
+            <p class="text-right">Paid by the hotel on top: NSSF {{ $money($payroll->employer_nssf) }}, Housing Levy {{ $money($payroll->employer_housing_levy) }}.</p>
+        </div>
+    @endunless
     <p class="mt-6 text-xs text-gray-500">
-        Personal relief of {{ number_format(SystemHelper::payroll('personal_relief'), 2) }} applied. NSSF, SHA and Housing Levy are deducted before PAYE.
+        {{ $stipend ? 'Stipend: no statutory deductions.' : 'NSSF, SHA and Housing Levy are deducted before PAYE. ' . ($payroll->breakdown['rates_label'] ?? '') }}
         @if ($payroll->paid_at) Paid {{ $payroll->paid_at->format('d M Y') }}. @endif
     </p>
 @endsection

@@ -6,9 +6,7 @@
 @endphp
 
 @section('content')
-    <div x-data="{ pageName: `Rooms` }">
-        @include('partials.breadcrumb')
-    </div>
+    @include('partials.page-header', ['title' => 'Rooms', 'sub' => 'Room inventory, status and availability'])
 
 <div class="space-y-6" x-data="rooms(@js([
     'roomTypes' => $roomTypes,
@@ -19,8 +17,6 @@
     <!-- Header -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Rooms</h2>
-            <p class="text-gray-600 dark:text-gray-400">Room inventory, status and availability</p>
         </div>
 
         @if ($canManage)

@@ -13,9 +13,9 @@
         'blank' => ['id' => null, 'name' => '', 'category' => 'cleaning', 'department_id' => '', 'description' => '', 'checklist' => '', 'default_estimated_minutes' => 30, 'requires_room' => false, 'is_active' => true],
      ]))"
      @open-type-form.window="open()" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="close()"></div>
-        <div class="relative grid max-h-[92vh] w-full max-w-3xl grid-cols-1 gap-6 overflow-y-auto rounded-2xl bg-white p-6 md:grid-cols-2 dark:bg-gray-900">
+    <div x-show="isOpen" x-transition.opacity x-cloak class="slideover">
+        <div class="fixed inset-0 modal-overlay" @click="close()"></div>
+        <div class="slideover-panel slideover-lg grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
                 <h4 class="mb-3 text-lg font-medium text-gray-800 dark:text-white/90">Kinds of job</h4>
                 <ul class="divide-y divide-gray-100 text-sm dark:divide-gray-800">

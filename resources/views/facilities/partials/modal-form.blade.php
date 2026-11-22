@@ -15,10 +15,10 @@
         'blank' => ['id' => null, 'name' => '', 'code' => '', 'capacity' => 50, 'base_rate' => 0, 'description' => '', 'amenities' => [], 'status' => 'available'],
      ]))"
      @open-venue-form.window="open($event.detail)" @keydown.escape.window="close()">
-    <div x-show="isOpen" x-transition x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-5">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] dark:bg-gray-900/80" @click="close()"></div>
+    <div x-show="isOpen" x-transition.opacity x-cloak class="slideover">
+        <div class="fixed inset-0 modal-overlay" @click="close()"></div>
 
-        <div class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 lg:p-10 dark:bg-gray-900">
+        <div class="slideover-panel">
             <button type="button" @click="close()"
                     class="absolute right-3 top-3 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-gray-200 text-gray-500 hover:bg-gray-300 hover:text-gray-700 sm:right-6 sm:top-6 sm:h-11 sm:w-11 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200">
                 <i class="fas fa-times"></i>

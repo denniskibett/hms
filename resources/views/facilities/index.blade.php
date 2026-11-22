@@ -12,16 +12,12 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Facilities` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Facilities', 'sub' => 'Conference venues and the packages sold with them'])
 
 <div class="space-y-6">
     <!-- Header -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Facilities</h2>
-            <p class="text-gray-600 dark:text-gray-400">Conference venues and the packages sold with them</p>
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('events.index') }}"

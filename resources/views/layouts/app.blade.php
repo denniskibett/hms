@@ -29,7 +29,8 @@
     @vite([
         'resources/css/app.css',
         'resources/js/app.js',
-        'resources/js/index.js'
+        'resources/js/index.js',
+        'resources/js/spa.js'
     ])
 
 
@@ -88,10 +89,15 @@
         {{-- Header --}}
         @include('partials.header')
 
-        
+        {{-- Pages change in the background (resources/js/spa.js): a thin bar over the content while one loads. --}}
+        <div id="spa-progress" aria-hidden="true"><i></i></div>
 
-        {{-- Page Content --}}
-        <main class="flex-1 p-6">
+        {{-- Page Content. The page's sections are already captured, so its title is known: the header bar
+             (title + breadcrumb, App\Support\PageHeader) is drawn here for every page but the Dashboard. --}}
+        <main id="app-content" class="flex-1 p-6">
+            @if (\App\Support\PageHeader::shows())
+                @include('partials.page-header-bar')
+            @endif
             @include('partials.flash')
             @yield('content')
         </main>

@@ -159,8 +159,8 @@ class HrTest extends TestCase
         $this->assertSame(300.0, $low['shif']);
         $this->assertSame(0.0, $low['paye']);
 
-        // NSSF stops at the upper limit
-        $this->assertSame(4320.0, Payroll::statutoryDeductions(200000)['nssf']);
+        // NSSF stops at the upper limit: 6% of 108,000 (Year 4, from February 2026)
+        $this->assertSame(6480.0, Payroll::statutoryDeductions(200000)['nssf']);
     }
 
     public function test_payroll_month(): void

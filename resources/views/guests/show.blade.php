@@ -11,13 +11,11 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: @js($guest->name) }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => ($guest->name), 'sub' => 'Guest since ' . ($guest->created_at?->format(SystemHelper::dateFormat()) ?? '—')])
 
 <div class="space-y-6"
      x-data="guestPage(@js(['destroyUrl' => route('guests.destroy', $guest), 'indexUrl' => route('guests.index')]))"
-     x-on:guest-saved.window="window.location.reload()">
+     x-on:guest-saved.window="(window.hmsRefresh || (() => location.reload()))()">
     <!-- Header -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -29,8 +27,6 @@
                     {{ Str::upper(Str::substr($guest->name, 0, 1)) }}
                 </div>
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ $guest->name }}</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Guest since {{ $guest->created_at?->format(SystemHelper::dateFormat()) ?? '—' }}</p>
                 </div>
             </div>
         </div>
@@ -199,7 +195,7 @@ document.addEventListener('alpine:init', () => {
             this.isLoading = false;
 
             if (response.ok && data.success !== false) {
-                window.location.href = config.indexUrl;
+                (window.spaVisit ? spaVisit(config.indexUrl) : (location.href = config.indexUrl));
             } else {
                 alert(data.message || `Request failed (${response.status})`);
             }

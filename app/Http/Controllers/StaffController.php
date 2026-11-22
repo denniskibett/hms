@@ -218,6 +218,15 @@ class StaffController extends Controller
             'bank_name' => ['nullable', 'string', 'max:100'],
             'bank_branch' => ['nullable', 'string', 'max:100'],
             'account_number' => ['nullable', 'string', 'max:50'],
+            'pay_basis' => ['nullable', Rule::in(array_keys(StaffProfile::PAY_BASES))],
+            'pay_method' => ['nullable', Rule::in(array_keys(StaffProfile::PAY_METHODS))],
+            'mpesa_phone' => ['nullable', 'string', 'max:20', 'required_if:pay_method,mpesa'],
+            'insurance_premium' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'house_allowance' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'transport_allowance' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'other_allowance' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'loan_deduction' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'sacco_deduction' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'emergency_contact' => ['nullable', 'array'],
             'emergency_contact.name' => ['nullable', 'string', 'max:255'],
             'emergency_contact.phone' => ['nullable', 'string', 'max:30'],
@@ -225,6 +234,7 @@ class StaffController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ], [
             'kra_pin.regex' => 'A KRA PIN looks like A123456789B.',
+            'mpesa_phone.required_if' => 'Enter the M-Pesa number the salary goes to.',
             'email.required_with' => 'Staff who log in need an email address.',
         ]);
 
@@ -249,6 +259,15 @@ class StaffController extends Controller
                 'bank_name' => $data['bank_name'] ?? null,
                 'bank_branch' => $data['bank_branch'] ?? null,
                 'account_number' => $data['account_number'] ?? null,
+                'pay_basis' => $data['pay_basis'] ?? 'statutory',
+                'pay_method' => $data['pay_method'] ?? 'bank',
+                'mpesa_phone' => $data['mpesa_phone'] ?? null,
+                'insurance_premium' => (float) ($data['insurance_premium'] ?? 0),
+                // Named so each shows as its own line on the payslip (as in Breve)
+                'allowances' => collect(StaffProfile::ALLOWANCES)->map(fn ($label, $key) => ['name' => $label, 'amount' => round((float) ($data[$key . '_allowance'] ?? 0), 2)])
+                    ->filter(fn ($a) => $a['amount'] > 0)->values()->all(),
+                'deductions' => collect(StaffProfile::DEDUCTIONS)->map(fn ($label, $key) => ['name' => $label, 'amount' => round((float) ($data[$key . '_deduction'] ?? 0), 2)])
+                    ->filter(fn ($d) => $d['amount'] > 0)->values()->all(),
                 'emergency_contact' => $emergency ?: null,
                 'notes' => $data['notes'] ?? null,
             ],

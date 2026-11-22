@@ -15,7 +15,7 @@ class SystemHelper
     {
         return Cache::rememberForever('system_settings', function () {
             return System::firstOrCreate([], [
-                'name' => config('app.name', 'Laravel'),
+                'name' => self::defaultName(),
                 'slogan' => 'Your trusted application',
                 'timezone' => config('app.timezone', 'UTC'),
                 'date_format' => 'd-m-Y',
@@ -137,7 +137,17 @@ class SystemHelper
 
     public static function appName()
     {
-        return self::get('name', config('app.name'));
+        $name = self::get('name');
+
+        return $name && $name !== 'Laravel' ? $name : self::defaultName();
+    }
+
+    /** The name a fresh white-label install starts with: APP_NAME, but never the framework's own name. */
+    public static function defaultName(): string
+    {
+        $name = config('app.name');
+
+        return $name && $name !== 'Laravel' ? $name : 'Hotel';
     }
 
     public static function slogan()
@@ -480,10 +490,16 @@ class SystemHelper
             'paye_bands' => [[24000, 10], [32333, 25], [500000, 30], [800000, 32.5], [null, 35]],
             'personal_relief' => 2400,
             'nssf_rate' => 6,
-            'nssf_upper_limit' => 72000,
+            // NSSF Act 2013, Year 4 (from February 2026): 6% employee + 6% employer up to the upper earnings limit
+            'nssf_upper_limit' => 108000,
             'shif_rate' => 2.75,
             'shif_minimum' => 300,
             'housing_levy_rate' => 1.5,
+            // Insurance relief: 15% of life / health insurance premiums, at most 5,000 a month
+            'insurance_relief_rate' => 15,
+            'insurance_relief_cap' => 5000,
+            'rates_label' => 'KRA PAYE bands 2026, SHIF 2.75% (min 300), AHL 1.5% + 1.5%, NSSF Year 4 6% + 6% to 108,000 (Feb 2026)',
+            'rates_checked' => '2026-10-23',
             // Overtime: basic ÷ monthly hours × multiplier per hour
             'monthly_hours' => 195,
             'overtime_multiplier' => 1.5,

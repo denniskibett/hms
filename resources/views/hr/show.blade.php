@@ -9,9 +9,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: @js($user->name) }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Employee', 'crumbs' => ['HR' => route('hr.staff.index')]])
 
 <div class="space-y-6" x-data="{ leaveOpen: @js($errors->has('end_date') && old('reason') !== null), terminateOpen: false }">
     <!-- Header -->
@@ -139,9 +137,9 @@
     @if ($staff->is_active)
         @include('hr.partials.leave-modal', ['fixedStaff' => $staff])
 
-        <div x-show="terminateOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="terminateOpen = false">
-            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="terminateOpen = false"></div>
-            <form method="POST" action="{{ route('hr.staff.terminate', $staff) }}" class="relative w-full max-w-md space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
+        <div x-show="terminateOpen" x-cloak x-transition.opacity class="slideover" @keydown.escape.window="terminateOpen = false">
+            <div class="fixed inset-0 modal-overlay" @click="terminateOpen = false"></div>
+            <form method="POST" action="{{ route('hr.staff.terminate', $staff) }}" class="slideover-panel space-y-4">
                 @csrf
                 <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">{{ $user->name }} is leaving</h4>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Their login is disabled and future shifts are removed. Pay, leave and history are kept.</p>

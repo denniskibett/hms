@@ -7,14 +7,10 @@
 @endphp
 
 @section('content')
-    <div x-data="{ pageName: `Invoices` }">
-        @include('partials.breadcrumb')
-    </div>
+    @include('partials.page-header', ['title' => 'Invoices', 'sub' => 'Every booking\'s invoice. Charges and payments are made on the folio.'])
 
 <div class="space-y-6">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Invoices</h2>
-        <p class="text-gray-600 dark:text-gray-400">Every booking's invoice. Charges and payments are made on the folio.</p>
     </div>
 
     <!-- Totals for the current filters -->

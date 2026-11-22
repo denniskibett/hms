@@ -6,15 +6,11 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Website Requests` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Website Requests', 'sub' => 'Stays asked for on the website. Turn each into a booking or decline it.'])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Website Requests</h2>
-            <p class="text-gray-600 dark:text-gray-400">Stays asked for on the website. Turn each into a booking or decline it.</p>
         </div>
         <a href="{{ route('book') }}" target="_blank" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
             <i class="fas fa-external-link-alt"></i> Booking page

@@ -26,6 +26,17 @@ class Expense extends Model
         'other' => 'Other',
     ];
 
+    /** As in Breve: awaiting approval -> approved -> paid (or rejected). void = entered by mistake. */
+    public const STATUSES = [
+        'pending' => 'Awaiting approval',
+        'approved' => 'Approved, not paid',
+        'paid' => 'Paid',
+        'rejected' => 'Rejected',
+        'void' => 'Void',
+    ];
+
+    public const STATUS_TONES = ['pending' => 'warning', 'approved' => 'info', 'paid' => 'success', 'rejected' => 'error', 'void' => 'gray'];
+
     protected $fillable = [
         'expense_number',
         'spent_on',
@@ -34,18 +45,40 @@ class Expense extends Model
         'amount',
         'method',
         'reference',
+        'receipt_path',
         'supplier_id',
         'purchase_order_id',
         'department_id',
         'status',
         'void_reason',
         'created_by',
+        'approved_by',
+        'approved_at',
+        'paid_at',
     ];
 
     protected $casts = [
         'spent_on' => 'date',
         'amount' => 'decimal:2',
+        'approved_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /** Still to be settled: awaiting approval or approved. */
+    public function scopeOpen(Builder $query): Builder
+    {
+        return $query->whereIn('status', ['pending', 'approved']);
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUSES[$this->status] ?? ucfirst((string) $this->status);
+    }
 
     public function supplier()
     {
@@ -88,6 +121,6 @@ class Expense extends Model
 
     public function getMethodLabelAttribute(): string
     {
-        return Payment::METHODS[$this->method] ?? $this->method;
+        return $this->method ? (Payment::METHODS[$this->method] ?? $this->method) : '—';
     }
 }

@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: @js($company->name) }">@include('partials.breadcrumb')</div>
+@include('partials.page-header', ['title' => 'Company', 'crumbs' => ['Companies' => route('companies.index')]])
 
 <div class="space-y-6" x-data="{ dialog: @js(old('amount') !== null ? 'pay' : ($errors->any() ? 'edit' : null)) }">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -72,10 +72,10 @@
     {{ $invoices->links() }}
 
     @if ($canMoney)
-        <div x-show="dialog" x-cloak class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="dialog = null">
-            <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs" @click="dialog = null"></div>
+        <div x-show="dialog" x-cloak class="slideover" @keydown.escape.window="dialog = null">
+            <div class="fixed inset-0 modal-overlay" @click="dialog = null"></div>
 
-            <form x-show="dialog === 'edit'" method="POST" action="{{ route('companies.update', $company) }}" class="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6">
+            <form x-show="dialog === 'edit'" method="POST" action="{{ route('companies.update', $company) }}" class="slideover-panel">
                 @csrf @method('PUT')
                 <h3 class="mb-4 text-lg font-semibold text-gray-800">Edit {{ $company->name }}</h3>
                 @if ($errors->any() && old('amount') === null)<div class="mb-4 rounded-lg bg-error-50 p-3 text-sm text-error-700">@foreach ($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>@endif

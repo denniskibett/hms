@@ -8,15 +8,11 @@
 @endphp
 
 @section('content')
-    <div x-data="{ pageName: `Finance` }">
-        @include('partials.breadcrumb')
-    </div>
+    @include('partials.page-header', ['title' => 'Finance', 'sub' => 'Takings, balances owed and tax for ' . ($month)])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Finance</h2>
-            <p class="text-gray-600 dark:text-gray-400">Takings, balances owed and tax for {{ $month }}</p>
         </div>
         <div class="flex gap-3">
             <a href="{{ route('payments.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-white/3">
@@ -33,6 +29,13 @@
         @include('partials.stat-card', ['label' => 'Collected This Month', 'value' => $money($stats['collected_month']), 'icon' => 'fa-coins', 'tone' => 'primary', 'href' => route('payments.index', ['from' => now()->startOfMonth()->toDateString(), 'to' => today()->toDateString()])])
         @include('partials.stat-card', ['label' => 'Owed by In-house Guests', 'value' => $money($stats['in_house']), 'icon' => 'fa-bed', 'tone' => 'info'])
         @include('partials.stat-card', ['label' => 'Overdue', 'value' => $money($stats['overdue']), 'icon' => 'fa-exclamation-triangle', 'tone' => 'error', 'href' => route('invoices.index', ['status' => 'overdue'])])
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        @include('partials.stat-card', ['label' => 'Expenses Paid This Month', 'value' => $money($out['expenses']), 'icon' => 'fa-receipt', 'tone' => 'warning', 'href' => route('expenses.index', ['status' => 'paid'])])
+        @include('partials.stat-card', ['label' => 'Payroll Paid This Month', 'value' => $money($out['payroll']), 'icon' => 'fa-money-check-alt', 'tone' => 'info', 'href' => route('hr.payroll.index')])
+        @include('partials.stat-card', ['label' => 'Net Cash This Month', 'value' => $money($out['net']), 'icon' => 'fa-scale-balanced', 'tone' => $out['net'] < 0 ? 'error' : 'success'])
+        @include('partials.stat-card', ['label' => 'Expenses Not Yet Paid', 'value' => $money($out['awaiting']), 'icon' => 'fa-hourglass-half', 'tone' => 'gray', 'href' => route('expenses.index', ['status' => 'approved', 'from' => now()->subYear()->toDateString()])])
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

@@ -7,9 +7,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Suppliers` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Suppliers'])
 
 <div class="space-y-6">
     @include('procurement.partials.header', [

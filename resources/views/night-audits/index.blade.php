@@ -3,13 +3,11 @@
 @php $money = fn ($v) => SystemHelper::currencySymbol() . ' ' . number_format((float) $v, 2); @endphp
 
 @section('content')
-<div x-data="{ pageName: `Night audit` }">@include('partials.breadcrumb')</div>
+@include('partials.page-header', ['title' => 'Night audit', 'sub' => 'Closes each day: marks no-shows, lists overstays and keeps the day\'s figures. Runs by itself at 03:00 for the day before.'])
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800">Night audit</h2>
-            <p class="text-gray-600">Closes each day: marks no-shows, lists overstays and keeps the day's figures. Runs by itself at 03:00 for the day before.</p>
         </div>
         <form method="POST" action="{{ route('night-audits.store') }}" class="flex flex-wrap items-end gap-2"
               onsubmit="return confirm('Close this day? Guests due that day who never checked in will be marked no-show.')">

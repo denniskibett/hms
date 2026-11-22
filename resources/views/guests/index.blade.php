@@ -6,18 +6,14 @@
 @endphp
 
 @section('content')
-    <div x-data="{ pageName: `Guests` }">
-        @include('partials.breadcrumb')
-    </div>
+    @include('partials.page-header', ['title' => 'Guests', 'sub' => 'Guest register, contacts and stay history'])
 
 <div class="space-y-6"
      x-data
-     x-on:guest-saved.window="$event.detail.created ? window.location.href = $event.detail.guest.url : window.location.reload()">
+     x-on:guest-saved.window="$event.detail.created ? (window.spaVisit ? spaVisit($event.detail.guest.url) : (location.href = $event.detail.guest.url)) : (window.hmsRefresh || (() => location.reload()))()">
     <!-- Header -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Guests</h2>
-            <p class="text-gray-600 dark:text-gray-400">Guest register, contacts and stay history</p>
         </div>
 
         <button type="button" @click="$dispatch('open-guest-form')"

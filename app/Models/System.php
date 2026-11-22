@@ -62,7 +62,7 @@ class System extends Model
     public static function settings()
     {
         return self::firstOrCreate([], [
-            'name' => config('app.name', 'Laravel'),
+            'name' => \App\Helpers\SystemHelper::defaultName(),
             'timezone' => config('app.timezone', 'UTC'),
             'date_format' => 'Y-m-d',
             'time_format' => 'H:i:s',

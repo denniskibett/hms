@@ -43,6 +43,10 @@ class Payroll extends Model
         'shif',
         'housing_levy',
         'other_deductions',
+        'insurance_relief',
+        'employer_nssf',
+        'employer_housing_levy',
+        'breakdown',
         'status',
         'notes',
         'approved_by',
@@ -66,6 +70,10 @@ class Payroll extends Model
         'housing_levy' => 'decimal:2',
         'other_deductions' => 'decimal:2',
         'net' => 'decimal:2',
+        'insurance_relief' => 'decimal:2',
+        'employer_nssf' => 'decimal:2',
+        'employer_housing_levy' => 'decimal:2',
+        'breakdown' => 'array',
         'approved_at' => 'datetime',
         'paid_at' => 'datetime',
     ];
@@ -102,15 +110,54 @@ class Payroll extends Model
 
     /**
      * Fill in gross-dependent figures from the editable ones. Call before saving.
+     * A stipend (staff_profiles.pay_basis) has no statutory lines; everyone else gets the Kenyan
+     * deductions, with insurance relief from their insurance premium. Each payslip line is kept in breakdown.
      */
     public function calculate(): static
     {
         $gross = (float) $this->basic_salary + (float) $this->overtime_amount + (float) $this->allowances + (float) $this->bonuses;
-        $deductions = self::statutoryDeductions($gross);
+        $profile = $this->relationLoaded('staffProfile') ? $this->staffProfile : $this->staffProfile()->first();
+        $stipend = ($profile?->pay_basis ?? 'statutory') === 'stipend';
 
-        $this->fill($deductions + ['tax_deductions' => array_sum($deductions)]);
+        $f = $stipend
+            ? ['paye' => 0.0, 'nssf' => 0.0, 'shif' => 0.0, 'housing_levy' => 0.0, 'insurance_relief' => 0.0, 'employer_nssf' => 0.0, 'employer_housing_levy' => 0.0, 'taxable_pay' => 0.0, 'tax_before_relief' => 0.0, 'personal_relief' => 0.0]
+            : self::payslipFigures($gross, (float) ($profile?->insurance_premium ?? 0));
+
+        $breakdown = (array) ($this->breakdown ?? []);
+        $this->fill([
+            'paye' => $f['paye'], 'nssf' => $f['nssf'], 'shif' => $f['shif'], 'housing_levy' => $f['housing_levy'],
+            'tax_deductions' => round($f['paye'] + $f['nssf'] + $f['shif'] + $f['housing_levy'], 2),
+            'insurance_relief' => $f['insurance_relief'],
+            'employer_nssf' => $f['employer_nssf'],
+            'employer_housing_levy' => $f['employer_housing_levy'],
+            'breakdown' => array_merge($breakdown, [
+                'stipend' => $stipend,
+                'taxable_pay' => $f['taxable_pay'],
+                'tax_before_relief' => $f['tax_before_relief'],
+                'personal_relief' => $f['personal_relief'],
+                'rates_label' => $stipend ? 'Stipend: no statutory deductions' : SystemHelper::payroll('rates_label'),
+            ]),
+        ]);
 
         return $this;
+    }
+
+    /** What the hotel pays in all for this payslip: gross plus its own NSSF and housing levy. */
+    public function getEmployerCostAttribute(): float
+    {
+        return round((float) $this->gross + (float) $this->employer_nssf + (float) $this->employer_housing_levy, 2);
+    }
+
+    /** @return array<int, array{name: string, amount: float}> */
+    public function allowanceLines(): array
+    {
+        return array_values($this->breakdown['allowances'] ?? []);
+    }
+
+    /** @return array<int, array{name: string, amount: float}> */
+    public function deductionLines(): array
+    {
+        return array_values($this->breakdown['deductions'] ?? []);
     }
 
     /**
@@ -124,30 +171,41 @@ class Payroll extends Model
     }
 
     /**
-     * Kenyan statutory deductions on a monthly gross.
-     *
-     * - NSSF: rate × pensionable pay up to the upper earnings limit
-     * - SHA (SHIF): rate × gross, with a minimum
-     * - Affordable Housing Levy: rate × gross
-     * - PAYE: banded tax on gross less NSSF, SHIF and the levy (all deductible),
-     *   less personal relief
-     *
-     * Rates come from settings (payroll.*) with the 2025 rates as defaults.
-     * Check them with your accountant / KRA whenever the law changes.
+     * Kenyan statutory deductions on a monthly gross (the legacy four lines).
      *
      * @return array{paye: float, nssf: float, shif: float, housing_levy: float}
      */
-    public static function statutoryDeductions(float $gross): array
+    public static function statutoryDeductions(float $gross, float $insurancePremium = 0): array
     {
+        $f = self::payslipFigures($gross, $insurancePremium);
+
+        return ['paye' => $f['paye'], 'nssf' => $f['nssf'], 'shif' => $f['shif'], 'housing_levy' => $f['housing_levy']];
+    }
+
+    /**
+     * Every Kenyan payslip figure on a monthly gross, worked the same way as Breve (KenyaPayroll):
+     *
+     * - NSSF: rate × pensionable pay up to the upper earnings limit; the employer pays the same again
+     * - SHA (SHIF): rate × gross, with a minimum
+     * - Affordable Housing Levy: rate × gross; the employer pays the same again
+     * - PAYE: banded tax on gross less NSSF, SHIF and the levy (all deductible),
+     *   less personal relief and insurance relief (15% of premiums, capped)
+     *
+     * Rates come from settings (payroll.*) with the 2026 rates as defaults (Breve's config/payroll.php).
+     * Check them with your accountant / KRA whenever the law changes (Kenya's budget is in June).
+     */
+    public static function payslipFigures(float $gross, float $insurancePremium = 0): array
+    {
+        $zero = ['paye' => 0.0, 'nssf' => 0.0, 'shif' => 0.0, 'housing_levy' => 0.0, 'insurance_relief' => 0.0, 'employer_nssf' => 0.0, 'employer_housing_levy' => 0.0, 'taxable_pay' => 0.0, 'tax_before_relief' => 0.0, 'personal_relief' => 0.0];
         if ($gross <= 0) {
-            return ['paye' => 0.0, 'nssf' => 0.0, 'shif' => 0.0, 'housing_levy' => 0.0];
+            return $zero;
         }
 
         $nssf = round(min($gross, SystemHelper::payroll('nssf_upper_limit')) * SystemHelper::payroll('nssf_rate') / 100, 2);
         $shif = round(max($gross * SystemHelper::payroll('shif_rate') / 100, SystemHelper::payroll('shif_minimum')), 2);
         $levy = round($gross * SystemHelper::payroll('housing_levy_rate') / 100, 2);
 
-        $taxable = max($gross - $nssf - $shif - $levy, 0);
+        $taxable = round(max($gross - $nssf - $shif - $levy, 0), 2);
         $tax = 0.0;
         $lower = 0.0;
         foreach (SystemHelper::payroll('paye_bands') as [$upTo, $rate]) {
@@ -157,8 +215,17 @@ class Payroll extends Model
             }
             $lower = $upper;
         }
-        $paye = round(max($tax - SystemHelper::payroll('personal_relief'), 0), 2);
+        $tax = round($tax, 2);
 
-        return ['paye' => $paye, 'nssf' => $nssf, 'shif' => $shif, 'housing_levy' => $levy];
+        $insuranceRelief = round(min(max($insurancePremium, 0) * SystemHelper::payroll('insurance_relief_rate') / 100, SystemHelper::payroll('insurance_relief_cap')), 2);
+        $personal = (float) SystemHelper::payroll('personal_relief');
+        $paye = round(max($tax - $personal - $insuranceRelief, 0), 2);
+
+        return [
+            'paye' => $paye, 'nssf' => $nssf, 'shif' => $shif, 'housing_levy' => $levy,
+            'insurance_relief' => round(min($insuranceRelief, max($tax - $personal, 0)), 2),
+            'employer_nssf' => $nssf, 'employer_housing_levy' => $levy,
+            'taxable_pay' => $taxable, 'tax_before_relief' => $tax, 'personal_relief' => round(min($personal, $tax), 2),
+        ];
     }
 }

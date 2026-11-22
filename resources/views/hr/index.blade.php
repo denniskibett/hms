@@ -7,9 +7,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Staff` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Staff'])
 
 <div class="space-y-6" x-data="{ departmentsOpen: false }">
     @include('hr.partials.header', [
@@ -108,19 +106,19 @@
     </div>
 
     <!-- Departments -->
-    <div x-show="departmentsOpen" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="departmentsOpen = false"
+    <div x-show="departmentsOpen" x-cloak x-transition.opacity class="slideover" @keydown.escape.window="departmentsOpen = false"
          x-data="{
             name: '', error: '',
             async send(url, method, body = null) {
                 this.error = '';
                 const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content }, body: body ? JSON.stringify(body) : null });
                 const data = await r.json().catch(() => ({}));
-                if (r.ok && data.success !== false) return window.location.reload();
+                if (r.ok && data.success !== false) return (window.hmsRefresh || (() => location.reload()))();
                 this.error = data.errors ? Object.values(data.errors)[0][0] : (data.message || 'Something went wrong.');
             },
          }">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="departmentsOpen = false"></div>
-        <div class="relative w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+        <div class="fixed inset-0 modal-overlay" @click="departmentsOpen = false"></div>
+        <div class="slideover-panel">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90">Departments</h4>
             <ul class="mt-4 divide-y divide-gray-100 text-sm dark:divide-gray-800">
                 @foreach ($departments as $department)

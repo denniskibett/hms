@@ -25,9 +25,7 @@
 @endphp
 
 @section('content')
-<div x-data="{ pageName: `Rota` }">
-    @include('partials.breadcrumb')
-</div>
+@include('partials.page-header', ['title' => 'Rota'])
 
 <div class="space-y-6" x-data="rota(@js(['cells' => $cells, 'shifts' => $shiftList, 'palette' => $palette, 'week' => $start->toDateString()]))">
     @include('hr.partials.header', [
@@ -111,9 +109,9 @@
     </div>
 
     <!-- Edit a day -->
-    <div x-show="editing" x-cloak x-transition class="fixed inset-0 z-99999 flex items-center justify-center p-5" @keydown.escape.window="editing = null">
-        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-xs dark:bg-gray-900/80" @click="editing = null"></div>
-        <form @submit.prevent="save()" class="relative w-full max-w-md space-y-4 rounded-2xl bg-white p-6 dark:bg-gray-900">
+    <div x-show="editing" x-cloak x-transition.opacity class="slideover" @keydown.escape.window="editing = null">
+        <div class="fixed inset-0 modal-overlay" @click="editing = null"></div>
+        <form @submit.prevent="save()" class="slideover-panel space-y-4">
             <h4 class="text-lg font-medium text-gray-800 dark:text-white/90" x-text="title"></h4>
             <p x-show="draft.leave" class="text-sm text-info-600 dark:text-info-400" x-text="'Approved ' + draft.leave + ' leave on this day.'"></p>
             <div>
@@ -224,7 +222,7 @@ document.addEventListener('alpine:init', () => {
             if (!confirm('Fill this week\'s empty days with last week\'s shifts?')) return;
             const [response, data] = await this.post(@js(route('hr.rota.copy-week')), { week: config.week });
             alert(data.message || (response.ok ? 'Done' : 'Could not copy'));
-            if (response.ok) window.location.reload();
+            if (response.ok) (window.hmsRefresh || (() => location.reload()))();
         },
     }));
 });

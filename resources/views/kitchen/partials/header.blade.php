@@ -11,8 +11,7 @@
 
 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ $title }}</h2>
-        <p class="text-gray-600 dark:text-gray-400">{{ $subtitle }}</p>
+        @include('partials.page-header', ['title' => $title, 'sub' => $subtitle])
     </div>
     @unless ($hideNewOrder ?? false)
         <button type="button" @click="$dispatch('open-order-form')"
